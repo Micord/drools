@@ -11,7 +11,7 @@
 
   <artifactId>drools-core</artifactId>
   <packaging>bundle</packaging><!-- bundle = jar + OSGi metadata -->
-  <version>6.2.0.Final_cg1</version>
+  <version>6.2.0.Final_cg2</version>
 
   <name>Drools :: Core</name>
 
