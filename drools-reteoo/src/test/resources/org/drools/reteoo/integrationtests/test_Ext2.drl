@@ -1,7 +1,0 @@
-package org.drools.compiler.test;
-
-
-
-declare Student extends Person
-    school : String
-end

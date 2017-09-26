@@ -1,3 +1,0 @@
-package org.drools.games.adventures
-
-dialect "mvel"

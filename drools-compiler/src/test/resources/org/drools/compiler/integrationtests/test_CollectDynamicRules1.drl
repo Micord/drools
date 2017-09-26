@@ -1,4 +1,0 @@
-package org.drools.compiler
-
-global java.util.List results
-

@@ -1,7 +1,0 @@
-package org.drools.compiler.test;
-
-import org.drools.compiler.Cheese;
-
-query "simple query"
-        Cheese(type == "stinky")
-end 

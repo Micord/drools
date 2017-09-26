@@ -1,9 +1,0 @@
-package org.drools.compiler.test;
-
-
-
-declare Person
-    name : String
-    age : int
-end
-
