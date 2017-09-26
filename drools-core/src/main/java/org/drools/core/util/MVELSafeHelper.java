@@ -17,11 +17,15 @@ package org.drools.core.util;
 
 import org.kie.internal.security.KiePolicyHelper;
 import org.mvel2.MVEL;
+import org.mvel2.ParserConfiguration;
+import org.mvel2.ParserContext;
 import org.mvel2.compiler.CompiledExpression;
 import org.mvel2.integration.VariableResolverFactory;
 
+import java.io.Serializable;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
+import java.util.Collections;
 import java.util.Map;
 
 public class MVELSafeHelper {
@@ -418,67 +422,114 @@ public class MVELSafeHelper {
 
         @Override
         public Object eval(final String expression) {
-            return MVEL.eval(expression);
+            return MVELSafeHelper.getEvaluator().executeExpression(
+                compileExpression(expression)
+            );
         }
 
         @Override
         public Object eval(final String expression, final Object ctx) {
-            return MVEL.eval(expression, ctx);
+            return MVELSafeHelper.getEvaluator().executeExpression(
+                compileExpression(expression),
+                ctx
+            );
         }
 
         @Override
         public Object eval(final String expression, final VariableResolverFactory resolverFactory) {
-            return MVEL.eval(expression, resolverFactory);
+            return MVELSafeHelper.getEvaluator().executeExpression(
+                compileExpression(expression),
+                resolverFactory
+            );
         }
 
         @Override
         public Object eval(final String expression, final Object ctx, final VariableResolverFactory resolverFactory) {
-            return MVEL.eval(expression, ctx, resolverFactory);
+            return MVELSafeHelper.getEvaluator().executeExpression(
+                compileExpression(expression),
+                ctx,
+                resolverFactory
+            );
         }
 
         @Override
         public Object eval(final String expression, final Map<String, Object> vars) {
-            return MVEL.eval(expression, vars);
+            return MVELSafeHelper.getEvaluator().executeExpression(
+                compileExpression(expression),
+                vars
+            );
         }
 
         @Override
         public Object eval(final String expression, final Object ctx, final Map<String, Object> vars) {
-            return MVEL.eval(expression, ctx, vars);
+            return MVELSafeHelper.getEvaluator().executeExpression(
+                compileExpression(expression),
+                ctx,
+                vars
+            );
         }
 
         @Override
         public <T> T eval(final String expression, final Class<T> toType) {
-            return MVEL.eval(expression, toType);
+            return MVELSafeHelper.getEvaluator().executeExpression(
+                compileExpression(expression),
+                Collections.emptyMap(),
+                toType
+            );
         }
 
         @Override
         public <T> T eval(final String expression, final Object ctx, final Class<T> toType) {
-            return MVEL.eval(expression, ctx, toType);
+            return MVELSafeHelper.getEvaluator().executeExpression(
+                compileExpression(expression),
+                ctx,
+                toType
+            );
         }
 
         @Override
         public <T> T eval(final String expression, final VariableResolverFactory vars, final Class<T> toType) {
-            return MVEL.eval(expression, vars, toType);
+            return MVELSafeHelper.getEvaluator().executeExpression(
+                compileExpression(expression),
+                vars,
+                toType
+            );
         }
 
         @Override
         public <T> T eval(final String expression, final Map<String, Object> vars, final Class<T> toType) {
-            return MVEL.eval(expression, vars, toType);
+            return MVELSafeHelper.getEvaluator().executeExpression(
+                compileExpression(expression),
+                vars,
+                toType
+            );
         }
 
         @Override
         public <T> T eval(final String expression, final Object ctx, final VariableResolverFactory vars, final Class<T> toType) {
-            return MVEL.eval(expression, ctx, vars, toType);
+            return MVELSafeHelper.getEvaluator().executeExpression(
+                compileExpression(expression),
+                ctx,
+                vars,
+                toType
+            );
         }
 
         @Override
         public <T> T eval(final String expression, final Object ctx, final Map<String, Object> vars, final Class<T> toType) {
-            return MVEL.eval(expression, ctx, vars, toType);
+            return MVELSafeHelper.getEvaluator().executeExpression(
+                compileExpression(expression),
+                ctx,
+                vars,
+                toType
+            );
         }
 
         @Override
         public String evalToString(final String expression) {
-             return MVEL.evalToString(expression);
+            return String.valueOf(MVELSafeHelper.getEvaluator().executeExpression(
+                compileExpression(expression)
+            ));
         }
 
         @Override
@@ -554,6 +605,13 @@ public class MVELSafeHelper {
         @Override
         public void executeExpression(final Iterable<CompiledExpression> compiledExpression, final Object ctx, final VariableResolverFactory vars) {
             MVEL.executeExpression(compiledExpression, ctx, vars);
+        }
+
+        private Serializable compileExpression(String expression) {
+            ParserConfiguration pconf = new ParserConfiguration();
+            pconf.setClassLoader(getClass().getClassLoader());
+            ParserContext context = new ParserContext(pconf);
+            return MVEL.compileExpression(expression, context);
         }
 
     }
