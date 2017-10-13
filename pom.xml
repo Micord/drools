@@ -113,6 +113,48 @@
         <module>drools-distribution</module>
       </modules>
     </profile>
+
+    <profile>
+      <id>doclint-java8-disable</id>
+      <activation>
+        <jdk>[1.8,)</jdk>
+      </activation>
+      <build>
+        <pluginManagement>
+          <plugins>
+            <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-javadoc-plugin</artifactId>
+              <configuration>
+                <additionalparam>-Xdoclint:none</additionalparam>
+              </configuration>
+            </plugin>
+          </plugins>
+        </pluginManagement>
+      </build>
+    </profile>
+    <profile>
+      <id>artifactory</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+        <property>
+          <name>!skipDefault</name>
+        </property>
+      </activation>
+
+      <distributionManagement>
+        <repository>
+          <id>central</id>
+          <name>ASD CG Release repository</name>
+          <url>http://artifactory.cg.ru/artifactory/libs-releases-local</url>
+        </repository>
+        <snapshotRepository>
+          <id>snapshots</id>
+          <name>ASD CG Snapshots repository</name>
+          <url>http://artifactory.cg.ru/artifactory/libs-snapshots-local</url>
+        </snapshotRepository>
+      </distributionManagement>
+    </profile>
   </profiles>
 
 </project>
