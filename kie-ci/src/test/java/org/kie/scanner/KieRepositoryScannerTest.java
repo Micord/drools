@@ -156,7 +156,77 @@ public class KieRepositoryScannerTest extends AbstractKieCiTest {
         KieContainer kieContainer2 = ks.newKieContainer( releaseIdWithDep );
         System.out.println("done in " + (System.nanoTime() - start));
     }
-    
+
+    @Test @Ignore("avoid use external dependency")
+    public void testKScannerWithTransitiveInclusion() throws Exception {
+        String pom = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                "<project xmlns=\"http://maven.apache.org/POM/4.0.0\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n" +
+                "         xsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd\">\n" +
+                "  <modelVersion>4.0.0</modelVersion>\n" +
+                "\n" +
+                "  <groupId>org.kie</groupId>\n" +
+                "  <artifactId>test-with-inc</artifactId>\n" +
+                "  <version>1.0-SNAPSHOT</version>\n" +
+                "  \n" +
+                "        <dependencies>\n" +
+                "            <dependency>\n" +
+                "                <groupId>io.swagger</groupId>\n" +
+                "                <artifactId>swagger-jaxrs</artifactId>\n" +
+                "                <version>1.5.0</version>\n" +
+                "            </dependency>\n" +
+                "        </dependencies>\n" +
+                "</project>";
+
+        KieServices ks = KieServices.Factory.get();
+        ReleaseId releaseIdWithExc = ks.newReleaseId( "org.kie", "test-with-inc", "1.0-SNAPSHOT" );
+        InternalKieModule kJar = createKieJarWithPom( ks, releaseIdWithExc, false, "rule1", pom);
+        KieContainer kieContainer = ks.newKieContainer( releaseIdWithExc );
+
+        try {
+            Class.forName("com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider", true, kieContainer.getClassLoader());
+        } catch (ClassNotFoundException e) {
+            fail("the transitive dependency class should be present");
+        }
+    }
+
+    @Test @Ignore("avoid use external dependency")
+    public void testKScannerWithExclusion() throws Exception {
+        String pom = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                "<project xmlns=\"http://maven.apache.org/POM/4.0.0\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n" +
+                "         xsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd\">\n" +
+                "  <modelVersion>4.0.0</modelVersion>\n" +
+                "\n" +
+                "  <groupId>org.kie</groupId>\n" +
+                "  <artifactId>test-with-exc</artifactId>\n" +
+                "  <version>1.0-SNAPSHOT</version>\n" +
+                "  \n" +
+                "        <dependencies>\n" +
+                "            <dependency>\n" +
+                "                <groupId>io.swagger</groupId>\n" +
+                "                <artifactId>swagger-jaxrs</artifactId>\n" +
+                "                <version>1.5.0</version>\n" +
+                "                <exclusions>\n" +
+                "                    <exclusion>\n" +
+                "                        <groupId>com.fasterxml.jackson.jaxrs</groupId>\n" +
+                "                        <artifactId>*</artifactId>\n" +
+                "                    </exclusion>\n" +
+                "                </exclusions>\n" +
+                "            </dependency>\n" +
+                "        </dependencies>\n" +
+                "</project>";
+
+        KieServices ks = KieServices.Factory.get();
+        ReleaseId releaseIdWithExc = ks.newReleaseId( "org.kie", "test-with-exc", "1.0-SNAPSHOT" );
+        InternalKieModule kJar = createKieJarWithPom( ks, releaseIdWithExc, false, "rule1", pom);
+        KieContainer kieContainer = ks.newKieContainer( releaseIdWithExc );
+
+        try {
+            Class.forName("com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider", true, kieContainer.getClassLoader());
+            fail("the excluded class shouldn't be present");
+        } catch (ClassNotFoundException e) {
+        }
+    }
+
     @Test
     public void testKieScannerScopesNotRequired() throws Exception {
         MavenRepository repository = getMavenRepository();
@@ -554,7 +624,6 @@ public class KieRepositoryScannerTest extends AbstractKieCiTest {
         assertTrue(kieBuilder.buildAll().getResults().getMessages().isEmpty());
         return (InternalKieModule) kieBuilder.getKieModule();
     }
-
 
     @Test
     public void testLoadKieJarFromMavenRepo() throws Exception {
@@ -1111,5 +1180,93 @@ public class KieRepositoryScannerTest extends AbstractKieCiTest {
         KieBuilder kieBuilder = ks.newKieBuilder(kfs);
         assertTrue(kieBuilder.buildAll().getResults().getMessages().isEmpty());
         return (InternalKieModule) kieBuilder.getKieModule();
+    }
+
+    @Test
+    public void testReleaseDowngrade() throws Exception {
+        // DROOLS-1720
+        KieServices ks = KieServices.Factory.get();
+        ReleaseId releaseId1 = ks.newReleaseId("org.kie", "downgrade-test", "1.1");
+        ReleaseId releaseId2 = ks.newReleaseId("org.kie", "downgrade-test", "1.2");
+        ReleaseId kcRelId = ks.newReleaseId("org.kie", "downgrade-test", "[1.0,)");
+
+        final String drl1 =
+                "global java.util.List list; \n" +
+                "rule R1 when then \n" +
+                "    list.add(1);\n" +
+                "end ";
+
+        final String drl2 =
+                "global java.util.List list; \n" +
+                "rule R1 when then \n" +
+                "    list.add(2);\n" +
+                "end ";
+
+        InternalKieModule kJar1 = createKieJarFromDrl(ks, releaseId1, drl1);
+        InternalKieModule kJar2 = createKieJarFromDrl(ks, releaseId2, drl2);
+
+        KieMavenRepository repository = getKieMavenRepository();
+        repository.installArtifact(releaseId1, kJar1, createKPom(fileManager, releaseId1));
+        repository.installArtifact(releaseId2, kJar2, createKPom(fileManager, releaseId2));
+
+        KieContainer kieContainer = ks.newKieContainer(kcRelId);
+        checkKSession(kieContainer.newKieSession("KSession1"), 2);
+
+        kieContainer.updateToVersion( releaseId1 );
+        checkKSession(kieContainer.newKieSession("KSession1"), 1);
+
+        KieScanner kieScanner = ks.newKieScanner( kieContainer );
+        kieScanner.scanNow();
+        checkKSession(kieContainer.newKieSession("KSession1"), 2);
+
+        kieContainer.updateToVersion( releaseId1 );
+        checkKSession(kieContainer.newKieSession("KSession1"), 1);
+
+        kieScanner.scanNow();
+        checkKSession(kieContainer.newKieSession("KSession1"), 2);
+
+        ks.getRepository().removeKieModule(releaseId1);
+        ks.getRepository().removeKieModule(releaseId2);
+    }
+
+    @Test
+    public void testKeepDefaultOnTopLevelProject() throws Exception {
+        // DROOLS-1740
+        KieMavenRepository repository = getKieMavenRepository();
+        KieServices ks = KieServices.get();
+
+        ReleaseId depReleaseId = ks.newReleaseId( "org.kie", "test-dep", "1.0.0-SNAPSHOT" );
+        KieFileSystem kfs1 = ks.newKieFileSystem();
+        KieModuleModel kproj1 = ks.newKieModuleModel();
+        kproj1.newKieBaseModel("KBase1").setDefault( true ).newKieSessionModel("KSession1").setDefault( true );
+        kfs1.writeKModuleXML(kproj1.toXML());
+        kfs1.writePomXML(getPom(depReleaseId));
+        kfs1.write("src/main/resources/org/test/rule1.drl", createDRL("rule1"));
+
+        KieBuilder kieBuilder1 = ks.newKieBuilder(kfs1);
+        assertTrue(kieBuilder1.buildAll().getResults().getMessages().isEmpty());
+        InternalKieModule kJar1 = (InternalKieModule) kieBuilder1.getKieModule();
+        repository.installArtifact(depReleaseId, kJar1, createKPom(fileManager, depReleaseId));
+
+        ReleaseId topReleaseId = KieServices.Factory.get().newReleaseId( "org.kie", "test-top", "1.0.0-SNAPSHOT" );
+        KieFileSystem kfs2 = ks.newKieFileSystem();
+        KieModuleModel kproj2 = ks.newKieModuleModel();
+        kproj2.newKieBaseModel("KBase2").setDefault( true ).newKieSessionModel("KSession2").setDefault( true );
+        kfs2.writeKModuleXML(kproj2.toXML());
+        kfs2.writePomXML(getPom(topReleaseId, depReleaseId));
+        kfs2.write("src/main/resources/org/test/rule2.drl", createDRL("rule2"));
+
+        KieBuilder kieBuilder2 = ks.newKieBuilder(kfs2);
+        assertTrue(kieBuilder2.buildAll().getResults().getMessages().isEmpty());
+        InternalKieModule kJar2 = (InternalKieModule) kieBuilder2.getKieModule();
+        repository.installArtifact(topReleaseId, kJar2, createKPom(fileManager, topReleaseId, depReleaseId));
+
+        KieContainer kieContainer = ks.newKieContainer(topReleaseId);
+        KieSession ksession = kieContainer.newKieSession();
+        checkKSession(ksession, "rule2");
+
+        kieContainer = ks.newKieContainer(depReleaseId);
+        ksession = kieContainer.newKieSession();
+        checkKSession(ksession, "rule1");
     }
 }

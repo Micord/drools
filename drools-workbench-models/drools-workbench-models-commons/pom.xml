@@ -6,7 +6,7 @@
   <parent>
     <groupId>org.drools</groupId>
     <artifactId>drools-workbench-models</artifactId>
-    <version>7.3.0.Final</version>
+    <version>7.5.0.Final</version>
   </parent>
 
   <artifactId>drools-workbench-models-commons</artifactId>
@@ -16,17 +16,33 @@
   <description>Drools Workbench - Common Model</description>
 
   <properties>
-    <osgi.Bundle-SymbolicName>org.drools.workbench.models.commons</osgi.Bundle-SymbolicName>
+    <java.module.name>org.drools.workbench.models.commons</java.module.name>
   </properties>
 
   <dependencies>
 
     <!-- Internal dependencies -->
     <dependency>
+      <groupId>org.uberfire</groupId>
+      <artifactId>uberfire-commons</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.kie.soup</groupId>
+      <artifactId>kie-soup-commons</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.drools</groupId>
       <artifactId>drools-compiler</artifactId>
     </dependency>
 
+    <dependency>
+      <groupId>org.kie.soup</groupId>
+      <artifactId>kie-soup-project-datamodel-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.kie.soup</groupId>
+      <artifactId>kie-soup-project-datamodel-commons</artifactId>
+    </dependency>
     <dependency>
       <groupId>org.drools</groupId>
       <artifactId>drools-workbench-models-datamodel-api</artifactId>

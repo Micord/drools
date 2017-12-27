@@ -6,7 +6,7 @@
   <parent>
     <groupId>org.drools</groupId>
     <artifactId>drools</artifactId>
-    <version>7.3.0.Final</version>
+    <version>7.5.0.Final</version>
   </parent>
 
   <artifactId>drools-compiler</artifactId>
@@ -15,7 +15,7 @@
   <name>Drools :: Compiler</name>
 
   <properties>
-    <osgi.Bundle-SymbolicName>org.drools.compiler</osgi.Bundle-SymbolicName>
+    <java.module.name>org.drools.compiler</java.module.name>
     <excludedGroups>org.drools.compiler.TurtleTestCategory</excludedGroups>
     <surefire.forkCount>2</surefire.forkCount>
   </properties>
@@ -42,8 +42,16 @@
     </dependency>
     <!-- External dependencies -->
     <dependency>
-      <groupId>org.uberfire</groupId>
-      <artifactId>uberfire-maven-support</artifactId>
+      <groupId>org.kie.soup</groupId>
+      <artifactId>kie-soup-maven-support</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.kie.soup</groupId>
+      <artifactId>kie-soup-commons</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.kie.soup</groupId>
+      <artifactId>kie-soup-project-datamodel-commons</artifactId>
     </dependency>
     <dependency>
       <groupId>org.osgi</groupId>

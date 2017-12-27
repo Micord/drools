@@ -16,40 +16,59 @@
 
 package org.kie.dmn.core.compiler;
 
+import java.io.IOException;
+import java.io.Reader;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Map;
+
+import javax.xml.XMLConstants;
+import javax.xml.namespace.QName;
+
 import org.kie.api.io.Resource;
 import org.kie.dmn.api.core.DMNCompiler;
+import org.kie.dmn.api.core.DMNCompilerConfiguration;
 import org.kie.dmn.api.core.DMNMessage;
 import org.kie.dmn.api.core.DMNModel;
 import org.kie.dmn.api.core.DMNType;
-import org.kie.dmn.api.core.*;
 import org.kie.dmn.api.core.ast.BusinessKnowledgeModelNode;
 import org.kie.dmn.api.core.ast.DMNNode;
 import org.kie.dmn.api.core.ast.DecisionNode;
 import org.kie.dmn.api.core.ast.InputDataNode;
 import org.kie.dmn.api.marshalling.v1_1.DMNExtensionRegister;
 import org.kie.dmn.backend.marshalling.v1_1.DMNMarshallerFactory;
-import org.kie.dmn.core.ast.*;
+import org.kie.dmn.core.api.DMNFactory;
+import org.kie.dmn.core.ast.BusinessKnowledgeModelNodeImpl;
+import org.kie.dmn.core.ast.DMNBaseNode;
+import org.kie.dmn.core.ast.DecisionNodeImpl;
+import org.kie.dmn.core.ast.ItemDefNodeImpl;
 import org.kie.dmn.core.impl.BaseDMNTypeImpl;
 import org.kie.dmn.core.impl.CompositeTypeImpl;
 import org.kie.dmn.core.impl.DMNModelImpl;
-import org.kie.dmn.feel.lang.types.BuiltInType;
-import org.kie.dmn.feel.runtime.UnaryTest;
 import org.kie.dmn.core.util.Msg;
 import org.kie.dmn.core.util.MsgUtil;
-import org.kie.dmn.model.v1_1.*;
+import org.kie.dmn.feel.lang.types.BuiltInType;
+import org.kie.dmn.feel.runtime.FEELFunction;
+import org.kie.dmn.feel.runtime.UnaryTest;
+import org.kie.dmn.model.v1_1.DMNElementReference;
+import org.kie.dmn.model.v1_1.DMNModelInstrumentedBase;
+import org.kie.dmn.model.v1_1.DRGElement;
+import org.kie.dmn.model.v1_1.Decision;
+import org.kie.dmn.model.v1_1.DecisionTable;
+import org.kie.dmn.model.v1_1.Definitions;
+import org.kie.dmn.model.v1_1.InformationRequirement;
+import org.kie.dmn.model.v1_1.ItemDefinition;
+import org.kie.dmn.model.v1_1.KnowledgeRequirement;
+import org.kie.dmn.model.v1_1.NamedElement;
+import org.kie.dmn.model.v1_1.OutputClause;
+import org.kie.dmn.model.v1_1.UnaryTests;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.xml.XMLConstants;
-import javax.xml.namespace.QName;
-import java.io.IOException;
-import java.io.Reader;
-import java.util.Collections;
-import java.util.Deque;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.ListIterator;
-
 
 public class DMNCompilerImpl
         implements DMNCompiler {
@@ -67,8 +86,7 @@ public class DMNCompilerImpl
     }
 
     public DMNCompilerImpl() {
-        this.feel = new DMNFEELHelper();
-        this.evaluatorCompiler = new DMNEvaluatorCompiler( this, feel );
+        this(DMNFactory.newCompilerConfiguration());
     }
 
     public DMNCompilerImpl(DMNCompilerConfiguration dmnCompilerConfig) {
@@ -87,12 +105,20 @@ public class DMNCompilerImpl
         }
     }
 
+    public void registerFEELFunctions(Collection<FEELFunction> feelFunctions) {
+        this.feel.registerFEELFunctions(feelFunctions);
+    }
+
     @Override
     public DMNModel compile(Resource resource) {
         try {
             DMNModel model = compile( resource.getReader() );
-            ((DMNModelImpl)model).setResource( resource );
-            return model;
+            if (model == null) {
+                return null;
+            } else {
+                ((DMNModelImpl) model).setResource(resource);
+                return model;
+            }
         } catch ( IOException e ) {
             logger.error( "Error retrieving reader for resource: " + resource.getSourcePath(), e );
         }
@@ -121,6 +147,7 @@ public class DMNCompilerImpl
         DMNModelImpl model = null;
         if ( dmndefs != null ) {
             model = new DMNModelImpl( dmndefs );
+            model.setRuntimeTypeCheck( ((DMNCompilerConfigurationImpl) dmnCompilerConfig).getOption(RuntimeTypeCheckOption.class).isRuntimeTypeCheck() );
             DMNCompilerContext ctx = new DMNCompilerContext();
 
             processItemDefinitions( ctx, feel, model, dmndefs );
@@ -199,7 +226,42 @@ public class DMNCompilerImpl
                 }
             }
         }
+        detectCycles( model );
     }
+
+    private void detectCycles( DMNModelImpl model ) {
+        /*
+        Boolean.TRUE = node is either safe or already reported for having a cyclic dependency
+        Boolean.FALSE = node is being checked at the moment
+         */
+        final Map<DecisionNodeImpl, Boolean> registry = new HashMap<>();
+        for ( DecisionNode decision : model.getDecisions() ) {
+            final DecisionNodeImpl decisionNode = (DecisionNodeImpl) decision;
+            detectCycles( decisionNode, registry, model );
+        }
+    }
+
+    private void detectCycles( DecisionNodeImpl node, Map<DecisionNodeImpl, Boolean> registry, DMNModelImpl model ) {
+        if ( Boolean.TRUE.equals(registry.get( node ) ) ) return;
+        if ( Boolean.FALSE.equals( registry.put( node, Boolean.FALSE ) ) ) {
+            MsgUtil.reportMessage( logger,
+                                   DMNMessage.Severity.ERROR,
+                                   node.getSource(),
+                                   model,
+                                   null,
+                                   null,
+                                   Msg.CYCLIC_DEP_FOR_NODE,
+                                   node.getName() );
+            registry.put( node, Boolean.TRUE );
+        }
+        for ( DMNNode dependency : node.getDependencies().values() ) {
+            if ( dependency instanceof DecisionNodeImpl ) {
+                detectCycles( (DecisionNodeImpl) dependency, registry, model );
+            }
+        }
+        registry.put( node, Boolean.TRUE );
+    }
+
 
     public void linkRequirements(DMNModelImpl model, DMNBaseNode node) {
         for ( InformationRequirement ir : node.getInformationRequirement() ) {

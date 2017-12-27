@@ -25,11 +25,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.StringTokenizer;
 
-import org.drools.workbench.models.commons.backend.imports.ImportsWriter;
-import org.drools.workbench.models.commons.backend.packages.PackageNameWriter;
 import org.drools.workbench.models.commons.backend.rule.RuleModelIActionPersistenceExtension;
-import org.drools.workbench.models.datamodel.oracle.DataType;
-import org.drools.workbench.models.datamodel.oracle.OperatorsOracle;
 import org.drools.workbench.models.datamodel.rule.ActionExecuteWorkItem;
 import org.drools.workbench.models.datamodel.rule.ActionFieldList;
 import org.drools.workbench.models.datamodel.rule.ActionFieldValue;
@@ -81,6 +77,10 @@ import org.drools.workbench.models.guided.dtable.shared.model.LimitedEntryBRLCon
 import org.drools.workbench.models.guided.dtable.shared.model.LimitedEntryCol;
 import org.drools.workbench.models.guided.dtable.shared.model.MetadataCol52;
 import org.drools.workbench.models.guided.dtable.shared.model.Pattern52;
+import org.kie.soup.project.datamodel.commons.imports.ImportsWriter;
+import org.kie.soup.project.datamodel.commons.packages.PackageNameWriter;
+import org.kie.soup.project.datamodel.oracle.DataType;
+import org.kie.soup.project.datamodel.oracle.OperatorsOracle;
 
 /**
  * This takes care of converting GuidedDT object to DRL (via the RuleModel).
@@ -962,7 +962,8 @@ public class GuidedDTDRLPersistence {
                 }
             }
         }
-        if (c.getConstraintValueType() == BaseSingleFieldConstraint.TYPE_LITERAL && c.isBound()) {
+        final int constraintValueType = c.getConstraintValueType();
+        if ((constraintValueType == BaseSingleFieldConstraint.TYPE_LITERAL || constraintValueType == BaseSingleFieldConstraint.TYPE_RET_VALUE) && c.isBound()) {
             sfc.setFieldBinding(c.getBinding());
         }
         sfc.setParameters(c.getParameters());

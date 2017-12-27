@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.drools</groupId>
     <artifactId>drools</artifactId>
-    <version>7.3.0.Final</version>
+    <version>7.5.0.Final</version>
   </parent>
 
   <groupId>org.kie</groupId>
@@ -13,6 +13,10 @@
 
   <name>KIE :: Test Utility Classes</name>
   <!-- IMPORTANT! This module should only be added as a "test" scoped dependency. -->
+
+  <properties>
+    <java.module.name>org.kie.testutil</java.module.name>
+  </properties>
 
   <dependencies>
     <!-- IMPORTANT! Do not add any drools/jbpm/kie dependencies here. -->
@@ -35,12 +39,15 @@
     <dependency>
       <groupId>org.jboss.spec.javax.transaction</groupId>
       <artifactId>jboss-transaction-api_1.2_spec</artifactId>
-      <optional>true</optional>
     </dependency>
     <dependency>
-      <groupId>org.codehaus.btm</groupId>
-      <artifactId>btm</artifactId>
-      <optional>true</optional>
+      <groupId>org.jboss.narayana.jta</groupId>
+      <artifactId>narayana-jta</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>simple-jndi</groupId>
+      <artifactId>simple-jndi</artifactId>
+      <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>com.h2database</groupId>

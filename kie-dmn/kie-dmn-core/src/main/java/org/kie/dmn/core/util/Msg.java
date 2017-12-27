@@ -2,12 +2,13 @@ package org.kie.dmn.core.util;
 
 import org.kie.dmn.api.core.DMNMessageType;
 
-public class Msg {
+public final class Msg {
     // consolidated
     public static final Message2 UNSUPPORTED_ELEMENT                                 = new Message2( DMNMessageType.UNSUPPORTED_ELEMENT, "Element %s with type='%s' is not supported." );
     public static final Message2 REQ_INPUT_NOT_FOUND_FOR_NODE                        = new Message2( DMNMessageType.REQ_NOT_FOUND, "Required input '%s' not found on node '%s'" );
     public static final Message2 REQ_DECISION_NOT_FOUND_FOR_NODE                     = new Message2( DMNMessageType.REQ_NOT_FOUND, "Required Decision '%s' not found on node '%s'" );
     public static final Message2 REQ_BKM_NOT_FOUND_FOR_NODE                          = new Message2( DMNMessageType.REQ_NOT_FOUND, "Required Business Knowledge Model '%s' not found on node '%s'" );
+    public static final Message1 CYCLIC_DEP_FOR_NODE                                 = new Message1( DMNMessageType.REQ_NOT_FOUND, "Cyclic dependency detected for node '%s'");
     public static final Message2 REQ_DEP_NOT_FOUND_FOR_NODE                          = new Message2( DMNMessageType.REQ_NOT_FOUND, "Required dependency '%s' not found on node '%s'" );
     public static final Message2 REQ_DEP_INVALID_TYPE                                = new Message2( DMNMessageType.REQ_NOT_FOUND, "Required dependency '%s' on node '%s' does not match the node type" );
     public static final Message2 UNABLE_TO_EVALUATE_DECISION_REQ_DEP                 = new Message2( DMNMessageType.REQ_NOT_FOUND, "Unable to evaluate decision '%s' as it depends on decision '%s'" );
@@ -41,7 +42,7 @@ public class Msg {
     public static final Message1 DUPLICATE_DRG_ELEMENT                               = new Message1( DMNMessageType.DUPLICATE_NAME, "Duplicate node name '%s' in the model" );
     public static final Message1 MISSING_NAME_FOR_DT_OUTPUT                          = new Message1( DMNMessageType.MISSING_NAME, "Decision table with multiple outputs on node '%s' requires a name for each output" );
     public static final Message1 MISSING_TYPEREF_FOR_DT_OUTPUT                       = new Message1( DMNMessageType.MISSING_TYPE_REF, "Decision table with multiple outputs on node '%s' requires a type reference for each output" );
-    public static final Message1 MISSING_OUTPUT_VALUES                               = new Message1( DMNMessageType.MISSING_OUTPUT_VALUES, "Decision table with hit policy Priority on node '%s' requires output elements to specify the output values list" );
+    public static final Message1 MISSING_OUTPUT_VALUES                               = new Message1( DMNMessageType.MISSING_OUTPUT_VALUES, "Decision table '%s' with hit policy Priority requires output elements to specify the output values list" );
     public static final Message1 DTABLE_SINGLEOUT_NONAME                             = new Message1( DMNMessageType.ILLEGAL_USE_OF_NAME, "Decision table with single output on node '%s' should not have output name" );
     public static final Message1 DTABLE_SINGLEOUT_NOTYPEREF                          = new Message1( DMNMessageType.ILLEGAL_USE_OF_TYPEREF, "Decision table with single output on node '%s' should not have an output type reference" );
     public static final Message3 DTABLE_EMPTY_ENTRY                                  = new Message3( DMNMessageType.MISSING_EXPRESSION, "Missing test on decision table input entry (row %d, column %d) on node '%s'" );
@@ -56,7 +57,7 @@ public class Msg {
     public static final Message2 RELATION_CELL_COUNT_MISMATCH                        = new Message2( DMNMessageType.RELATION_CELL_COUNT_MISMATCH, "Relation row '%d' contains the wrong number of cells on node '%s'" );
     public static final Message2 ERROR_EVAL_BKM_NODE                                 = new Message2( DMNMessageType.ERROR_EVAL_NODE, "Error evaluating Business Knowledge Model node '%s': %s" );
     public static final Message2 ERROR_EVAL_DECISION_NODE                            = new Message2( DMNMessageType.ERROR_EVAL_NODE, "Error evaluating Decision node '%s': %s" );
-    public static final Message3 ERROR_EVAL_NODE_DEP_WRONG_TYPE                      = new Message3( DMNMessageType.ERROR_EVAL_NODE, "Error while evaluating node '%s' for dependency '%s': the dependency value '%s' is not allowed by the declared type" );
+    public static final Message4 ERROR_EVAL_NODE_DEP_WRONG_TYPE                      = new Message4( DMNMessageType.ERROR_EVAL_NODE, "Error while evaluating node '%s' for dependency '%s': the dependency value '%s' is not allowed by the declared type (%s)" );
     public static final Message3 ERROR_EVAL_NODE_RESULT_WRONG_TYPE                   = new Message3( DMNMessageType.ERROR_EVAL_NODE, "Error while evaluating node '%s': the declared result type is '%s' but the actual value '%s' is not an instance of that type" );
     public static final Message2 EXPR_TYPE_NOT_SUPPORTED_IN_NODE                     = new Message2( DMNMessageType.EXPR_TYPE_NOT_SUPPORTED_IN_NODE, "Expression type '%s' not supported in node '%s'" );
     public static final Message4 ERR_COMPILING_FEEL_EXPR_ON_DT_INPUT_CLAUSE_IDX      = new Message4( DMNMessageType.ERR_COMPILING_FEEL, "Error compiling FEEL expression '%s' on decision table '%s', input clause #%s: %s" );
@@ -137,5 +138,9 @@ public class Msg {
         public Message4(DMNMessageType id, String mask) {
             super( id, mask );
         }
+    }
+
+    private Msg() {
+        // Constructing instances is not allowed for this class
     }
 }

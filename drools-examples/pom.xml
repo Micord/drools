@@ -5,13 +5,17 @@
   <parent>
     <groupId>org.drools</groupId>
     <artifactId>drools</artifactId>
-    <version>7.3.0.Final</version>
+    <version>7.5.0.Final</version>
   </parent>
 
   <artifactId>drools-examples</artifactId>
 
   <name>Drools examples</name>
   <description>Run DroolsExamplesApp to try the Drools rule engine examples.</description>
+
+  <properties>
+    <java.module.name>org.drools.examples.generic</java.module.name>
+  </properties>
 
   <repositories>
     <!-- TODO remove this once maven central replicates the jboss repository -->

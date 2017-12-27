@@ -31,8 +31,6 @@ import org.drools.compiler.lang.Expander;
 import org.drools.compiler.lang.dsl.DSLMappingFile;
 import org.drools.compiler.lang.dsl.DSLTokenizedMappingFile;
 import org.drools.compiler.lang.dsl.DefaultExpander;
-import org.drools.workbench.models.datamodel.oracle.DataType;
-import org.drools.workbench.models.datamodel.oracle.MethodInfo;
 import org.drools.workbench.models.datamodel.rule.ActionCallMethod;
 import org.drools.workbench.models.datamodel.rule.ActionFieldValue;
 import org.drools.workbench.models.datamodel.rule.ActionGlobalCollectionAdd;
@@ -71,6 +69,8 @@ import org.drools.workbench.models.datamodel.rule.RuleModel;
 import org.drools.workbench.models.datamodel.rule.SingleFieldConstraint;
 import org.drools.workbench.models.datamodel.rule.SingleFieldConstraintEBLeftSide;
 import org.junit.Test;
+import org.kie.soup.project.datamodel.oracle.DataType;
+import org.kie.soup.project.datamodel.oracle.MethodInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -3694,7 +3694,75 @@ public class RuleModelDRLPersistenceUnmarshallingTest extends BaseRuleModelTest 
         FactPattern pattern = (FactPattern) m.lhs[0];
         assertEquals("Applicant",
                      pattern.getFactType());
+    }
 
+    @Test
+    public void testDSLWithMultilineBracketsOneField() {
+        String drl = "rule \"rule1\"\n"
+                + "when\n"
+                + "> Applicant( name == \n"
+                + "> \"John\")\n"
+                + "then\n"
+                + "end\n";
+
+        final RuleModel m = RuleModelDRLPersistenceImpl.getInstance().unmarshalUsingDSL(drl,
+                                                                                        Collections.emptyList(),
+                                                                                        dmo,
+                                                                                        "");
+
+        assertNotNull(m);
+
+        assertTrue(m.lhs[0] instanceof FactPattern);
+        FactPattern pattern = (FactPattern) m.lhs[0];
+        assertEquals("Applicant",
+                     pattern.getFactType());
+        assertEquals(1,
+                     pattern.getNumberOfConstraints());
+        assertEquals("name",
+                     ((SingleFieldConstraint) pattern.getConstraint(0)).getFieldName());
+        assertEquals("==",
+                     ((SingleFieldConstraint) pattern.getConstraint(0)).getOperator());
+        assertEquals("John",
+                     ((SingleFieldConstraint) pattern.getConstraint(0)).getValue());
+    }
+
+    @Test
+    public void testDSLWithMultilineBracketsTwoFields() {
+        String drl = "rule \"rule1\"\n"
+                + "when\n"
+                + "> Applicant( name == \n"
+                + "> \"John\"\n"
+                + "> , \n"
+                + "> age > 18 )\n"
+                + "then\n"
+                + "end\n";
+
+        final RuleModel m = RuleModelDRLPersistenceImpl.getInstance().unmarshalUsingDSL(drl,
+                                                                                        Collections.emptyList(),
+                                                                                        dmo,
+                                                                                        "");
+
+        assertNotNull(m);
+
+        assertTrue(m.lhs[0] instanceof FactPattern);
+        FactPattern pattern = (FactPattern) m.lhs[0];
+        assertEquals("Applicant",
+                     pattern.getFactType());
+        assertEquals(2,
+                     pattern.getNumberOfConstraints());
+        assertEquals("name",
+                     ((SingleFieldConstraint) pattern.getConstraint(0)).getFieldName());
+        assertEquals("==",
+                     ((SingleFieldConstraint) pattern.getConstraint(0)).getOperator());
+        assertEquals("John",
+                     ((SingleFieldConstraint) pattern.getConstraint(0)).getValue());
+
+        assertEquals("age",
+                     ((SingleFieldConstraint) pattern.getConstraint(1)).getFieldName());
+        assertEquals(">",
+                     ((SingleFieldConstraint) pattern.getConstraint(1)).getOperator());
+        assertEquals("18",
+                     ((SingleFieldConstraint) pattern.getConstraint(1)).getValue());
     }
 
     @Test
@@ -9358,5 +9426,46 @@ public class RuleModelDRLPersistenceUnmarshallingTest extends BaseRuleModelTest 
         //Check round-trip
         assertEqualsIgnoreWhitespace(drl,
                                      RuleModelDRLPersistenceImpl.getInstance().marshal(m));
+    }
+
+    @Test
+    public void testNotMatchesOrNotSoundsLike() {
+        final String drl = "rule \"rule1\"\n"
+                + "dialect \"mvel\"\n"
+                + "when\n"
+                + "MyTestObject(firstName not matches \"John\" || firstName not soundslike \"Peter\" )\n"
+                + "then\n"
+                + "end";
+
+        final RuleModel model = RuleModelDRLPersistenceImpl.getInstance().unmarshal(drl,
+                                                                                    Collections.emptyList(),
+                                                                                    dmo);
+
+        assertEqualsIgnoreWhitespace(drl,
+                                     RuleModelDRLPersistenceImpl.getInstance().marshal(model));
+    }
+
+    @Test
+    public void testNotMatchesAndNotSoundsLikeDeclaredInDsl() {
+        final String drl = "package org.mortgages;\n" +
+                "rule \"testdsl\"\n" +
+                "  dialect \"mvel\"\n" +
+                "  when\n" +
+                "    Applicant's name does not matches or does not sounds like John\n" +
+                "  then\n" +
+                "end";
+
+        final String dslDefinition = "Applicant's name does not matches or does not sounds like {name}";
+        final String dslFile = "[when]" + dslDefinition + "= Applicant( name not matches \"{name}\" || name not soundslike \"{name}\" )";
+
+        when(dmo.getPackageName()).thenReturn("org.mortgages");
+
+        final RuleModel model = RuleModelDRLPersistenceImpl.getInstance().unmarshalUsingDSL(drl,
+                                                                                            Collections.emptyList(),
+                                                                                            dmo,
+                                                                                            dslFile);
+
+        assertEqualsIgnoreWhitespace(drl,
+                                     RuleModelDRLPersistenceImpl.getInstance().marshal(model));
     }
 }

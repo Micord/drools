@@ -16,27 +16,40 @@
 
 package org.kie.dmn.feel.lang.impl;
 
+import org.kie.dmn.api.core.DMNRuntime;
+import org.kie.dmn.api.feel.runtime.events.FEELEvent;
+import org.kie.dmn.api.feel.runtime.events.FEELEventListener;
 import org.kie.dmn.feel.lang.EvaluationContext;
 import org.kie.dmn.feel.util.EvalHelper;
 
+import java.util.ArrayDeque;
+import java.util.Collection;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
+import java.util.function.Supplier;
 
 public class EvaluationContextImpl implements EvaluationContext {
 
     private final FEELEventListenersManager eventsManager;
-    private       Stack<ExecutionFrame> stack;
+    private ArrayDeque<ExecutionFrame> stack;
+    private DMNRuntime dmnRuntime;
 
     public EvaluationContextImpl(FEELEventListenersManager eventsManager) {
         this.eventsManager = eventsManager;
-        this.stack = new Stack<>();
+        this.stack = new ArrayDeque<>();
         // we create a rootFrame to hold all the built in functions
         push( RootExecutionFrame.INSTANCE );
         // and then create a global frame to be the starting frame
         // for function evaluation
         ExecutionFrameImpl global = new ExecutionFrameImpl( RootExecutionFrame.INSTANCE );
         push( global );
+    }
+
+    public EvaluationContextImpl(FEELEventListenersManager eventsManager, DMNRuntime dmnRuntime) {
+        this(eventsManager);
+        this.dmnRuntime = dmnRuntime;
     }
 
     public void push(ExecutionFrame obj) {
@@ -51,7 +64,7 @@ public class EvaluationContextImpl implements EvaluationContext {
         return stack.peek();
     }
 
-    public Stack<ExecutionFrame> getStack() {
+    public Deque<ExecutionFrame> getStack() {
         return this.stack;
     }
 
@@ -68,6 +81,10 @@ public class EvaluationContextImpl implements EvaluationContext {
     @Override
     public void setValue(String name, Object value) {
         peek().setValue( name, EvalHelper.coerceNumber( value ) );
+    }
+    
+    public void setValues(Map<String, Object> values) {
+        values.forEach(this::setValue);
     }
 
     @Override
@@ -121,13 +138,24 @@ public class EvaluationContextImpl implements EvaluationContext {
     @Override
     public Map<String, Object> getAllValues() {
         Map<String, Object> values = new HashMap<>(  );
-        for( int i = 0; i < stack.size(); i++ ) {
-            values.putAll( stack.get( i ).getAllValues() );
+        for (ExecutionFrame frame : stack) {
+            values.putAll( frame.getAllValues() );
         }
         return values;
     }
 
-    public FEELEventListenersManager getEventsManager() {
-        return eventsManager;
+    @Override
+    public void notifyEvt(Supplier<FEELEvent> event) {
+        FEELEventListenersManager.notifyListeners(eventsManager, event);
     }
+
+    @Override
+    public Collection<FEELEventListener> getListeners() {
+        return eventsManager.getListeners();
+    }
+
+    public DMNRuntime getDMNRuntime() {
+        return dmnRuntime;
+    }
+
 }

@@ -6,7 +6,7 @@
   <parent>
     <groupId>org.drools</groupId>
     <artifactId>drools</artifactId>
-    <version>7.3.0.Final</version>
+    <version>7.5.0.Final</version>
   </parent>
 
   <artifactId>drools-core</artifactId>
@@ -16,7 +16,7 @@
   <name>Drools :: Core</name>
 
   <properties>
-    <osgi.Bundle-SymbolicName>org.drools.core</osgi.Bundle-SymbolicName>
+    <java.module.name>org.drools.core</java.module.name>
     <surefire.forkCount>2</surefire.forkCount>
   </properties>
 
@@ -56,6 +56,14 @@
     <dependency>
       <groupId>org.kie</groupId>
       <artifactId>kie-internal</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.kie.soup</groupId>
+      <artifactId>kie-soup-commons</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.kie.soup</groupId>
+      <artifactId>kie-soup-project-datamodel-commons</artifactId>
     </dependency>
     <dependency>
       <groupId>org.antlr</groupId>

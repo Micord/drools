@@ -16,9 +16,12 @@
 
 package org.kie.dmn.feel.lang;
 
+import org.kie.dmn.api.core.DMNRuntime;
 import org.kie.dmn.api.feel.runtime.events.FEELEvent;
+import org.kie.dmn.api.feel.runtime.events.FEELEventListener;
 import org.kie.dmn.feel.lang.impl.FEELEventListenersManager;
 
+import java.util.Collection;
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -40,9 +43,11 @@ public interface EvaluationContext {
 
     Map<String, Object> getAllValues();
 
-    FEELEventListenersManager getEventsManager();
-    
-    default void notifyEvt(Supplier<FEELEvent> event) {
-        FEELEventListenersManager.notifyListeners(getEventsManager(), event);
-    }
+    DMNRuntime getDMNRuntime();
+
+    void notifyEvt(Supplier<FEELEvent> event);
+
+
+    Collection<FEELEventListener> getListeners();
+
 }

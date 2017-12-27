@@ -82,7 +82,7 @@ public class ClasspathKieProject extends AbstractKieProject {
     public void init() {
         this.classLoader = createProjectClassLoader(parentCL);
         discoverKieModules();
-        indexParts(kieModules.values(), kJarFromKBaseName);
+        indexParts(null, kieModules.values(), kJarFromKBaseName);
     }
 
     public ReleaseId getGAV() {
@@ -466,10 +466,6 @@ public class ClasspathKieProject extends AbstractKieProject {
 
     public ClassLoader getClassLoader() {
         return this.classLoader;
-    }
-
-    public ClassLoader getClonedClassLoader() {
-        return createProjectClassLoader(classLoader.getParent());
     }
 
     public InputStream getPomAsStream() {

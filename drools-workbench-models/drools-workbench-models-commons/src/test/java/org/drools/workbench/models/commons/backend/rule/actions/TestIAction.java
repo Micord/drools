@@ -17,7 +17,12 @@
 package org.drools.workbench.models.commons.backend.rule.actions;
 
 import org.drools.workbench.models.datamodel.rule.IAction;
+import org.drools.workbench.models.datamodel.rule.PluggableIAction;
 
-public class TestIAction implements IAction {
+public class TestIAction implements PluggableIAction {
 
+    @Override
+    public String getStringRepresentation() {
+        return "testIAction()";
+    }
 }

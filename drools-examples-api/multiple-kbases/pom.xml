@@ -6,11 +6,15 @@
   <parent>
     <groupId>org.drools</groupId>
     <artifactId>drools-examples-api</artifactId>
-    <version>7.3.0.Final</version>
+    <version>7.5.0.Final</version>
   </parent>
 
   <artifactId>multiple-kbases</artifactId>
   <name>Drools API examples - Multiple KieBases</name>
+
+  <properties>
+    <java.module.name>org.drools.examples.api.multiplekbases</java.module.name>
+  </properties>
 
   <dependencies>
     <dependency>

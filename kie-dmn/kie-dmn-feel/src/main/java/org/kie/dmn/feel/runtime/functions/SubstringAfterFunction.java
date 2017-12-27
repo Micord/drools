@@ -16,10 +16,8 @@
 
 package org.kie.dmn.feel.runtime.functions;
 
-import org.kie.dmn.api.feel.runtime.events.FEELEvent;
 import org.kie.dmn.api.feel.runtime.events.FEELEvent.Severity;
 import org.kie.dmn.feel.runtime.events.InvalidParametersEvent;
-import org.kie.dmn.feel.runtime.functions.FEELFnResult;
 
 public class SubstringAfterFunction
         extends BaseFEELFunction {
@@ -40,7 +38,7 @@ public class SubstringAfterFunction
         if( index >= 0 ) {
             return FEELFnResult.ofResult( string.substring( index+match.length() ) );
         } else {
-            return FEELFnResult.ofResult( string );
+            return FEELFnResult.ofResult( "" );
         }
     }
 

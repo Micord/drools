@@ -6,13 +6,17 @@
   <parent>
     <artifactId>drools-workbench-models</artifactId>
     <groupId>org.drools</groupId>
-    <version>7.3.0.Final</version>
+    <version>7.5.0.Final</version>
   </parent>
 
   <artifactId>drools-workbench-models-test-scenarios</artifactId>
 
   <name>Drools Workbench - Test Scenarios Model</name>
   <description>Drools Workbench - Test Scenarios Model</description>
+
+  <properties>
+    <java.module.name>org.drools.workbench.models.guided.testscenarios</java.module.name>
+  </properties>
 
   <dependencies>
 
@@ -44,6 +48,21 @@
     <dependency>
       <groupId>org.drools</groupId>
       <artifactId>drools-core</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.kie.soup</groupId>
+      <artifactId>kie-soup-commons</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.kie.soup</groupId>
+      <artifactId>kie-soup-project-datamodel-api</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.kie.soup</groupId>
+      <artifactId>kie-soup-project-datamodel-commons</artifactId>
     </dependency>
 
     <dependency>

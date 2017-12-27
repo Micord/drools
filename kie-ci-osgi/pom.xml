@@ -5,7 +5,7 @@
   <parent>
     <artifactId>drools</artifactId>
     <groupId>org.drools</groupId>
-    <version>7.3.0.Final</version>
+    <version>7.5.0.Final</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
@@ -16,7 +16,7 @@
   <name>KIE :: CI for OSGi</name>
 
   <properties>
-    <osgi.Bundle-SymbolicName>org.kie.scanner.osgi</osgi.Bundle-SymbolicName>
+    <java.module.name>org.kie.scanner.osgi</java.module.name>
   </properties>
 
   <dependencies>
@@ -32,12 +32,12 @@
     </dependency>
 
     <dependency>
-      <groupId>org.uberfire</groupId>
-      <artifactId>uberfire-maven-support</artifactId>
+      <groupId>org.kie.soup</groupId>
+      <artifactId>kie-soup-maven-support</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.uberfire</groupId>
-      <artifactId>uberfire-maven-integration</artifactId>
+      <groupId>org.kie.soup</groupId>
+      <artifactId>kie-soup-maven-integration</artifactId>
     </dependency>
 
     <dependency>
@@ -83,7 +83,7 @@
             <configuration>
               <artifactSet>
                 <excludes>
-                  <exclude>org.uberfire:uberfire-maven-support</exclude>
+                  <exclude>org.kie.soup:kie-soup-maven-support</exclude>
                   <exclude>org.kie:kie-api</exclude>
                   <exclude>org.kie:kie-internal</exclude>
                   <exclude>org.drools:*</exclude>
@@ -123,6 +123,8 @@
               javax.security.auth.x500,
               org.apache.commons.logging,
               org.appformer.maven.support,
+              org.kie.soup.project.datamodel,
+              org.kie.soup.project.datamodel.commons,
               org.drools.compiler.kie.builder.impl,
               org.drools.compiler.kproject,
               org.drools.compiler.kproject.models,

@@ -6,11 +6,15 @@
   <parent>
     <groupId>org.drools</groupId>
     <artifactId>drools-examples-api</artifactId>
-    <version>7.3.0.Final</version>
+    <version>7.5.0.Final</version>
   </parent>
 
   <artifactId>default-kiesession-from-file</artifactId>
   <name>Drools API examples - Default KieSession From File</name>
+
+  <properties>
+    <java.module.name>org.drools.examples.api.defaultkiesessionfromfile</java.module.name>
+  </properties>
 
   <dependencies>
     <dependency>

@@ -16,6 +16,7 @@
 package org.drools.core.common;
 
 import org.drools.core.util.ClassUtils;
+import org.kie.internal.utils.KieTypeResolver;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -31,9 +32,11 @@ import java.util.Set;
 import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.drools.core.util.ClassUtils;
+
 import static org.drools.core.util.ClassUtils.convertClassToResourcePath;
 
-public class ProjectClassLoader extends ClassLoader {
+public class ProjectClassLoader extends ClassLoader implements KieTypeResolver {
 
     private static final boolean CACHE_NON_EXISTING_CLASSES = true;
     private static final ClassNotFoundException dummyCFNE = CACHE_NON_EXISTING_CLASSES ?
@@ -61,7 +64,7 @@ public class ProjectClassLoader extends ClassLoader {
         this.resourceProvider = resourceProvider;
     }
 
-    public static class IBMClassLoader extends ProjectClassLoader {
+    public static class IBMClassLoader extends ProjectClassLoader implements KieTypeResolver {
         private final boolean parentImplementsFindResources;
 
         private static final Enumeration<URL> EMPTY_RESOURCE_ENUM = new Vector<URL>().elements();
@@ -95,6 +98,10 @@ public class ProjectClassLoader extends ClassLoader {
             projectClassLoader.setDroolsClassLoader(cls.getClassLoader());
         }
         return projectClassLoader;
+    }
+
+    public ClassLoader getTypesClassLoader() {
+        return typesClassLoader instanceof ClassLoader ? (( ClassLoader ) typesClassLoader) : this;
     }
 
     public static ClassLoader findParentClassLoader() {
@@ -136,12 +143,10 @@ public class ProjectClassLoader extends ClassLoader {
         if (cls != null) {
             return cls;
         }
-        synchronized (this) {
-            try {
-                cls = internalLoadClass(name, resolve);
-            } catch (ClassNotFoundException e2) {
-                cls = loadType(name, resolve);
-            }
+        try {
+            cls = internalLoadClass(name, resolve);
+        } catch (ClassNotFoundException e2) {
+            cls = loadType(name, resolve);
         }
         loadedClasses.put(name, cls);
         return cls;
@@ -189,7 +194,7 @@ public class ProjectClassLoader extends ClassLoader {
         return defineType(name, bytecode);
     }
 
-    private Class<?> defineType(String name, byte[] bytecode) {
+    private synchronized Class<?> defineType(String name, byte[] bytecode) {
         if (definedTypes == null) {
             definedTypes = new HashMap<String, ClassBytecode>();
         } else {
@@ -217,7 +222,7 @@ public class ProjectClassLoader extends ClassLoader {
         return defineType(name, bytecode);
     }
 
-    public void undefineClass(String name) {
+    public synchronized void undefineClass(String name) {
         String resourceName = convertClassToResourcePath(name);
         if (store.remove(resourceName) != null) {
             if (CACHE_NON_EXISTING_CLASSES) {
@@ -385,7 +390,7 @@ public class ProjectClassLoader extends ClassLoader {
         return result;
     }
 
-    interface InternalTypesClassLoader {
+    interface InternalTypesClassLoader extends KieTypeResolver {
         Class<?> defineClass(String name, byte[] bytecode);
         Class<?> loadType(String name, boolean resolve) throws ClassNotFoundException;
     }
@@ -414,12 +419,10 @@ public class ProjectClassLoader extends ClassLoader {
             try {
                 return loadType( name, resolve );
             } catch (ClassNotFoundException cnfe) {
-                synchronized (projectClassLoader) {
-                    try {
-                        return projectClassLoader.internalLoadClass( name, resolve );
-                    } catch (ClassNotFoundException cnfe2) {
-                        return projectClassLoader.tryDefineType( name, cnfe );
-                    }
+                try {
+                    return projectClassLoader.internalLoadClass( name, resolve );
+                } catch (ClassNotFoundException cnfe2) {
+                    return projectClassLoader.tryDefineType( name, cnfe );
                 }
             }
         }

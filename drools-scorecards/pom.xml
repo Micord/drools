@@ -7,12 +7,16 @@
   <parent>
     <groupId>org.drools</groupId>
     <artifactId>drools</artifactId>
-    <version>7.3.0.Final</version>
+    <version>7.5.0.Final</version>
   </parent>
 
   <artifactId>drools-scorecards</artifactId>
   <name>Drools :: Scorecards</name>
   <description>Add support for PMML scorecards</description>
+
+  <properties>
+    <java.module.name>org.drools.scorecards</java.module.name>
+  </properties>
 
   <dependencies>
     <!-- Internal dependencies -->

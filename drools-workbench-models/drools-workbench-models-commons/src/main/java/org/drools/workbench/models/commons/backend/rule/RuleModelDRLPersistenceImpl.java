@@ -53,23 +53,13 @@ import org.drools.compiler.lang.descr.PatternSourceDescr;
 import org.drools.compiler.lang.descr.RuleDescr;
 import org.drools.core.base.evaluators.EvaluatorRegistry;
 import org.drools.core.base.evaluators.Operator;
+import org.drools.core.util.DateUtils;
 import org.drools.core.util.ReflectiveVisitor;
-import org.drools.workbench.models.commons.backend.imports.ImportsParser;
-import org.drools.workbench.models.commons.backend.imports.ImportsWriter;
-import org.drools.workbench.models.commons.backend.packages.PackageNameParser;
-import org.drools.workbench.models.commons.backend.packages.PackageNameWriter;
 import org.drools.workbench.models.commons.backend.rule.context.LHSGeneratorContext;
 import org.drools.workbench.models.commons.backend.rule.context.LHSGeneratorContextFactory;
 import org.drools.workbench.models.commons.backend.rule.context.RHSGeneratorContext;
 import org.drools.workbench.models.commons.backend.rule.context.RHSGeneratorContextFactory;
 import org.drools.workbench.models.commons.backend.rule.exception.RuleModelDRLPersistenceException;
-import org.drools.workbench.models.datamodel.imports.Import;
-import org.drools.workbench.models.datamodel.imports.Imports;
-import org.drools.workbench.models.datamodel.oracle.DataType;
-import org.drools.workbench.models.datamodel.oracle.MethodInfo;
-import org.drools.workbench.models.datamodel.oracle.ModelField;
-import org.drools.workbench.models.datamodel.oracle.OperatorsOracle;
-import org.drools.workbench.models.datamodel.oracle.PackageDataModelOracle;
 import org.drools.workbench.models.datamodel.rule.ActionCallMethod;
 import org.drools.workbench.models.datamodel.rule.ActionExecuteWorkItem;
 import org.drools.workbench.models.datamodel.rule.ActionFieldFunction;
@@ -109,6 +99,7 @@ import org.drools.workbench.models.datamodel.rule.FromEntryPointFactPattern;
 import org.drools.workbench.models.datamodel.rule.IAction;
 import org.drools.workbench.models.datamodel.rule.IFactPattern;
 import org.drools.workbench.models.datamodel.rule.IPattern;
+import org.drools.workbench.models.datamodel.rule.PluggableIAction;
 import org.drools.workbench.models.datamodel.rule.RuleAttribute;
 import org.drools.workbench.models.datamodel.rule.RuleMetadata;
 import org.drools.workbench.models.datamodel.rule.RuleModel;
@@ -116,7 +107,6 @@ import org.drools.workbench.models.datamodel.rule.SingleFieldConstraint;
 import org.drools.workbench.models.datamodel.rule.SingleFieldConstraintEBLeftSide;
 import org.drools.workbench.models.datamodel.rule.builder.DRLConstraintValueBuilder;
 import org.drools.workbench.models.datamodel.rule.visitors.ToStringExpressionVisitor;
-import org.drools.workbench.models.datamodel.util.PortablePreconditions;
 import org.drools.workbench.models.datamodel.workitems.HasBinding;
 import org.drools.workbench.models.datamodel.workitems.PortableBooleanParameterDefinition;
 import org.drools.workbench.models.datamodel.workitems.PortableFloatParameterDefinition;
@@ -125,6 +115,18 @@ import org.drools.workbench.models.datamodel.workitems.PortableObjectParameterDe
 import org.drools.workbench.models.datamodel.workitems.PortableParameterDefinition;
 import org.drools.workbench.models.datamodel.workitems.PortableStringParameterDefinition;
 import org.drools.workbench.models.datamodel.workitems.PortableWorkDefinition;
+import org.kie.soup.commons.validation.PortablePreconditions;
+import org.kie.soup.project.datamodel.commons.imports.ImportsParser;
+import org.kie.soup.project.datamodel.commons.imports.ImportsWriter;
+import org.kie.soup.project.datamodel.commons.packages.PackageNameParser;
+import org.kie.soup.project.datamodel.commons.packages.PackageNameWriter;
+import org.kie.soup.project.datamodel.imports.Import;
+import org.kie.soup.project.datamodel.imports.Imports;
+import org.kie.soup.project.datamodel.oracle.DataType;
+import org.kie.soup.project.datamodel.oracle.MethodInfo;
+import org.kie.soup.project.datamodel.oracle.ModelField;
+import org.kie.soup.project.datamodel.oracle.OperatorsOracle;
+import org.kie.soup.project.datamodel.oracle.PackageDataModelOracle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -179,22 +181,10 @@ public class RuleModelDRLPersistenceImpl
      */
     @Override
     public String marshal(final RuleModel model) {
-        return marshalRule(model,
-                           Collections.emptyList());
+        return marshalRule(model);
     }
 
-    @Override
-    public String marshal(final RuleModel model,
-                          final Collection<RuleModelIActionPersistenceExtension> extensions) {
-        PortablePreconditions.checkNotNull("extensions",
-                                           extensions);
-
-        return marshalRule(model,
-                           extensions);
-    }
-
-    protected String marshalRule(final RuleModel model,
-                                 final Collection<RuleModelIActionPersistenceExtension> extensions) {
+    protected String marshalRule(final RuleModel model) {
         boolean isDSLEnhanced = model.hasDSLSentences();
         bindingsPatterns = new HashMap<String, IFactPattern>();
         bindingsFields = new HashMap<String, FieldConstraint>();
@@ -222,8 +212,7 @@ public class RuleModelDRLPersistenceImpl
         this.marshalRHS(buf,
                         model,
                         isDSLEnhanced,
-                        new RHSGeneratorContextFactory(),
-                        extensions);
+                        new RHSGeneratorContextFactory());
         this.marshalFooter(buf);
         return buf.toString();
     }
@@ -290,6 +279,7 @@ public class RuleModelDRLPersistenceImpl
 
     /**
      * Marshal model attributes
+     *
      * @param buf
      * @param model
      */
@@ -320,6 +310,7 @@ public class RuleModelDRLPersistenceImpl
 
     /**
      * Marshal model metadata
+     *
      * @param buf
      * @param model
      */
@@ -334,6 +325,7 @@ public class RuleModelDRLPersistenceImpl
 
     /**
      * Marshal LHS patterns
+     *
      * @param buf
      * @param model
      */
@@ -388,8 +380,7 @@ public class RuleModelDRLPersistenceImpl
     protected void marshalRHS(final StringBuilder buf,
                               final RuleModel model,
                               final boolean isDSLEnhanced,
-                              final RHSGeneratorContextFactory generatorContextFactory,
-                              final Collection<RuleModelIActionPersistenceExtension> extensions) {
+                              final RHSGeneratorContextFactory generatorContextFactory) {
         String indentation = "\t\t";
         if (model.rhs != null) {
             //Add boiler-plate for actions operating on Dates
@@ -399,7 +390,7 @@ public class RuleModelDRLPersistenceImpl
                 if (isDSLEnhanced) {
                     buf.append(">");
                 }
-                buf.append("java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat(\"" + System.getProperty("drools.dateformat") + "\");\n");
+                buf.append("java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat(\"" + DateUtils.getDateFormatMask() + "\");\n");
             }
 
             //Add boiler-plate for actions operating on WorkItems
@@ -412,8 +403,7 @@ public class RuleModelDRLPersistenceImpl
             RHSActionVisitor actionVisitor = getRHSActionVisitor(isDSLEnhanced,
                                                                  buf,
                                                                  indentation,
-                                                                 generatorContextFactory,
-                                                                 extensions);
+                                                                 generatorContextFactory);
 
             //Reconcile ActionSetField and ActionUpdateField calls
             final List<IAction> actions = new ArrayList<IAction>();
@@ -450,16 +440,13 @@ public class RuleModelDRLPersistenceImpl
             }
 
             for (IAction action : model.rhs) {
-                List<RuleModelIActionPersistenceExtension> matchingExtensions = extensions.stream().filter(e -> e.accept(action)).collect(Collectors.toList());
-                if (matchingExtensions.isEmpty()) {
-                    actionVisitor.visit(action);
-                } else if (matchingExtensions.size() > 1) {
-                    throw new RuleModelDRLPersistenceException("Ambiguous RuleModelIActionPersistenceExtension implementations (" + matchingExtensions + ") found for action " + action);
-                } else {
-                    IAction processedIAction = actionVisitor.preProcessIActionForExtensions(action);
+                if (action instanceof PluggableIAction) {
+                    PluggableIAction processedIAction = (PluggableIAction) actionVisitor.preProcessIActionForExtensions(action);
                     buf.append(indentation)
-                            .append(matchingExtensions.get(0).marshal(processedIAction))
-                            .append("\n");
+                            .append(processedIAction.getStringRepresentation())
+                            .append(";\n");
+                } else {
+                    actionVisitor.visit(action);
                 }
             }
         }
@@ -523,14 +510,12 @@ public class RuleModelDRLPersistenceImpl
     protected RHSActionVisitor getRHSActionVisitor(final boolean isDSLEnhanced,
                                                    final StringBuilder buf,
                                                    final String indentation,
-                                                   final RHSGeneratorContextFactory generatorContextFactory,
-                                                   final Collection<RuleModelIActionPersistenceExtension> extensions) {
+                                                   final RHSGeneratorContextFactory generatorContextFactory) {
         return new RHSActionVisitor(isDSLEnhanced,
                                     bindingsPatterns,
                                     bindingsFields,
                                     constraintValueBuilder,
                                     generatorContextFactory,
-                                    extensions,
                                     buf,
                                     indentation);
     }
@@ -707,7 +692,7 @@ public class RuleModelDRLPersistenceImpl
                 buf.append(" from ");
                 renderExpression(pattern.getExpression());
                 if (!isSubPattern) {
-                    buf.append(")");
+                   buf.append(")");
                 }
                 buf.append("\n");
             }
@@ -733,6 +718,9 @@ public class RuleModelDRLPersistenceImpl
                                     gctx);
 
                 buf.append(" from collect ( ");
+
+                buf.append("\n");
+
                 if (pattern.getRightPattern() != null) {
                     if (pattern.getRightPattern() instanceof FactPattern) {
                         generateFactPattern((FactPattern) pattern.getRightPattern(),
@@ -754,6 +742,11 @@ public class RuleModelDRLPersistenceImpl
                     } else {
                         throw new IllegalArgumentException("Unsupported pattern " + pattern.getRightPattern() + " for FROM COLLECT");
                     }
+                }
+                if (isDSLEnhanced) {
+                    buf.append("\n"); // Just in case we add a row. Not sure what the methods above append.
+                    buf.append(indentation);
+                    buf.append(">");
                 }
                 buf.append(") \n");
             }
@@ -1418,7 +1411,6 @@ public class RuleModelDRLPersistenceImpl
                                 final Map<String, FieldConstraint> bindingsFields,
                                 final DRLConstraintValueBuilder constraintValueBuilder,
                                 final RHSGeneratorContextFactory generatorContextFactory,
-                                final Collection<RuleModelIActionPersistenceExtension> extensions,
                                 final StringBuilder b,
                                 final String indentation) {
             this.isDSLEnhanced = isDSLEnhanced;
@@ -1809,51 +1801,25 @@ public class RuleModelDRLPersistenceImpl
         }
     }
 
-    public static class RHSClassDependencyVisitor extends ReflectiveVisitor {
+    public static class RHSClassDependencyVisitor {
 
-        private Map<String, List<ActionFieldValue>> classes = new HashMap<String, List<ActionFieldValue>>();
+        private Map<String, List<ActionFieldValue>> classes = new HashMap<>();
 
-        public void visitFreeFormLine(FreeFormLine ffl) {
-            //Do nothing other than preventing ReflectiveVisitor recording an error
+        public void visit(final IAction iAction) {
+            if (iAction instanceof ActionFieldList) {
+                visit((ActionFieldList) iAction);
+            }
         }
 
-        public void visitActionGlobalCollectionAdd(final ActionGlobalCollectionAdd add) {
-            //Do nothing other than preventing ReflectiveVisitor recording an error
-        }
-
-        public void visitActionRetractFact(final ActionRetractFact action) {
-            //Do nothing other than preventing ReflectiveVisitor recording an error
-        }
-
-        public void visitDSLSentence(final DSLSentence sentence) {
-            //Do nothing other than preventing ReflectiveVisitor recording an error
-        }
-
-        public void visitActionInsertFact(final ActionInsertFact action) {
-            getClasses(action.getFieldValues());
-        }
-
-        public void visitActionInsertLogicalFact(final ActionInsertLogicalFact action) {
-            getClasses(action.getFieldValues());
-        }
-
-        public void visitActionUpdateField(final ActionUpdateField action) {
-            getClasses(action.getFieldValues());
-        }
-
-        public void visitActionSetField(final ActionSetField action) {
-            getClasses(action.getFieldValues());
-        }
-
-        public void visitActionExecuteWorkItem(final ActionExecuteWorkItem action) {
-            //Do nothing other than preventing ReflectiveVisitor recording an error
+        private void visit(final ActionFieldList actionFieldList) {
+            addClasses(actionFieldList.getFieldValues());
         }
 
         public Map<String, List<ActionFieldValue>> getRHSClasses() {
             return classes;
         }
 
-        private void getClasses(ActionFieldValue[] fieldValues) {
+        private void addClasses(ActionFieldValue[] fieldValues) {
             for (ActionFieldValue afv : fieldValues) {
                 String type = afv.getType();
                 List<ActionFieldValue> afvs = classes.get(type);
@@ -1899,7 +1865,7 @@ public class RuleModelDRLPersistenceImpl
                                 dmo,
                                 extensions);
         } catch (RuleModelDRLPersistenceException e) {
-            throw e;
+            throw new RuntimeException(e);
         } catch (Exception e) {
             log.info("Unable to parse source Drl. Falling back to simple parser. \n" + str);
             return getSimpleRuleModel(str);
@@ -1934,7 +1900,7 @@ public class RuleModelDRLPersistenceImpl
                                 dmo,
                                 extensions);
         } catch (RuleModelDRLPersistenceException e) {
-            throw e;
+            throw new RuntimeException(e);
         } catch (Exception e) {
             log.info("Unable to parse source Drl. Falling back to simple parser. \n" + str);
             return getSimpleRuleModel(str);
@@ -2000,7 +1966,7 @@ public class RuleModelDRLPersistenceImpl
 
     private RuleModel getRuleModel(final ExpandedDRLInfo expandedDRLInfo,
                                    final PackageDataModelOracle dmo,
-                                   final Collection<RuleModelIActionPersistenceExtension> extensions) {
+                                   final Collection<RuleModelIActionPersistenceExtension> extensions) throws RuleModelDRLPersistenceException {
         //De-serialize model
         RuleDescr ruleDescr = parseDrl(expandedDRLInfo);
         RuleModel model = new RuleModel();
@@ -2818,7 +2784,7 @@ public class RuleModelDRLPersistenceImpl
                           final Map<String, String> boundParams,
                           final ExpandedDRLInfo expandedDRLInfo,
                           final PackageDataModelOracle dmo,
-                          final Collection<RuleModelIActionPersistenceExtension> extensions) {
+                          final Collection<RuleModelIActionPersistenceExtension> extensions) throws RuleModelDRLPersistenceException {
         PortableWorkDefinition pwd = null;
         Map<String, List<String>> setStatements = new HashMap<String, List<String>>();
         Map<String, Integer> setStatementsPosition = new HashMap<String, Integer>();
@@ -2840,7 +2806,9 @@ public class RuleModelDRLPersistenceImpl
             } else if (matchingExtensions.size() > 1) {
                 throw new RuleModelDRLPersistenceException("Ambiguous RuleModelIActionPersistenceExtension implementations (" + matchingExtensions + ") found for line " + line);
             } else {
-                m.addRhsItem(matchingExtensions.get(0).unmarshal(line));
+                unmarshalUsingExtension(m,
+                                        matchingExtensions.get(0),
+                                        line);
                 continue;
             }
 
@@ -2855,7 +2823,9 @@ public class RuleModelDRLPersistenceImpl
                     } else if (matchingExtensionsDslLine.size() > 1) {
                         throw new RuleModelDRLPersistenceException("Ambiguous RuleModelIActionPersistenceExtension implementations (" + matchingExtensionsDslLine + ") found for line " + line);
                     } else {
-                        m.addRhsItem(matchingExtensionsDslLine.get(0).unmarshal(dslLine));
+                        unmarshalUsingExtension(m,
+                                                matchingExtensionsDslLine.get(0),
+                                                dslLine);
                     }
 
                     dslLine = expandedDRLInfo.dslStatementsInRhs.get(++lineCounter);
@@ -3096,6 +3066,18 @@ public class RuleModelDRLPersistenceImpl
                                            dslLine));
                 dslLine = expandedDRLInfo.dslStatementsInRhs.get(++lineCounter);
             }
+        }
+    }
+
+    private void unmarshalUsingExtension(final RuleModel ruleModel,
+                                         final RuleModelIActionPersistenceExtension extension,
+                                         final String line) {
+        try {
+            ruleModel.addRhsItem(extension.unmarshal(line));
+        } catch (RuleModelDRLPersistenceException e) {
+            FreeFormLine freeFormLine = new FreeFormLine();
+            freeFormLine.setText(line);
+            ruleModel.addRhsItem(freeFormLine);
         }
     }
 

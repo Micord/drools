@@ -35,6 +35,7 @@ import org.drools.compiler.kie.util.KieJarChangeSet;
 import org.drools.compiler.kproject.models.KieBaseModelImpl;
 import org.drools.compiler.kproject.models.KieSessionModelImpl;
 import org.drools.compiler.management.KieContainerMonitor;
+import org.drools.core.SessionConfigurationImpl;
 import org.drools.core.base.ClassObjectType;
 import org.drools.core.common.ClassAwareObjectStore;
 import org.drools.core.common.InternalWorkingMemory;
@@ -45,7 +46,6 @@ import org.drools.core.definitions.impl.KnowledgePackageImpl;
 import org.drools.core.definitions.rule.impl.RuleImpl;
 import org.drools.core.impl.InternalKieContainer;
 import org.drools.core.impl.InternalKnowledgeBase;
-import org.drools.core.impl.KnowledgeBaseFactory;
 import org.drools.core.impl.StatefulKnowledgeSessionImpl;
 import org.drools.core.impl.StatelessKnowledgeSessionImpl;
 import org.drools.core.management.DroolsManagementAgent;
@@ -84,7 +84,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static org.drools.compiler.kie.builder.impl.KieBuilderImpl.filterFileInKBase;
-import static org.drools.compiler.kie.util.InjectionHelper.wireListnersAndWIHs;
+import static org.drools.compiler.kie.util.InjectionHelper.wireSessionComponents;
 import static org.drools.core.util.ClassUtils.convertResourceToClassName;
 import static org.drools.core.util.Drools.isJndiAvailable;
 
@@ -207,22 +207,19 @@ public class KieContainerImpl
     }
 
     public Results updateDependencyToVersion(ReleaseId currentReleaseId, ReleaseId newReleaseId) {
-        checkNotClasspathKieProject();
-
         ReleaseId installedReleaseId = getReleaseId();
-        InternalKieModule currentKM;
         if (currentReleaseId.getGroupId().equals(installedReleaseId.getGroupId()) &&
             currentReleaseId.getArtifactId().equals(installedReleaseId.getArtifactId())) {
             // upgrading the kProject itself: taking the kmodule from there
-            currentKM = ((KieModuleKieProject)kProject).getInternalKieModule();
-        } else {
-            // upgrading a transitive dependency: taking the kmodule from the krepo
-            // if the new and the current release are equal (a snapshot) check if there is an older version with the same releaseId
-            currentKM = currentReleaseId.equals(newReleaseId) ?
-                        (InternalKieModule) ((KieRepositoryImpl) kr).getOldKieModule(currentReleaseId) :
-                        (InternalKieModule) kr.getKieModule(currentReleaseId);
+            return updateToVersion(newReleaseId);
         }
 
+        checkNotClasspathKieProject();
+        // upgrading a transitive dependency: taking the kmodule from the krepo
+        // if the new and the current release are equal (a snapshot) check if there is an older version with the same releaseId
+        InternalKieModule currentKM = currentReleaseId.equals(newReleaseId) ?
+                                      (InternalKieModule) ((KieRepositoryImpl) kr).getOldKieModule(currentReleaseId) :
+                                      (InternalKieModule) kr.getKieModule(currentReleaseId);
         return update(currentKM, newReleaseId);
     }
 
@@ -687,7 +684,7 @@ public class KieContainerImpl
 
         KieSession kSession = kBase.newKieSession( conf != null ? conf : getKieSessionConfiguration( kSessionModel ), environment );
         if (isJndiAvailable()) {
-            wireListnersAndWIHs( kSessionModel, kSession );
+            wireSessionComponents( kSessionModel, kSession );
         }
         registerLoggers(kSessionModel, kSession);
 
@@ -736,7 +733,7 @@ public class KieContainerImpl
 
         StatelessKieSession statelessKieSession = kBase.newStatelessKieSession( conf != null ? conf : getKieSessionConfiguration( kSessionModel ) );
         if (isJndiAvailable()) {
-            wireListnersAndWIHs( kSessionModel, statelessKieSession );
+            wireSessionComponents( kSessionModel, statelessKieSession );
         }
         registerLoggers(kSessionModel, statelessKieSession);
         
@@ -766,7 +763,7 @@ public class KieContainerImpl
     }
 
     private KieSessionConfiguration getKieSessionConfiguration( KieSessionModel kSessionModel ) {
-        KieSessionConfiguration ksConf = KnowledgeBaseFactory.newKnowledgeSessionConfiguration();
+        KieSessionConfiguration ksConf = new SessionConfigurationImpl( null, kProject.getClassLoader() );
         ksConf.setOption( kSessionModel.getClockType() );
         ksConf.setOption( kSessionModel.getBeliefSystem() );
         return ksConf;

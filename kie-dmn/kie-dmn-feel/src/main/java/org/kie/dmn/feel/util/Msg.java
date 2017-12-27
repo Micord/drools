@@ -20,7 +20,7 @@ package org.kie.dmn.feel.util;
  * Utility class for I18N messages.
  *
  */
-public class Msg {
+public final class Msg {
 
     public static final Message0 NULL_OR_UNKNOWN_OPERATOR = new Message0("Null or unknown operator");
     public static final Message1 UNKNOWN_VARIABLE_REFERENCE = new Message1("Unknown variable name '%s'");
@@ -45,6 +45,7 @@ public class Msg {
     public static final Message2 INVALID_VARIABLE_NAME = new Message2( "A variable name cannot contain the %s '%s'");
     public static final Message2 INVALID_VARIABLE_NAME_START = new Message2( "A variable name cannot start with the %s '%s'");
     public static final Message0 INVALID_VARIABLE_NAME_EMPTY = new Message0( "A variable name cannot be null or empty");
+    public static final Message1 MISSING_EXPRESSION = new Message1( "The context entry for key '%s' is missing the value expression");
     public static final Message2 ERROR_COMPILE_EXPR_DT_FUNCTION_RULE_IDX = new Message2( "Error compiling output expression in decision table FEEL function, rule index %s: '%s'");
 
     public static String createMessage( Message0 message) {
@@ -105,5 +106,7 @@ public class Msg {
         }
     }
 
-    
+    private Msg() {
+        // Constructing instances is not allowed for this class
+    }
 }
