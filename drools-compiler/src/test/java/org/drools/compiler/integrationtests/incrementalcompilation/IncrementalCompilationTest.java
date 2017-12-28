@@ -87,7 +87,15 @@ import org.kie.internal.builder.conf.PropertySpecificOption;
 import org.kie.internal.command.CommandFactory;
 
 import static java.util.Arrays.asList;
+
 import static org.drools.core.util.DroolsTestUtil.rulestoMap;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class IncrementalCompilationTest extends CommonTestMethodBase {
 
@@ -741,20 +749,8 @@ public class IncrementalCompilationTest extends CommonTestMethodBase {
                         "end\n";
 
         KieServices ks = KieServices.Factory.get();
-        KieFileSystem kfs = ks.newKieFileSystem();
 
-        KieBuilder kieBuilder = ks.newKieBuilder( kfs );
-
-        kfs.generateAndWritePomXML( releaseId1 );
-        kfs.write( ks.getResources()
-                           .newReaderResource( new StringReader( drl1 ) )
-                           .setResourceType( ResourceType.DRL )
-                           .setSourcePath( "drl1.txt" ) );
-
-        kieBuilder.buildAll();
-        assertEquals( 0, kieBuilder.getResults().getMessages().size() );
-        KieModule kieModule = kieBuilder.getKieModule();
-        assertEquals( releaseId1, kieModule.getReleaseId() );
+        createAndDeployJar(ks, releaseId1, drl1);
 
         KieContainer kc = ks.newKieContainer( releaseId1 );
 
@@ -768,17 +764,7 @@ public class IncrementalCompilationTest extends CommonTestMethodBase {
         assertTrue( list.containsAll( asList( "000", "aFoo" ) ) );
         list.clear();
 
-        kfs.generateAndWritePomXML( releaseId2 );
-        kfs.write( ks.getResources()
-                           .newReaderResource( new StringReader( drl2 ) )
-                           .setResourceType( ResourceType.DRL )
-                           .setSourcePath( "drl2.txt" ) );
-
-        IncrementalResults results = ( (InternalKieBuilder) kieBuilder ).incrementalBuild();
-        assertEquals( 0, results.getAddedMessages().size() );
-
-        kieModule = kieBuilder.getKieModule();
-        assertEquals( releaseId2, kieModule.getReleaseId() );
+        createAndDeployJar(ks, releaseId2, drl1, drl2);
 
         Results updateResults = kc.updateToVersion( releaseId2 );
         assertEquals( 0, updateResults.getMessages().size() );
@@ -820,39 +806,24 @@ public class IncrementalCompilationTest extends CommonTestMethodBase {
                 "";
 
         KieServices ks = KieServices.Factory.get();
-        KieFileSystem kfs = ks.newKieFileSystem();
-        ReleaseId id = ks.newReleaseId( "org.test", "myTest", "1.0-SNAPSHOT" );
 
-        KieBuilder kieBuilder = ks.newKieBuilder( kfs );
+        ReleaseId releaseId1 = ks.newReleaseId( "org.kie", "test-upgrade", "1.0.0" );
+        ReleaseId releaseId2 = ks.newReleaseId( "org.kie", "test-upgrade", "1.1.0" );
 
-        kfs.generateAndWritePomXML( id );
-        kfs.write( ks.getResources()
-                     .newReaderResource( new StringReader( drl1 ) )
-                     .setResourceType( ResourceType.DRL )
-                     .setSourcePath( "drl1.drl" ) );
+        createAndDeployJar(ks, releaseId1, drl1);
 
-        kieBuilder.buildAll();
-
-        KieContainer kc = ks.newKieContainer( id );
+        KieContainer kc = ks.newKieContainer( releaseId1 );
         KieSession ksession = kc.newKieSession();
         List<String> list = new ArrayList<String>();
         ksession.setGlobal( "list", list );
         ksession.fireAllRules();
 
-        kfs.write( ks.getResources()
-                     .newReaderResource( new StringReader( drl2 ) )
-                     .setResourceType( ResourceType.DRL )
-                     .setSourcePath( "drl2.txt" ) );
-
-        IncrementalResults results = ( (InternalKieBuilder) kieBuilder ).incrementalBuild();
-        assertEquals( 0, results.getAddedMessages().size() );
-
-        Results updateResults = kc.updateToVersion( id );
+        createAndDeployJar(ks, releaseId2, drl1, drl2);
+        Results updateResults = kc.updateToVersion( releaseId2 );
         assertEquals( 0, updateResults.getMessages().size() );
 
         ksession.fireAllRules();
         assertEquals( 2, list.size() );
-
     }
 
     @Test
@@ -2441,7 +2412,7 @@ public class IncrementalCompilationTest extends CommonTestMethodBase {
         String drl1 =
                 "rule R1 when\n" +
                 "    $s : String()\n" +
-                "	 (Integer(this == $s.length) or Long(this == $s.length))\n" +
+                "    (Integer(this == $s.length) or Long(this == $s.length))\n" +
                 "then\n" +
                 "end\n";
 
@@ -2601,9 +2572,9 @@ public class IncrementalCompilationTest extends CommonTestMethodBase {
                 "global java.util.concurrent.atomic.AtomicInteger globalInt\n" +
                 "rule R1 when\n" +
                 "    $s : String()\n" +
-                "	 (or exists Integer(this == 1)\n" +
-                "	     exists Integer(this == 2) )\n" +
-                "	 exists Integer() from globalInt.get()\n" +
+                "    (or exists Integer(this == 1)\n" +
+                "        exists Integer(this == 2) )\n" +
+                "    exists Integer() from globalInt.get()\n" +
                 "then\n" +
                 "end\n";
 
@@ -2799,7 +2770,7 @@ public class IncrementalCompilationTest extends CommonTestMethodBase {
                 "rule \"RG_TEST_1\"\n" +
                 "    when\n" +
                 "       $dummy: MyEvent (id == 1)\n" +
-                "		$other: MyEvent (this != $dummy)\n" +
+                "       $other: MyEvent (this != $dummy)\n" +
                 "    then\n" +
                 "        retract($other);\n" +
                 "end\n" +
@@ -2868,7 +2839,7 @@ public class IncrementalCompilationTest extends CommonTestMethodBase {
                        "timer (int: 0 1; start=$expirationTimestamp , repeat-limit=0 )\n" +
                        "    when\n" +
                        "       $dummy: DummyEvent (id == 'timer', $expirationTimestamp : systemTimestamp )\n" +
-                       "		DummyEvent (id == 'timer_match')\n" +
+                       "        DummyEvent (id == 'timer_match')\n" +
                        "    then\n " +
                        "System.out.println(\"1\");\n" +
                        "end\n" +
@@ -4376,5 +4347,43 @@ public class IncrementalCompilationTest extends CommonTestMethodBase {
         ks.newKieBuilder(kfs).buildAll();
 
         kContainer.updateToVersion(releaseId3);
+    }
+
+    @Test
+    public void testChangedPackage() {
+        // DROOLS-1742
+        String drl1 = "package org.a\n" +
+                "rule \"RG_1\"\n" +
+                "    when\n" +
+                "        Boolean()\n" +
+                "        Integer()\n" +
+                "    then\n" +
+                "        System.out.println(\"RG_1\");" +
+                "end\n";
+
+        String drl2 = "package org.b\n" +
+                "rule \"RG_2\"\n" +
+                "    when\n" +
+                "        Boolean()\n" +
+                "        String()\n" +
+                "    then\n" +
+                "        System.out.println(\"RG_2\");" +
+                "end\n";
+
+        KieServices ks = KieServices.Factory.get();
+        ReleaseId releaseId1 = ks.newReleaseId( "org.kie", "test-upgrade", "1.0.0" );
+        ReleaseId releaseId2 = ks.newReleaseId( "org.kie", "test-upgrade", "1.1.0" );
+
+        createAndDeployJar(ks, releaseId1, drl2, drl1);
+        KieContainer kieContainer = ks.newKieContainer(releaseId1);
+        KieSession kieSession = kieContainer.newKieSession();
+
+        kieSession.insert("test");
+        assertEquals(0, kieSession.fireAllRules());
+
+        createAndDeployJar( ks, releaseId2, drl1);
+        kieContainer.updateToVersion(releaseId2);
+
+        assertEquals(0, kieSession.fireAllRules());
     }
 }

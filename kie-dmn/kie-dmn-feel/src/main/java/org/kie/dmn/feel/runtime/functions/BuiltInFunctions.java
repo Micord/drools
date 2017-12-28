@@ -16,16 +16,16 @@
 
 package org.kie.dmn.feel.runtime.functions;
 
-import org.kie.dmn.feel.runtime.FEELFunction;
-
 import java.util.stream.Stream;
+
+import org.kie.dmn.feel.runtime.FEELFunction;
 
 public class BuiltInFunctions {
 
     protected final static FEELFunction[] FUNCTIONS = new FEELFunction[]{
             new DateFunction(),
             new TimeFunction(),
-            new DateTimeFunction(),
+            new DateAndTimeFunction(),
             new DurationFunction(),
             new YearsAndMonthsFunction(),
             new StringFunction(),
@@ -69,8 +69,14 @@ public class BuiltInFunctions {
             // additional functions not part of the spec version 1.1
             new NowFunction(),
             new TodayFunction(),
-            new CodeFunction()
-    };
+            new AbsFunction(),
+            new ModuloFunction(),
+            new ProductFunction(),
+            new CodeFunction(),
+            new InvokeFunction(),
+            new SplitFunction()
+
+            };
 
     public static FEELFunction[] getFunctions() {
         return FUNCTIONS;

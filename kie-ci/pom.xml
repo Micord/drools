@@ -5,7 +5,7 @@
   <parent>
     <artifactId>drools</artifactId>
     <groupId>org.drools</groupId>
-    <version>7.3.0.Final</version>
+    <version>7.5.0.Final-cg-1</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
@@ -13,6 +13,10 @@
   <artifactId>kie-ci</artifactId>
 
   <name>KIE :: CI</name>
+
+  <properties>
+    <java.module.name>org.kie.ci</java.module.name>
+  </properties>
 
   <dependencies>
     <!-- Internal dependencies -->
@@ -42,12 +46,12 @@
 
    <!-- External dependencies -->
     <dependency>
-      <groupId>org.uberfire</groupId>
-      <artifactId>uberfire-maven-support</artifactId>
+      <groupId>org.kie.soup</groupId>
+      <artifactId>kie-soup-maven-support</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.uberfire</groupId>
-      <artifactId>uberfire-maven-integration</artifactId>
+      <groupId>org.kie.soup</groupId>
+      <artifactId>kie-soup-maven-integration</artifactId>
     </dependency>
 
     <dependency>

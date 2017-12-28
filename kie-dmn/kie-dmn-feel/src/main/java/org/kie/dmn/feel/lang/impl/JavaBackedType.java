@@ -1,8 +1,17 @@
 package org.kie.dmn.feel.lang.impl;
 
+import static java.util.stream.Collectors.toMap;
+
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -15,24 +24,16 @@ import org.kie.dmn.feel.parser.feel11.ParserHelper;
 import org.kie.dmn.feel.util.EvalHelper;
 
 public class JavaBackedType implements CompositeType {
-    private static Map<Class<?>, JavaBackedType> cache = new HashMap<>();
+
+    private static Map<Class<?>, JavaBackedType> cache = new ConcurrentHashMap<>();
     
-    private static Set<Method> javaObjectMethods = new HashSet<>( Arrays.asList( Object.class.getMethods() ) );
+    private static Set<Method> javaObjectMethods = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(Object.class.getMethods())));
     
     private Class<?> wrapped;
-    private Map<String, Type> properties = new LinkedHashMap<>();
+    private Map<String, Type> properties;
 
     private JavaBackedType(Class<?> class1) {
         this.wrapped = class1;
-        
-        Stream.of( class1.getMethods() )
-            .filter( m -> Modifier.isPublic( m.getModifiers() ) || Modifier.isProtected( m.getModifiers() ) )
-            .filter( m -> ! javaObjectMethods.contains(m) )
-            .flatMap( m -> Stream.<Function<Method, Optional<String>>>of(JavaBackedType::methodToCustomProperty, EvalHelper::propertyFromAccessor)
-                            .map(f -> f.apply( m ))
-                            .filter(Optional::isPresent)
-                            .map(p -> new Property( p.get(), ParserHelper.determineTypeFromClass( m.getReturnType() ) ) ) )
-            .forEach( p -> properties.put( p.name , p.type ) );
     }
 
     /**
@@ -74,6 +75,17 @@ public class JavaBackedType implements CompositeType {
 
     @Override
     public Map<String, Type> getFields() {
+        if (properties == null) {
+            // make properties init lazy instead of constructor-time, so to avoid reentrant write lock on `cache`, which is hidden behind the call of ParserHelper.determineTypeFromClass.
+            properties = Stream.of(wrapped.getMethods())
+                               .filter(m -> Modifier.isPublic(m.getModifiers()) || Modifier.isProtected(m.getModifiers()))
+                               .filter(m -> !javaObjectMethods.contains(m))
+                               .flatMap(m -> Stream.<Function<Method, Optional<String>>> of(JavaBackedType::methodToCustomProperty, EvalHelper::propertyFromAccessor)
+                                                   .map(f -> f.apply(m))
+                                                   .filter(Optional::isPresent)
+                                                   .map(p -> new Property(p.get(), ParserHelper.determineTypeFromClass(m.getReturnType()))))
+                               .collect(toMap((Property p) -> p.name, p -> p.type, (p1, p2) -> { throw new IllegalArgumentException(); }, LinkedHashMap::new));
+        }
         return this.properties;
     }
 

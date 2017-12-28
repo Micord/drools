@@ -7,7 +7,7 @@
   <parent>
     <artifactId>kie-dmn</artifactId>
     <groupId>org.kie</groupId>
-    <version>7.3.0.Final</version>
+    <version>7.5.0.Final-cg-1</version>
   </parent>
 
   <artifactId>kie-dmn-model</artifactId>
@@ -16,7 +16,7 @@
   <name>KIE :: Decision Model Notation :: Model</name>
   
   <properties>
-    <osgi.Bundle-SymbolicName>org.kie.dmn.model</osgi.Bundle-SymbolicName>
+    <java.module.name>org.kie.dmn.model</java.module.name>
   </properties>
   
   <build>
@@ -40,7 +40,8 @@
               com.thoughtworks.xstream.converters.extended;resolution:=optional,
               com.thoughtworks.xstream.converters.enums;resolution:=optional,
               com.thoughtworks.xstream.converters.javabean;resolution:=optional,
-              com.thoughtworks.xstream.converters.reflection;resolution:=optional
+              com.thoughtworks.xstream.converters.reflection;resolution:=optional,
+              com.thoughtworks.xstream.converters.time;resolution:=optional
             </Import-Package>
             <!-- <Bundle-Activator> Activator if needed </Bundle-Activator> -->
             <_removeheaders>Private-Package</_removeheaders>

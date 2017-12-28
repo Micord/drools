@@ -16,31 +16,7 @@
 
 package org.kie.dmn.backend.marshalling.v1_1.xstream;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Reader;
-import java.io.StringReader;
-import java.io.StringWriter;
-import java.io.Writer;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
-import javax.xml.namespace.QName;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
-import javax.xml.stream.XMLStreamWriter;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Source;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.sax.SAXSource;
-import javax.xml.transform.sax.SAXTransformerFactory;
-import javax.xml.transform.stream.StreamResult;
-
 import com.thoughtworks.xstream.XStream;
-import com.thoughtworks.xstream.core.ClassLoaderReference;
 import com.thoughtworks.xstream.io.xml.AbstractPullReader;
 import com.thoughtworks.xstream.io.xml.QNameMap;
 import com.thoughtworks.xstream.io.xml.StaxDriver;
@@ -89,6 +65,30 @@ import org.kie.dmn.model.v1_1.UnaryTests;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.InputSource;
+
+import javax.xml.namespace.QName;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.XMLStreamWriter;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Source;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.sax.SAXSource;
+import javax.xml.transform.sax.SAXTransformerFactory;
+import javax.xml.transform.stream.StreamResult;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Reader;
+import java.io.StringReader;
+import java.io.StringWriter;
+import java.io.Writer;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import static org.kie.soup.commons.xstream.XStreamUtils.createTrustingXStream;
 
 public class XStreamMarshaller
         implements DMNMarshaller {
@@ -162,6 +162,7 @@ public class XStreamMarshaller
                 String dmnPrefix = base.getNsContext().entrySet().stream().filter( kv -> DMNModelInstrumentedBase.URI_DMN.equals( kv.getValue() ) ).findFirst().map(Map.Entry::getKey).orElse("");
                 hsWriter.getQNameMap().setDefaultPrefix( dmnPrefix );
             }
+            extensionRegisters.forEach( r -> r.beforeMarshal(o, hsWriter.getQNameMap()) );
             xStream.marshal(o, hsWriter);
             hsWriter.flush();
             return writer.toString();
@@ -221,7 +222,7 @@ public class XStreamMarshaller
      }
     
     private XStream newXStream() {
-        XStream xStream = new XStream( null, staxDriver, new ClassLoaderReference( Definitions.class.getClassLoader() ) );
+        XStream xStream = createTrustingXStream( staxDriver, Definitions.class.getClassLoader() );
         
         xStream.alias( "artifact", Artifact.class );
         xStream.alias( "definitions", Definitions.class );
@@ -371,12 +372,9 @@ public class XStreamMarshaller
         
         xStream.ignoreUnknownElements();
 
-        if(extensionRegisters != null && !extensionRegisters.isEmpty()) {
-            for(DMNExtensionRegister extensionRegister : extensionRegisters) {
-                extensionRegister.registerExtensionConverters(xStream);
-            }
+        for(DMNExtensionRegister extensionRegister : extensionRegisters) {
+            extensionRegister.registerExtensionConverters(xStream);
         }
-
 
         return xStream;
     }

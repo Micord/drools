@@ -6,11 +6,15 @@
   <parent>
     <groupId>org.drools</groupId>
     <artifactId>drools-examples-api</artifactId>
-    <version>7.3.0.Final</version>
+    <version>7.5.0.Final-cg-1</version>
   </parent>
 
   <artifactId>reactive-kiesession</artifactId>
   <name>Drools API examples - Reactive KieSession</name>
+
+  <properties>
+    <java.module.name>org.drools.examples.api.reactivekiesession</java.module.name>
+  </properties>
 
   <dependencies>
     <dependency>

@@ -5,13 +5,17 @@
   <parent>
     <groupId>org.drools</groupId>
     <artifactId>drools-examples-cdi</artifactId>
-    <version>7.3.0.Final</version>
+    <version>7.5.0.Final-cg-1</version>
   </parent>
   <artifactId>cdi-example-scopes</artifactId>
 
   <packaging>jar</packaging>
 
   <name>cdi-example-scopes</name>
+
+  <properties>
+    <java.module.name>org.drools.examples.cdi.scopes</java.module.name>
+  </properties>
 
   <dependencies>
     <dependency>

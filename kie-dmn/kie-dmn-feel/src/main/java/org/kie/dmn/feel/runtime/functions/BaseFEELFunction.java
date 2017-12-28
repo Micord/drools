@@ -16,23 +16,9 @@
 
 package org.kie.dmn.feel.runtime.functions;
 
-import org.kie.dmn.api.feel.runtime.events.FEELEvent;
-import org.kie.dmn.api.feel.runtime.events.FEELEvent.Severity;
-import org.kie.dmn.feel.lang.EvaluationContext;
-import org.kie.dmn.feel.lang.Symbol;
-import org.kie.dmn.feel.lang.impl.FEELEventListenersManager;
-import org.kie.dmn.feel.lang.impl.NamedParameter;
-import org.kie.dmn.feel.lang.types.FunctionSymbol;
-import org.kie.dmn.feel.runtime.FEELFunction;
-import org.kie.dmn.feel.runtime.events.FEELEventBase;
-import org.kie.dmn.feel.runtime.events.InvalidParametersEvent;
-import org.kie.dmn.feel.util.Either;
-import org.kie.dmn.feel.util.EvalHelper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -43,6 +29,20 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+
+import org.kie.dmn.api.feel.runtime.events.FEELEvent;
+import org.kie.dmn.api.feel.runtime.events.FEELEvent.Severity;
+import org.kie.dmn.feel.lang.EvaluationContext;
+import org.kie.dmn.feel.lang.Symbol;
+import org.kie.dmn.feel.lang.impl.NamedParameter;
+import org.kie.dmn.feel.lang.types.FunctionSymbol;
+import org.kie.dmn.feel.runtime.FEELFunction;
+import org.kie.dmn.feel.runtime.events.FEELEventBase;
+import org.kie.dmn.feel.runtime.events.InvalidParametersEvent;
+import org.kie.dmn.feel.util.Either;
+import org.kie.dmn.feel.util.EvalHelper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public abstract class BaseFEELFunction
         implements FEELFunction {
@@ -83,9 +83,8 @@ public abstract class BaseFEELFunction
                     available = Stream.of( params ).map( p -> ((NamedParameter) p).getName() ).collect( Collectors.toList() );
                 }
 
-                Class[] classes = Stream.of( params ).map( p -> p != null ? p.getClass() : null ).toArray( Class[]::new );
 
-                CandidateMethod cm = getCandidateMethod( ctx, params, isNamedParams, available, classes );
+                CandidateMethod cm = getCandidateMethod( ctx, params, isNamedParams, available );
 
                 if ( cm != null ) {
                     Object result = cm.apply.invoke( this, cm.actualParams );
@@ -95,17 +94,17 @@ public abstract class BaseFEELFunction
                         Either<FEELEvent, Object> either = (Either<FEELEvent, Object>) result;
 
                         Object eitherResult = either.cata( (left) -> {
-                            FEELEventListenersManager.notifyListeners( ctx.getEventsManager(), () -> {
-                                                                           if ( left instanceof InvalidParametersEvent ) {
-                                                                               InvalidParametersEvent invalidParametersEvent = (InvalidParametersEvent) left;
-                                                                               invalidParametersEvent.setNodeName( getName() );
-                                                                               invalidParametersEvent.setActualParameters(
-                                                                                       Stream.of( cm.apply.getParameters() ).map( p -> p.getAnnotation( ParameterName.class ).value() ).collect( Collectors.toList() ),
-                                                                                       Arrays.asList( cm.actualParams )
-                                                                               );
-                                                                           }
-                                                                           return left;
-                                                                       }
+                           ctx.notifyEvt( () -> {
+                                                       if ( left instanceof InvalidParametersEvent ) {
+                                                           InvalidParametersEvent invalidParametersEvent = (InvalidParametersEvent) left;
+                                                           invalidParametersEvent.setNodeName( getName() );
+                                                           invalidParametersEvent.setActualParameters(
+                                                                   Stream.of( cm.apply.getParameters() ).map( p -> p.getAnnotation( ParameterName.class ).value() ).collect( Collectors.toList() ),
+                                                                   Arrays.asList( cm.actualParams )
+                                                           );
+                                                       }
+                                                       return left;
+                                                   }
                             );
                             return null;
                         }, Function.identity() );
@@ -115,12 +114,11 @@ public abstract class BaseFEELFunction
 
                     return result;
                 } else {
-                    String ps = Arrays.toString( classes );
+                    String ps = getClass().toString();
                     logger.error( "Unable to find function '" + getName() + "( " + ps.substring( 1, ps.length() - 1 ) + " )'" );
-                    FEELEventListenersManager.notifyListeners( ctx.getEventsManager(), () -> {
-                                                                   return new FEELEventBase( Severity.ERROR, "Unable to find function '" + getName() + "( " + ps.substring( 1, ps.length() - 1 ) + " )'", null );
-                                                               }
-                    );
+                    ctx.notifyEvt(() -> {
+                        return new FEELEventBase(Severity.ERROR, "Unable to find function '" + getName() + "( " + ps.substring(1, ps.length() - 1) + " )'", null);
+                    });
                 }
             } else {
                 if ( isNamedParams ) {
@@ -134,14 +132,14 @@ public abstract class BaseFEELFunction
                     final Object[] usedParams = params;
 
                     Object eitherResult = either.cata( (left) -> {
-                        FEELEventListenersManager.notifyListeners( ctx.getEventsManager(), () -> {
-                                                                       if ( left instanceof InvalidParametersEvent ) {
-                                                                           InvalidParametersEvent invalidParametersEvent = (InvalidParametersEvent) left;
-                                                                           invalidParametersEvent.setNodeName( getName() );
-                                                                           invalidParametersEvent.setActualParameters( IntStream.of( 0, usedParams.length ).mapToObj( i -> "arg" + i ).collect( Collectors.toList() ), Arrays.asList( usedParams ) );
-                                                                       }
-                                                                       return left;
-                                                                   }
+                       ctx.notifyEvt( () -> {
+                                                   if ( left instanceof InvalidParametersEvent ) {
+                                                       InvalidParametersEvent invalidParametersEvent = (InvalidParametersEvent) left;
+                                                       invalidParametersEvent.setNodeName( getName() );
+                                                       invalidParametersEvent.setActualParameters( IntStream.of( 0, usedParams.length ).mapToObj( i -> "arg" + i ).collect( Collectors.toList() ), Arrays.asList( usedParams ) );
+                                                   }
+                                                   return left;
+                                               }
                         );
                         return null;
                     }, Function.identity() );
@@ -152,9 +150,9 @@ public abstract class BaseFEELFunction
             }
         } catch ( Exception e ) {
             logger.error( "Error trying to call function " + getName() + ".", e );
-            FEELEventListenersManager.notifyListeners( ctx.getEventsManager(), () -> {
-                                                           return new FEELEventBase( Severity.ERROR, "Error trying to call function " + getName() + ".", e );
-                                                       }
+            ctx.notifyEvt( () -> {
+                                       return new FEELEventBase( Severity.ERROR, "Error trying to call function " + getName() + ".", e );
+                                   }
             );
         }
         return null;
@@ -186,11 +184,11 @@ public abstract class BaseFEELFunction
         return params;
     }
 
-    private CandidateMethod getCandidateMethod(EvaluationContext ctx, Object[] params, boolean isNamedParams, List<String> available, Class[] classes) {
+    private CandidateMethod getCandidateMethod(EvaluationContext ctx, Object[] params, boolean isNamedParams, List<String> available) {
         CandidateMethod candidate = null;
         // first, look for exact matches
         for ( Method m : getClass().getDeclaredMethods() ) {
-            if ( !m.getName().equals( "invoke" ) ) {
+            if ( !Modifier.isPublic(m.getModifiers()) || !m.getName().equals( "invoke" ) ) {
                 continue;
             }
 
@@ -199,31 +197,14 @@ public abstract class BaseFEELFunction
             if( injectCtx ) {
                 actualParams = new Object[ params.length + 1 ];
                 int j = 0;
-                for( int i = 0; i < m.getParameterCount() && j < params.length; i++ ) {
+                for (int i = 0; i < m.getParameterCount(); i++) {
                     if( EvaluationContext.class.isAssignableFrom( m.getParameterTypes()[i] ) ) {
                         if( isNamedParams ) {
                             actualParams[i] = new NamedParameter( "ctx", ctx );
                         } else {
                             actualParams[i] = ctx;
                         }
-//                        if( available != null ) {
-//                            // if there is a list of available parameter names, add the injected context parameter into the list
-//                            Annotation[][] annotations = m.getParameterAnnotations();
-//                            boolean foundName = false;
-//                            for( int k = 0; k < annotations[i].length; k++ ) {
-//                                if( annotations[i][k] instanceof NamedParameter ) {
-//                                    available = new ArrayList<>( available );
-//                                    available.add( ((NamedParameter)annotations[i][k]).getName() );
-//                                    foundName = true;
-//                                    break;
-//                                }
-//                            }
-//                            if( ! foundName ) {
-//                                // use default name
-//                                available.add( "ctx" );
-//                            }
-//                        }
-                    } else {
+                    } else if (j < params.length) {
                         actualParams[i] = params[j];
                         j++;
                     }
@@ -241,7 +222,11 @@ public abstract class BaseFEELFunction
             CandidateMethod cm = new CandidateMethod( actualParams );
 
             Class<?>[] parameterTypes = m.getParameterTypes();
-            adjustForVariableParameters( cm, parameterTypes );
+            if( !isNamedParams ) {
+                // if named parameters, then it has been adjusted already in the calculateActualParams method,
+                // otherwise adjust here
+                adjustForVariableParameters( cm, parameterTypes );
+            }
 
             if ( parameterTypes.length != cm.getActualParams().length ) {
                 continue;
@@ -317,17 +302,41 @@ public abstract class BaseFEELFunction
                 return null;
             }
         }
-        if ( names.containsAll( available ) ) {
-            Object[] actualParams = new Object[names.size()];
-            for ( Object o : params ) {
-                NamedParameter np = (NamedParameter) o;
+        Object[] actualParams = new Object[names.size()];
+        boolean isVariableParameters = m.getParameterCount() > 0 && m.getParameterTypes()[m.getParameterCount()-1].isArray();
+        String variableParamPrefix = isVariableParameters ? names.get( names.size()-1 ) : null;
+        List<Object> variableParams = isVariableParameters ? new ArrayList<>(  ) : null;
+        for ( Object o : params ) {
+            NamedParameter np = (NamedParameter) o;
+            if( names.contains( np.getName() ) ) {
                 actualParams[names.indexOf( np.getName() )] = np.getValue();
+            } else if( isVariableParameters ) {
+                // check if it is a variable parameters method
+                if( np.getName().matches( variableParamPrefix + "\\d+" ) ) {
+                    int index = Integer.parseInt( np.getName().substring( variableParamPrefix.length() ) ) - 1;
+                    if( variableParams.size() <= index ) {
+                        for( int i = variableParams.size(); i < index; i++ ) {
+                            // need to add nulls in case the user skipped indexes
+                            variableParams.add( null );
+                        }
+                        variableParams.add( np.getValue() );
+                    } else {
+                        variableParams.set( index, np.getValue() );
+                    }
+                } else {
+                    // invalid parameter, method is incompatible
+                    return null;
+                }
+            } else {
+                // invalid parameter, method is incompatible
+                return null;
             }
-            return actualParams;
-        } else {
-            // method is not compatible
-            return null;
         }
+        if( isVariableParameters ) {
+            actualParams[ actualParams.length - 1 ] = variableParams.toArray();
+        }
+
+        return actualParams;
     }
 
     private Object normalizeResult(Object result) {

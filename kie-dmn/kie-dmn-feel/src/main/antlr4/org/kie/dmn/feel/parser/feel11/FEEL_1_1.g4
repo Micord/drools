@@ -51,9 +51,6 @@ expression
 // #2
 textualExpression
     : functionDefinition
-    | forExpression
-    | ifExpression
-    | quantifiedExpression
     | conditionalOrExpression
     ;
 
@@ -243,9 +240,9 @@ filterPathExpression
     ;
 
 unaryExpression
-	:	'+' unaryExpression          #signedUnaryExpression
-	|	'-' unaryExpression          #signedUnaryExpression
-	|	unaryExpressionNotPlusMinus  #nonSignedUnaryExpression
+	:	'-' unaryExpression                      #signedUnaryExpressionMinus
+	|   unaryExpressionNotPlusMinus              #nonSignedUnaryExpression
+    |	'+' unaryExpressionNotPlusMinus          #signedUnaryExpressionPlus
 	;
 
 unaryExpressionNotPlusMinus
@@ -256,6 +253,9 @@ unaryExpressionNotPlusMinus
 
 primary
     : literal                     #primaryLiteral
+    | forExpression               #primaryForExpression
+    | quantifiedExpression        #primaryQuantifiedExpression
+    | ifExpression                #primaryIfExpression
     | interval                    #primaryInterval
     | list                        #primaryList
     | context                     #primaryContext
@@ -626,7 +626,7 @@ StringCharacter
 
 fragment
 EscapeSequence
-	:	'\\' [btnfr"'\\]
+	:	'\\' ~[u]     // required to support FEEL regexps
     |   UnicodeEscape // This is not in the spec but prevents having to preprocess the input
 	;
 

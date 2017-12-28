@@ -27,13 +27,13 @@ import java.util.Map;
 
 import org.apache.commons.lang3.math.NumberUtils;
 import org.drools.core.util.DateUtils;
-import org.drools.workbench.models.datamodel.oracle.DataType;
-import org.drools.workbench.models.datamodel.oracle.MethodInfo;
-import org.drools.workbench.models.datamodel.oracle.PackageDataModelOracle;
 import org.drools.workbench.models.datamodel.rule.ActionCallMethod;
 import org.drools.workbench.models.datamodel.rule.ActionFieldFunction;
 import org.drools.workbench.models.datamodel.rule.FieldNatureType;
 import org.drools.workbench.models.datamodel.rule.RuleModel;
+import org.kie.soup.project.datamodel.oracle.DataType;
+import org.kie.soup.project.datamodel.oracle.MethodInfo;
+import org.kie.soup.project.datamodel.oracle.PackageDataModelOracle;
 
 import static org.drools.workbench.models.commons.backend.rule.RuleModelPersistenceHelper.adjustParam;
 import static org.drools.workbench.models.commons.backend.rule.RuleModelPersistenceHelper.getMethodInfosForType;

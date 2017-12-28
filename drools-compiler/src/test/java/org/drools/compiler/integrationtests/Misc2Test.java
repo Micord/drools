@@ -48,6 +48,7 @@ import org.drools.compiler.Cheese;
 import org.drools.compiler.CommonTestMethodBase;
 import org.drools.compiler.Message;
 import org.drools.compiler.Person;
+import org.drools.compiler.PersonHolder;
 import org.drools.compiler.builder.impl.KnowledgeBuilderConfigurationImpl;
 import org.drools.compiler.builder.impl.KnowledgeBuilderImpl;
 import org.drools.compiler.compiler.DrlParser;
@@ -67,7 +68,6 @@ import org.drools.core.common.InternalFactHandle;
 import org.drools.core.common.InternalWorkingMemory;
 import org.drools.core.common.Memory;
 import org.drools.core.common.NodeMemories;
-import org.drools.core.common.TupleSets;
 import org.drools.core.conflict.SalienceConflictResolver;
 import org.drools.core.definitions.impl.KnowledgePackageImpl;
 import org.drools.core.definitions.rule.impl.RuleImpl;
@@ -79,9 +79,6 @@ import org.drools.core.impl.InternalKnowledgeBase;
 import org.drools.core.impl.KnowledgeBaseFactory;
 import org.drools.core.impl.KnowledgeBaseImpl;
 import org.drools.core.io.impl.ByteArrayResource;
-import org.drools.core.reteoo.AlphaNode;
-import org.drools.core.reteoo.BetaMemory;
-import org.drools.core.reteoo.JoinNode;
 import org.drools.core.reteoo.LeftInputAdapterNode;
 import org.drools.core.reteoo.LeftTuple;
 import org.drools.core.reteoo.ObjectTypeNode;
@@ -91,7 +88,6 @@ import org.drools.core.reteoo.ReteDumper;
 import org.drools.core.reteoo.SegmentMemory;
 import org.drools.core.spi.KnowledgeHelper;
 import org.drools.core.spi.Salience;
-import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.kie.api.KieBase;
@@ -104,6 +100,7 @@ import org.kie.api.builder.ReleaseId;
 import org.kie.api.builder.Results;
 import org.kie.api.conf.DeclarativeAgendaOption;
 import org.kie.api.conf.EventProcessingOption;
+import org.kie.api.definition.KiePackage;
 import org.kie.api.definition.rule.Rule;
 import org.kie.api.definition.type.FactType;
 import org.kie.api.definition.type.Modifies;
@@ -145,6 +142,12 @@ import org.slf4j.LoggerFactory;
 
 import static java.util.Arrays.asList;
 import static org.drools.compiler.TestUtil.assertDrlHasCompilationError;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.junit.Assume.assumeTrue;
 
 /**
@@ -3979,8 +3982,8 @@ public class Misc2Test extends CommonTestMethodBase {
 
         //We must have 1 INFO result.
         KnowledgeBuilderResults infos = kbuilder.getResults( ResultSeverity.INFO );
-        Assert.assertNotNull( infos );
-        Assert.assertEquals( 1, infos.size() );
+        assertNotNull( infos );
+        assertEquals( 1, infos.size() );
 
     }
 
@@ -7549,7 +7552,7 @@ public class Misc2Test extends CommonTestMethodBase {
 
         ksession.fireAllRules();
 
-        Assert.assertEquals( 1, globalList.size() );
+        assertEquals( 1, globalList.size() );
     }
 
     public static class NonStringConstructorClass {
@@ -9052,5 +9055,60 @@ public class Misc2Test extends CommonTestMethodBase {
         kbuilder.add( ResourceFactory.newByteArrayResource( drl.getBytes() ), ResourceType.DRL );
 
         assertTrue( kbuilder.getErrors().toString().contains( "StackOverflowError" ) );
+    }
+
+    @Test
+    public void testMergeMVELDialect() {
+        // DROOLS-1751
+        String drl1 = "package com.sample\n" +
+                "import org.drools.compiler.*;\n" +
+                "rule rule1 \n" +
+                "    when\n" +
+                "        (PersonHolder($addresses : person.addresses))\n" +
+                "            &&\n" +
+                "        (Address (street == \"AAA\") from $addresses)\n" +
+                "    then\n" +
+                "end";
+
+        KnowledgeBuilder kbuilder1 = KnowledgeBuilderFactory.newKnowledgeBuilder();
+        kbuilder1.add(ResourceFactory.newByteArrayResource(drl1.getBytes()), ResourceType.DRL);
+        Collection<KiePackage> knowledgePackages1 = kbuilder1.getKnowledgePackages();
+
+        String drl2 = "package com.sample\n" +
+                "import org.drools.compiler.*;\n" +
+                "rule rule2 \n" +
+                "    when\n" +
+                "        PersonHolder()\n" +
+                "    then\n" +
+                "end";
+
+        KnowledgeBuilder kbuilder2 = KnowledgeBuilderFactory.newKnowledgeBuilder();
+        kbuilder2.add(ResourceFactory.newByteArrayResource(drl2.getBytes()), ResourceType.DRL);
+        Collection<KiePackage> knowledgePackages2 = kbuilder2.getKnowledgePackages();
+
+        InternalKnowledgeBase kbase1 = KnowledgeBaseFactory.newKnowledgeBase();
+        Collection<KiePackage> combinedPackages1 = new ArrayList<KiePackage>();
+        combinedPackages1.addAll(knowledgePackages1);
+        combinedPackages1.addAll(knowledgePackages2);
+        kbase1.addPackages(combinedPackages1); // Add once to make inUse=true
+
+        InternalKnowledgeBase kbase2 = KnowledgeBaseFactory.newKnowledgeBase();
+        Collection<KiePackage> combinedPackages2 = new ArrayList<KiePackage>();
+        combinedPackages2.addAll(knowledgePackages1);
+        combinedPackages2.addAll(knowledgePackages2);
+        kbase2.addPackages(combinedPackages2); // this will cause package deepClone
+
+        KieSession ksession = kbase2.newKieSession();
+
+        PersonHolder personHolder = new PersonHolder();
+        Person person = new Person("John");
+        Address address = new Address("AAA", "BBB", "111");
+        person.addAddress(address);
+        personHolder.setPerson(person);
+
+        ksession.insert(personHolder);
+        int fired = ksession.fireAllRules();
+
+        assertEquals(2, fired);
     }
 }

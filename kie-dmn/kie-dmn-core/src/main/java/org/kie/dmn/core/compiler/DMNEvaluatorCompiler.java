@@ -15,6 +15,7 @@ import org.kie.dmn.feel.lang.CompiledExpression;
 import org.kie.dmn.feel.runtime.FEELFunction;
 import org.kie.dmn.feel.runtime.UnaryTest;
 import org.kie.dmn.feel.runtime.decisiontables.*;
+import org.kie.dmn.feel.runtime.functions.BaseFEELFunction;
 import org.kie.dmn.feel.runtime.functions.DTInvokerFunction;
 import org.kie.dmn.model.v1_1.*;
 import org.kie.dmn.model.v1_1.HitPolicy;
@@ -285,6 +286,9 @@ public class DMNEvaluatorCompiler {
                                                                               Msg.FUNC_DEF_COMPILATION_ERR,
                                                                               functionName,
                                                                               node.getIdentifierString() );
+                        if( feelFunction != null ) {
+                            ((BaseFEELFunction)feelFunction).setName( functionName );
+                        }
 
                         DMNInvocationEvaluator invoker = new DMNInvocationEvaluator( node.getName(), node.getSource(), functionName, new Invocation(),
                                                                                      ( fctx, fname ) -> feelFunction );
@@ -404,6 +408,7 @@ public class DMNEvaluatorCompiler {
         }
         java.util.List<DTOutputClause> outputs = new ArrayList<>();
         index = 0;
+        boolean hasOutputValues = false;
         for ( OutputClause oc : dt.getOutput() ) {
             String outputName = oc.getName();
             if( outputName != null ) {
@@ -442,17 +447,20 @@ public class DMNEvaluatorCompiler {
                     outputValues = typeRef.getAllowedValuesFEEL();
                 }
             }
-            if ( dt.getHitPolicy().equals(HitPolicy.PRIORITY) && ( outputValues == null || outputValues.isEmpty() ) ) {
-                MsgUtil.reportMessage( logger,
-                        DMNMessage.Severity.ERROR,
-                        oc,
-                        model,
-                        null,
-                        null,
-                        Msg.MISSING_OUTPUT_VALUES,
-                        oc );
+            if ( outputValues != null && !outputValues.isEmpty() ) {
+                hasOutputValues = true;
             }
             outputs.add( new DTOutputClause( outputName, id, outputValues, defaultValue, typeRef.getFeelType() ) );
+        }
+        if ( dt.getHitPolicy().equals(HitPolicy.PRIORITY) && !hasOutputValues ) {
+            MsgUtil.reportMessage( logger,
+            DMNMessage.Severity.ERROR,
+            dt.getParent(),
+            model,
+            null,
+            null,
+            Msg.MISSING_OUTPUT_VALUES,
+            dt.getParent() );
         }
         java.util.List<DTDecisionRule> rules = new ArrayList<>();
         index = 0;

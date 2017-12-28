@@ -7,7 +7,7 @@
   <parent>
     <groupId>org.kie</groupId>
     <artifactId>kie-dmn</artifactId>
-    <version>7.3.0.Final</version>
+    <version>7.5.0.Final-cg-1</version>
   </parent>
 
   <artifactId>kie-dmn-backend</artifactId>
@@ -16,10 +16,14 @@
   <name>KIE :: Decision Model Notation :: Backend</name>
   
   <properties>
-    <osgi.Bundle-SymbolicName>org.kie.dmn.backend</osgi.Bundle-SymbolicName>
+    <java.module.name>org.kie.dmn.backend</java.module.name>
   </properties>
 
   <dependencies>
+    <dependency>
+      <groupId>org.kie</groupId>
+      <artifactId>kie-internal</artifactId>
+    </dependency>
     <dependency>
       <groupId>org.kie</groupId>
       <artifactId>kie-dmn-api</artifactId>
@@ -33,6 +37,11 @@
     <dependency>
       <groupId>com.thoughtworks.xstream</groupId>
       <artifactId>xstream</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.kie.soup</groupId>
+      <artifactId>kie-soup-commons</artifactId>
     </dependency>
 
     <dependency>

@@ -19,15 +19,12 @@ package org.drools.workbench.models.commons.backend.rule;
 import java.util.Collection;
 import java.util.List;
 
-import org.drools.workbench.models.datamodel.oracle.PackageDataModelOracle;
 import org.drools.workbench.models.datamodel.rule.RuleModel;
+import org.kie.soup.project.datamodel.oracle.PackageDataModelOracle;
 
 public interface RuleModelPersistence {
 
     String marshal(final RuleModel model);
-
-    String marshal(final RuleModel model,
-                   final Collection<RuleModelIActionPersistenceExtension> extensions);
 
     RuleModel unmarshal(final String str,
                         final List<String> globals,

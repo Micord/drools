@@ -23,12 +23,12 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
 import java.security.UnrecoverableKeyException;
 
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
-import static org.junit.Assert.*;
 
-import org.drools.core.util.KeyStoreHelper;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class KeyStoreHelperTest {
 
@@ -43,11 +43,11 @@ public class KeyStoreHelperTest {
         
         // Set properties to simulate the server
         URL serverKeyStoreURL = getClass().getResource( "droolsServer.keystore" );
-        System.setProperty( KeyStoreHelper.PROP_SIGN, "true" );
-        System.setProperty( KeyStoreHelper.PROP_PVT_KS_URL, serverKeyStoreURL.toExternalForm() );
-        System.setProperty( KeyStoreHelper.PROP_PVT_KS_PWD, "serverpwd" );
-        System.setProperty( KeyStoreHelper.PROP_PVT_ALIAS, "droolsKey" );
-        System.setProperty( KeyStoreHelper.PROP_PVT_PWD, "keypwd" );
+        System.setProperty( KeyStoreConstants.PROP_SIGN, "true" );
+        System.setProperty( KeyStoreConstants.PROP_PVT_KS_URL, serverKeyStoreURL.toExternalForm() );
+        System.setProperty( KeyStoreConstants.PROP_PVT_KS_PWD, "serverpwd" );
+        System.setProperty( KeyStoreConstants.PROP_PVT_ALIAS, "droolsKey" );
+        System.setProperty( KeyStoreConstants.PROP_PVT_PWD, "keypwd" );
         KeyStoreHelper serverHelper = new KeyStoreHelper();
 
         // get some data to sign
@@ -60,9 +60,9 @@ public class KeyStoreHelperTest {
         
         // Set properties to simulate the client
         URL clientKeyStoreURL = getClass().getResource( "droolsClient.keystore" );
-        System.setProperty( KeyStoreHelper.PROP_SIGN, "true" );
-        System.setProperty( KeyStoreHelper.PROP_PUB_KS_URL, clientKeyStoreURL.toExternalForm() );
-        System.setProperty( KeyStoreHelper.PROP_PUB_KS_PWD, "clientpwd" );
+        System.setProperty( KeyStoreConstants.PROP_SIGN, "true" );
+        System.setProperty( KeyStoreConstants.PROP_PUB_KS_URL, clientKeyStoreURL.toExternalForm() );
+        System.setProperty( KeyStoreConstants.PROP_PUB_KS_PWD, "clientpwd" );
         // client needs no password to access the certificate and public key
         KeyStoreHelper clientHelper = new KeyStoreHelper( );
 
@@ -77,4 +77,34 @@ public class KeyStoreHelperTest {
                                                           signature ) );
     }
 
+    @Test
+    public void testLoadPassword() {
+        // $ keytool -importpassword -keystore droolsServer.jceks -keypass keypwd -alias droolsKey -storepass serverpwd -storetype JCEKS
+        // password is passwd
+
+        // test no key store
+        KeyStoreHelper serverHelper = new KeyStoreHelper();
+        try {
+            serverHelper.getPasswordKey(null, null);
+            fail();
+        } catch (RuntimeException re) {
+            assertTrue(true);
+        }
+
+        // Set properties to simulate the server
+        URL serverKeyStoreURL = getClass().getResource("droolsServer.jceks");
+        System.setProperty(KeyStoreConstants.PROP_PWD_KS_URL, serverKeyStoreURL.toExternalForm());
+        System.setProperty(KeyStoreConstants.PROP_PWD_KS_PWD, "serverpwd");
+        String PROP_PWD_ALIAS = "droolsKey";
+        char[] PROP_PWD_PWD = "keypwd".toCharArray();
+
+        try {
+            serverHelper = new KeyStoreHelper();
+
+            String passwordKey = serverHelper.getPasswordKey(PROP_PWD_ALIAS, PROP_PWD_PWD);
+            assertEquals("passwd", passwordKey);
+        } catch (RuntimeException re) {
+            fail();
+        }
+    }
 }
