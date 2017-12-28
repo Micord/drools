@@ -15,6 +15,12 @@
  */
 package org.drools.core.util;
 
+import java.io.Serializable;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+import java.util.Collections;
+import java.util.Map;
+
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.Map;
@@ -22,6 +28,8 @@ import java.util.Map;
 import org.kie.internal.security.KiePolicyHelper;
 import org.kie.soup.project.datamodel.commons.util.MVELEvaluator;
 import org.mvel2.MVEL;
+import org.mvel2.ParserConfiguration;
+import org.mvel2.ParserContext;
 import org.mvel2.compiler.CompiledExpression;
 import org.mvel2.integration.VariableResolverFactory;
 
@@ -120,6 +128,7 @@ public class SafeMVELEvaluator implements MVELEvaluator {
             public T run() {
                 return MVELSafeHelper.getEvaluator().executeExpression(
                   compileExpression(expression),
+                  Collections.emptyMap(),
                   toType
                 );
             }
@@ -211,7 +220,6 @@ public class SafeMVELEvaluator implements MVELEvaluator {
                 return String.valueOf(MVELSafeHelper.getEvaluator().executeExpression(
                   compileExpression(expression)
                 ));
-                return MVEL.evalToString(expression);
             }
         }, KiePolicyHelper.getAccessContext());
     }
