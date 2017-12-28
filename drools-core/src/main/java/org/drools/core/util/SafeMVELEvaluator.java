@@ -33,7 +33,9 @@ public class SafeMVELEvaluator implements MVELEvaluator {
 
             @Override
             public Object run() {
-                return MVEL.eval(expression);
+                return MVELSafeHelper.getEvaluator().executeExpression(
+                  compileExpression(expression)
+                );
             }
         }, KiePolicyHelper.getAccessContext());
     }
@@ -44,7 +46,10 @@ public class SafeMVELEvaluator implements MVELEvaluator {
 
             @Override
             public Object run() {
-                return MVEL.eval(expression, ctx);
+                return MVELSafeHelper.getEvaluator().executeExpression(
+                  compileExpression(expression),
+                  ctx
+                );
             }
         }, KiePolicyHelper.getAccessContext());
     }
@@ -55,7 +60,10 @@ public class SafeMVELEvaluator implements MVELEvaluator {
 
             @Override
             public Object run() {
-                return MVEL.eval(expression, resolverFactory);
+                return MVELSafeHelper.getEvaluator().executeExpression(
+                  compileExpression(expression),
+                  resolverFactory
+                );
             }
         }, KiePolicyHelper.getAccessContext());
     }
@@ -66,7 +74,11 @@ public class SafeMVELEvaluator implements MVELEvaluator {
 
             @Override
             public Object run() {
-                return MVEL.eval(expression, ctx, resolverFactory);
+                return MVELSafeHelper.getEvaluator().executeExpression(
+                  compileExpression(expression),
+                  ctx,
+                  resolverFactory
+                );
             }
         }, KiePolicyHelper.getAccessContext());
     }
@@ -77,7 +89,10 @@ public class SafeMVELEvaluator implements MVELEvaluator {
 
             @Override
             public Object run() {
-                return MVEL.eval(expression, vars);
+                return MVELSafeHelper.getEvaluator().executeExpression(
+                  compileExpression(expression),
+                  vars
+                );
             }
         }, KiePolicyHelper.getAccessContext());
     }
@@ -88,7 +103,11 @@ public class SafeMVELEvaluator implements MVELEvaluator {
 
             @Override
             public Object run() {
-                return MVEL.eval(expression, ctx, vars);
+                return MVELSafeHelper.getEvaluator().executeExpression(
+                  compileExpression(expression),
+                  ctx,
+                  vars
+                );
             }
         }, KiePolicyHelper.getAccessContext());
     }
@@ -99,7 +118,10 @@ public class SafeMVELEvaluator implements MVELEvaluator {
 
             @Override
             public T run() {
-                return MVEL.eval(expression, toType);
+                return MVELSafeHelper.getEvaluator().executeExpression(
+                  compileExpression(expression),
+                  toType
+                );
             }
         }, KiePolicyHelper.getAccessContext());
     }
@@ -110,7 +132,11 @@ public class SafeMVELEvaluator implements MVELEvaluator {
 
             @Override
             public T run() {
-                return MVEL.eval(expression, ctx, toType);
+                return MVELSafeHelper.getEvaluator().executeExpression(
+                  compileExpression(expression),
+                  ctx,
+                  toType
+                );
             }
         }, KiePolicyHelper.getAccessContext());
     }
@@ -121,7 +147,11 @@ public class SafeMVELEvaluator implements MVELEvaluator {
 
             @Override
             public T run() {
-                return MVEL.eval(expression, vars, toType);
+                return MVELSafeHelper.getEvaluator().executeExpression(
+                  compileExpression(expression),
+                  vars,
+                  toType
+                );
             }
         }, KiePolicyHelper.getAccessContext());
     }
@@ -132,7 +162,11 @@ public class SafeMVELEvaluator implements MVELEvaluator {
 
             @Override
             public T run() {
-                return MVEL.eval(expression, vars, toType);
+                return MVELSafeHelper.getEvaluator().executeExpression(
+                  compileExpression(expression),
+                  vars,
+                  toType
+                );
             }
         }, KiePolicyHelper.getAccessContext());
     }
@@ -143,7 +177,12 @@ public class SafeMVELEvaluator implements MVELEvaluator {
 
             @Override
             public T run() {
-                return MVEL.eval(expression, ctx, vars, toType);
+                return MVELSafeHelper.getEvaluator().executeExpression(
+                  compileExpression(expression),
+                  ctx,
+                  vars,
+                  toType
+                );
             }
         }, KiePolicyHelper.getAccessContext());
     }
@@ -154,7 +193,12 @@ public class SafeMVELEvaluator implements MVELEvaluator {
 
             @Override
             public T run() {
-                return MVEL.eval(expression, ctx, vars, toType);
+                return MVELSafeHelper.getEvaluator().executeExpression(
+                  compileExpression(expression),
+                  ctx,
+                  vars,
+                  toType
+                );
             }
         }, KiePolicyHelper.getAccessContext());
     }
@@ -164,6 +208,9 @@ public class SafeMVELEvaluator implements MVELEvaluator {
         return AccessController.doPrivileged(new PrivilegedAction<String>() {
             @Override
             public String run() {
+                return String.valueOf(MVELSafeHelper.getEvaluator().executeExpression(
+                  compileExpression(expression)
+                ));
                 return MVEL.evalToString(expression);
             }
         }, KiePolicyHelper.getAccessContext());
@@ -337,5 +384,12 @@ public class SafeMVELEvaluator implements MVELEvaluator {
                 return null;
             }
         }, KiePolicyHelper.getAccessContext());
+    }
+
+    private Serializable compileExpression(String expression) {
+        ParserConfiguration pconf = new ParserConfiguration();
+        pconf.setClassLoader(getClass().getClassLoader());
+        ParserContext context = new ParserContext(pconf);
+        return MVEL.compileExpression(expression, context);
     }
 }
