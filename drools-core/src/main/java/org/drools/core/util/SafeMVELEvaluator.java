@@ -15,12 +15,6 @@
  */
 package org.drools.core.util;
 
-import java.io.Serializable;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
-import java.util.Collections;
-import java.util.Map;
-
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.Map;
@@ -28,8 +22,6 @@ import java.util.Map;
 import org.kie.internal.security.KiePolicyHelper;
 import org.kie.soup.project.datamodel.commons.util.MVELEvaluator;
 import org.mvel2.MVEL;
-import org.mvel2.ParserConfiguration;
-import org.mvel2.ParserContext;
 import org.mvel2.compiler.CompiledExpression;
 import org.mvel2.integration.VariableResolverFactory;
 
@@ -41,9 +33,7 @@ public class SafeMVELEvaluator implements MVELEvaluator {
 
             @Override
             public Object run() {
-                return MVELSafeHelper.getEvaluator().executeExpression(
-                  compileExpression(expression)
-                );
+                return MVEL.eval(expression);
             }
         }, KiePolicyHelper.getAccessContext());
     }
@@ -54,10 +44,7 @@ public class SafeMVELEvaluator implements MVELEvaluator {
 
             @Override
             public Object run() {
-                return MVELSafeHelper.getEvaluator().executeExpression(
-                  compileExpression(expression),
-                  ctx
-                );
+                return MVEL.eval(expression, ctx);
             }
         }, KiePolicyHelper.getAccessContext());
     }
@@ -68,10 +55,7 @@ public class SafeMVELEvaluator implements MVELEvaluator {
 
             @Override
             public Object run() {
-                return MVELSafeHelper.getEvaluator().executeExpression(
-                  compileExpression(expression),
-                  resolverFactory
-                );
+                return MVEL.eval(expression, resolverFactory);
             }
         }, KiePolicyHelper.getAccessContext());
     }
@@ -82,11 +66,7 @@ public class SafeMVELEvaluator implements MVELEvaluator {
 
             @Override
             public Object run() {
-                return MVELSafeHelper.getEvaluator().executeExpression(
-                  compileExpression(expression),
-                  ctx,
-                  resolverFactory
-                );
+                return MVEL.eval(expression, ctx, resolverFactory);
             }
         }, KiePolicyHelper.getAccessContext());
     }
@@ -97,10 +77,7 @@ public class SafeMVELEvaluator implements MVELEvaluator {
 
             @Override
             public Object run() {
-                return MVELSafeHelper.getEvaluator().executeExpression(
-                  compileExpression(expression),
-                  vars
-                );
+                return MVEL.eval(expression, vars);
             }
         }, KiePolicyHelper.getAccessContext());
     }
@@ -111,11 +88,7 @@ public class SafeMVELEvaluator implements MVELEvaluator {
 
             @Override
             public Object run() {
-                return MVELSafeHelper.getEvaluator().executeExpression(
-                  compileExpression(expression),
-                  ctx,
-                  vars
-                );
+                return MVEL.eval(expression, ctx, vars);
             }
         }, KiePolicyHelper.getAccessContext());
     }
@@ -126,11 +99,7 @@ public class SafeMVELEvaluator implements MVELEvaluator {
 
             @Override
             public T run() {
-                return MVELSafeHelper.getEvaluator().executeExpression(
-                  compileExpression(expression),
-                  Collections.emptyMap(),
-                  toType
-                );
+                return MVEL.eval(expression, toType);
             }
         }, KiePolicyHelper.getAccessContext());
     }
@@ -141,11 +110,7 @@ public class SafeMVELEvaluator implements MVELEvaluator {
 
             @Override
             public T run() {
-                return MVELSafeHelper.getEvaluator().executeExpression(
-                  compileExpression(expression),
-                  ctx,
-                  toType
-                );
+                return MVEL.eval(expression, ctx, toType);
             }
         }, KiePolicyHelper.getAccessContext());
     }
@@ -156,11 +121,7 @@ public class SafeMVELEvaluator implements MVELEvaluator {
 
             @Override
             public T run() {
-                return MVELSafeHelper.getEvaluator().executeExpression(
-                  compileExpression(expression),
-                  vars,
-                  toType
-                );
+                return MVEL.eval(expression, vars, toType);
             }
         }, KiePolicyHelper.getAccessContext());
     }
@@ -171,11 +132,7 @@ public class SafeMVELEvaluator implements MVELEvaluator {
 
             @Override
             public T run() {
-                return MVELSafeHelper.getEvaluator().executeExpression(
-                  compileExpression(expression),
-                  vars,
-                  toType
-                );
+                return MVEL.eval(expression, vars, toType);
             }
         }, KiePolicyHelper.getAccessContext());
     }
@@ -186,12 +143,7 @@ public class SafeMVELEvaluator implements MVELEvaluator {
 
             @Override
             public T run() {
-                return MVELSafeHelper.getEvaluator().executeExpression(
-                  compileExpression(expression),
-                  ctx,
-                  vars,
-                  toType
-                );
+                return MVEL.eval(expression, ctx, vars, toType);
             }
         }, KiePolicyHelper.getAccessContext());
     }
@@ -202,12 +154,7 @@ public class SafeMVELEvaluator implements MVELEvaluator {
 
             @Override
             public T run() {
-                return MVELSafeHelper.getEvaluator().executeExpression(
-                  compileExpression(expression),
-                  ctx,
-                  vars,
-                  toType
-                );
+                return MVEL.eval(expression, ctx, vars, toType);
             }
         }, KiePolicyHelper.getAccessContext());
     }
@@ -217,9 +164,7 @@ public class SafeMVELEvaluator implements MVELEvaluator {
         return AccessController.doPrivileged(new PrivilegedAction<String>() {
             @Override
             public String run() {
-                return String.valueOf(MVELSafeHelper.getEvaluator().executeExpression(
-                  compileExpression(expression)
-                ));
+                return MVEL.evalToString(expression);
             }
         }, KiePolicyHelper.getAccessContext());
     }
@@ -392,12 +337,5 @@ public class SafeMVELEvaluator implements MVELEvaluator {
                 return null;
             }
         }, KiePolicyHelper.getAccessContext());
-    }
-
-    private Serializable compileExpression(String expression) {
-        ParserConfiguration pconf = new ParserConfiguration();
-        pconf.setClassLoader(getClass().getClassLoader());
-        ParserContext context = new ParserContext(pconf);
-        return MVEL.compileExpression(expression, context);
     }
 }
