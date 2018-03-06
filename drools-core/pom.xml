@@ -6,12 +6,12 @@
   <parent>
     <groupId>org.drools</groupId>
     <artifactId>drools</artifactId>
-    <version>7.5.0.Final-cg-1</version>
+    <version>7.5.0.Final-cg-2</version>
   </parent>
 
   <artifactId>drools-core</artifactId>
   <packaging>bundle</packaging><!-- bundle = jar + OSGi metadata -->
-  <version>7.5.0.Final-cg-1</version>
+  <version>7.5.0.Final-cg-2</version>
 
   <name>Drools :: Core</name>
 
