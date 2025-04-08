@@ -30,6 +30,7 @@ import javax.persistence.Version;
 import org.drools.persistence.api.PersistentSession;
 import org.drools.persistence.api.SessionMarshallingHelper;
 import org.drools.persistence.api.Transformable;
+import org.hibernate.annotations.Type;
 
 @Entity
 @SequenceGenerator(name="sessionInfoIdSeq", sequenceName="SESSIONINFO_ID_SEQ")
@@ -48,6 +49,7 @@ public class SessionInfo implements PersistentSession {
     
     @Lob
     @Column(length=2147483647)
+    @Type(type = "org.hibernate.type.BinaryType")
     private byte[]             rulesByteArray;
 
     @Transient

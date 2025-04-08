@@ -42,6 +42,7 @@ import org.drools.serialization.protobuf.ProtobufOutputMarshaller;
 import org.kie.api.runtime.Environment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.hibernate.annotations.Type;
 
 @Entity
 @SequenceGenerator(name="workItemInfoIdSeq", sequenceName="WORKITEMINFO_ID_SEQ")
@@ -64,6 +65,7 @@ public class WorkItemInfo implements PersistentWorkItem {
     
     @Lob
     @Column(length=2147483647)
+    @Type(type = "org.hibernate.type.BinaryType")
     private byte[] workItemByteArray;
     
     private @Transient
