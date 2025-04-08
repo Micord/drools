@@ -6,7 +6,7 @@
   <parent>
     <groupId>org.kie</groupId>
     <artifactId>kie-parent</artifactId>
-    <version>7.58.0.Final</version>
+    <version>7.58.0.Final-Micord.9</version>
     <!-- relativePath causes out-of-date problems on hudson secondary nodes -->
     <!--<relativePath>../droolsjbpm-build-bootstrap/pom.xml</relativePath>-->
   </parent>
@@ -23,25 +23,46 @@
   <properties>
     <surefire.forkCount>1</surefire.forkCount>
     <alphanetworkCompilerEnabled>false</alphanetworkCompilerEnabled>
+    <nexus.url>https://repo.micord.ru</nexus.url>
   </properties>
 
   <repositories>
     <!-- Bootstrap repository to locate the parent pom when the parent pom has not been build locally. -->
     <repository>
-      <id>jboss-public-repository-group</id>
-      <name>JBoss Public Repository Group</name>
-      <url>https://repository.jboss.org/nexus/content/groups/public/</url>
-      <layout>default</layout>
-      <releases>
-        <enabled>true</enabled>
-        <updatePolicy>never</updatePolicy>
-      </releases>
-      <snapshots>
-        <enabled>true</enabled>
-        <updatePolicy>daily</updatePolicy>
-      </snapshots>
+      <id>micord-public</id>
+      <name>micord-public</name>
+      <url>${nexus.url}/repository/maven-public</url>
+    </repository>
+    <repository>
+      <id>micord</id>
+      <name>micord</name>
+      <url>${nexus.url}/repository/maven-micord</url>
     </repository>
   </repositories>
+  <pluginRepositories>
+    <pluginRepository>
+      <id>micord-public</id>
+      <name>micord-public</name>
+      <url>${nexus.url}/repository/maven-public</url>
+    </pluginRepository>
+    <pluginRepository>
+      <id>micord</id>
+      <name>micord</name>
+      <url>${nexus.url}/repository/maven-micord</url>
+    </pluginRepository>
+  </pluginRepositories>
+  <distributionManagement>
+    <repository>
+      <id>micord</id>
+      <name>micord releases</name>
+      <url>${nexus.url}/repository/libs-releases-local</url>
+    </repository>
+    <snapshotRepository>
+      <id>snapshots</id>
+      <name>micord snapshots</name>
+      <url>${nexus.url}/repository/libs-snapshots-local</url>
+    </snapshotRepository>
+  </distributionManagement>
 
   <scm>
     <connection>scm:git:https://github.com:kiegroup/drools.git</connection>
