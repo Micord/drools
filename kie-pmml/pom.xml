@@ -22,7 +22,7 @@
   <parent>
     <groupId>org.drools</groupId>
     <artifactId>drools</artifactId>
-    <version>7.58.0.Final-Micord.9</version>
+    <version>7.58.0.Final</version>
   </parent>
 
   <artifactId>kie-pmml</artifactId>
