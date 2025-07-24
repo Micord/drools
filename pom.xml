@@ -24,6 +24,7 @@
   <properties>
     <surefire.forkCount>1</surefire.forkCount>
     <alphanetworkCompilerEnabled>false</alphanetworkCompilerEnabled>
+    <kie-soup.version>7.74.1.Final-Micord.1</kie-soup.version>
     <version.com.thoughtworks.xstream>1.4.21</version.com.thoughtworks.xstream>
     <version.org.jboss.logging-4ee7>3.6.1.Final</version.org.jboss.logging-4ee7>
     <version.jakarta.jws-api>4.0.2</version.jakarta.jws-api>
@@ -55,11 +56,12 @@
     <version.jakarta.xml.bind-api>4.0.2</version.jakarta.xml.bind-api>
     <version.jakarta.json.bind-api>3.0.1</version.jakarta.json.bind-api>
     <version.jakarta.json-api>2.1.3</version.jakarta.json-api>
+    <version.jakarta.enterprise.cdi-api>4.1.0</version.jakarta.enterprise.cdi-api>
     <version.com.google.protobuf>3.25.8</version.com.google.protobuf>
     <version.net.byte-buddy>1.17.6</version.net.byte-buddy>
     <version.org.mvel>2.5.2.Final</version.org.mvel>
-    <version.org.springframework.boot>3.5.1</version.org.springframework.boot>
-    <version.org.springframework>6.2.8</version.org.springframework>
+    <version.org.springframework.boot>3.5.3</version.org.springframework.boot>
+    <version.org.springframework>6.2.9</version.org.springframework>
   </properties>
 
   <repositories>
@@ -1450,7 +1452,6 @@
           <version>3.14.0</version>
           <configuration>
             <release>21</release>
-            <forceJavacCompilerUse>true</forceJavacCompilerUse>
           </configuration>
         </plugin>
         <plugin>
