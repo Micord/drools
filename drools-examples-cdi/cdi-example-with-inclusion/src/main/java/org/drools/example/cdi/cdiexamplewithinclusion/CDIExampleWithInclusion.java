@@ -3,7 +3,7 @@
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
@@ -21,7 +21,7 @@ import org.jboss.weld.environment.se.WeldContainer;
 import org.kie.api.cdi.KSession;
 import org.kie.api.runtime.KieSession;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import java.io.PrintStream;
 
 /**
@@ -46,7 +46,7 @@ public class CDIExampleWithInclusion {
         Weld w = new Weld();
 
         WeldContainer wc = w.initialize();
-        CDIExampleWithInclusion bean = wc.instance().select(CDIExampleWithInclusion.class).get();
+        CDIExampleWithInclusion bean = wc.select(CDIExampleWithInclusion.class).getHandler().get();
         bean.go(System.out);
 
         w.shutdown();

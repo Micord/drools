@@ -7,7 +7,7 @@
   <parent>
     <groupId>org.kie</groupId>
     <artifactId>kie-dmn</artifactId>
-    <version>7.74.1.Final</version>
+    <version>7.74.1.Final-Micord.1</version>
   </parent>
 
   <artifactId>kie-dmn-feel-gwt-showcase</artifactId>
@@ -100,7 +100,7 @@
       <groupId>org.assertj</groupId>
       <artifactId>assertj-core</artifactId>
       <scope>test</scope>
-    </dependency>    
+    </dependency>
 
     <!-- GWT -->
     <dependency>
@@ -160,14 +160,14 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>javax.validation</groupId>
-      <artifactId>validation-api</artifactId>
+      <groupId>jakarta.validation</groupId>
+      <artifactId>jakarta.validation-api</artifactId>
       <classifier>sources</classifier>
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>javax.validation</groupId>
-      <artifactId>validation-api</artifactId>
+      <groupId>jakarta.validation</groupId>
+      <artifactId>jakarta.validation-api</artifactId>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -231,8 +231,8 @@
           <failOnMissingWebXml>false</failOnMissingWebXml>
           <warName>${project.artifactId}</warName>
 
-          <!-- Exclude GWT client local classes from the deployment, lest 
-            classpath scanners such as Hibernate and Weld get confused when the webapp 
+          <!-- Exclude GWT client local classes from the deployment, lest
+            classpath scanners such as Hibernate and Weld get confused when the webapp
             is bootstrapping. -->
           <packagingExcludes>**/javax/**/*.*,**/client/local/**/*.class</packagingExcludes>
           <warSourceExcludes>WEB-INF/web.xml</warSourceExcludes>

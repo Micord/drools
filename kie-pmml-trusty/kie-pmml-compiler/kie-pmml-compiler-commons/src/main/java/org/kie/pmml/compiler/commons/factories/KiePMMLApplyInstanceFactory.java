@@ -43,8 +43,8 @@ public class KiePMMLApplyInstanceFactory {
                                                                   getKiePMMLExtensions(apply.getExtensions()),
                                                                   apply.getFunction())
                 .withKiePMMLExpressions(kiePMMLExpressions)
-                .withMapMissingTo(apply.getMapMissingTo())
-                .withDefaultValue(apply.getDefaultValue())
+                .withMapMissingTo(apply.getMapMissingTo().toString())
+                .withDefaultValue(apply.getDefaultValue().toString())
                 .withInvalidValueTreatmentMethod(invalidValueTreatment);
         return builder.build();
     }

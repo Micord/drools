@@ -29,9 +29,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import javax.json.bind.Jsonb;
-import javax.json.bind.JsonbBuilder;
-import javax.json.bind.JsonbConfig;
+import jakarta.json.bind.Jsonb;
+import jakarta.json.bind.JsonbBuilder;
+import jakarta.json.bind.JsonbConfig;
 
 import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.DotName;
@@ -77,7 +77,7 @@ public abstract class AbstractJandexTest {
         LOG.debug("results: \n{}", results);
         String json = jsonb.toJson(results);
         LOG.debug("Expected reflect-config.json: \n{}", json);
-        
+
         @SuppressWarnings("unchecked")
         List<Map<String, Object>> fromJson = jsonb.fromJson(new FileReader("src/main/resources/META-INF/native-image/org.kie/" + moduleName + "/reflect-config.json"),
                                                             List.class);

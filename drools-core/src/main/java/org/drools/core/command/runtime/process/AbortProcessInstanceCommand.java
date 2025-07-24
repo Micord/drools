@@ -16,10 +16,10 @@
 
 package org.drools.core.command.runtime.process;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlAttribute;
+import jakarta.xml.bind.annotation.XmlRootElement;
 
 import org.kie.api.command.ExecutableCommand;
 import org.kie.api.runtime.Context;
@@ -33,7 +33,7 @@ public class AbortProcessInstanceCommand implements ExecutableCommand<Void>, Pro
 
     /** Generated serial version UID */
     private static final long serialVersionUID = 2482483392339538998L;
-    
+
     @XmlAttribute
     private Long processInstanceId;
 

@@ -3,7 +3,7 @@
   <parent>
     <groupId>org.kie</groupId>
     <artifactId>kie-dmn</artifactId>
-    <version>7.74.1.Final</version>
+    <version>7.74.1.Final-Micord.1</version>
   </parent>
   <artifactId>kie-dmn-validation</artifactId>
     <packaging>jar</packaging>
@@ -16,13 +16,13 @@
 
   <dependencyManagement>
     <dependencies>
-      <dependency>
-        <groupId>org.drools</groupId>
-        <artifactId>drools-bom</artifactId>
-        <version>${version.org.kie}</version>
-        <type>pom</type>
-        <scope>import</scope>
-      </dependency>
+<!--      <dependency>-->
+<!--        <groupId>org.drools</groupId>-->
+<!--        <artifactId>drools-bom</artifactId>-->
+<!--        <version>${version.org.kie}</version>-->
+<!--        <type>pom</type>-->
+<!--        <scope>import</scope>-->
+<!--      </dependency>-->
       <dependency>
         <groupId>org.kie</groupId>
         <artifactId>kie-dmn-core</artifactId>
@@ -159,7 +159,7 @@
           <includePluginDependencies>true</includePluginDependencies>
            <additionalClasspathElements>
             <additionalClasspathElement>${project.basedir}/src/test/resources/</additionalClasspathElement>
-          </additionalClasspathElements> 
+          </additionalClasspathElements>
         </configuration>
         <dependencies>
           <dependency>
@@ -188,5 +188,5 @@
       </plugin>
     </plugins>
   </build>
-  
+
 </project>
