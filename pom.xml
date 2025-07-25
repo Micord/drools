@@ -25,7 +25,7 @@
     <surefire.forkCount>1</surefire.forkCount>
     <alphanetworkCompilerEnabled>false</alphanetworkCompilerEnabled>
 
-    <version.org.eclipse.jetty>12.0.16</version.org.eclipse.jetty>
+    <jetty.version>12.0.16</jetty.version>
     <version.org.eclipse.persistence>4.0.7</version.org.eclipse.persistence>
     <kie-soup.version>7.74.1.Final-Micord.1</kie-soup.version>
     <droolsjbpm-knowledge.version>7.74.1.Final-Micord.1</droolsjbpm-knowledge.version>
@@ -1255,37 +1255,37 @@
       <dependency>
         <groupId>org.eclipse.jetty</groupId>
         <artifactId>jetty-continuation</artifactId>
-        <version>${version.org.eclipse.jetty}</version>
+        <version>${jetty.version}</version>
       </dependency>
       <dependency>
         <groupId>org.eclipse.jetty</groupId>
         <artifactId>jetty-http</artifactId>
-        <version>${version.org.eclipse.jetty}</version>
+        <version>${jetty.version}</version>
       </dependency>
       <dependency>
         <groupId>org.eclipse.jetty</groupId>
         <artifactId>jetty-io</artifactId>
-        <version>${version.org.eclipse.jetty}</version>
+        <version>${jetty.version}</version>
       </dependency>
       <dependency>
         <groupId>org.eclipse.jetty</groupId>
         <artifactId>jetty-proxy</artifactId>
-        <version>${version.org.eclipse.jetty}</version>
+        <version>${jetty.version}</version>
       </dependency>
       <dependency>
         <groupId>org.eclipse.jetty</groupId>
         <artifactId>jetty-security</artifactId>
-        <version>${version.org.eclipse.jetty}</version>
+        <version>${jetty.version}</version>
       </dependency>
       <dependency>
         <groupId>org.eclipse.jetty</groupId>
         <artifactId>jetty-util</artifactId>
-        <version>${version.org.eclipse.jetty}</version>
+        <version>${jetty.version}</version>
       </dependency>
       <dependency>
         <groupId>org.eclipse.jetty</groupId>
         <artifactId>jetty-server</artifactId>
-        <version>${version.org.eclipse.jetty}</version>
+        <version>${jetty.version}</version>
         <exclusions>
           <exclusion>
             <groupId>javax.servlet</groupId>
@@ -1302,7 +1302,7 @@
       <dependency>
         <groupId>org.eclipse.jetty</groupId>
         <artifactId>jetty-servlets</artifactId>
-        <version>${version.org.eclipse.jetty}</version>
+        <version>${jetty.version}</version>
       </dependency>
       <!--      jetty-->
     </dependencies>
