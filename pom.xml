@@ -128,7 +128,7 @@
     <module>drools-persistence</module>
     <module>drools-templates</module>
     <module>drools-decisiontables</module>
-    <module>drools-examples</module>
+<!--    <module>drools-examples</module>-->
     <module>kie-ci</module>
     <module>kie-ci-osgi</module>
     <module>drools-model</module>
@@ -136,8 +136,8 @@
     <module>kie-pmml</module>
 <!--    <module>kie-pmml-trusty</module>-->
     <module>drools-scorecards</module>
-    <module>drools-examples-api</module>
-    <module>drools-examples-cdi</module>
+<!--    <module>drools-examples-api</module>-->
+<!--    <module>drools-examples-cdi</module>-->
     <module>drools-workbench-models</module>
     <module>drools-test-coverage</module>
     <module>drools-scenario-simulation</module>
@@ -940,17 +940,6 @@
       <dependency>
         <groupId>org.drools</groupId>
         <artifactId>drools-scorecards</artifactId>
-        <version>${project.version}</version>
-        <classifier>sources</classifier>
-      </dependency>
-      <dependency>
-        <groupId>org.drools</groupId>
-        <artifactId>drools-examples</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.drools</groupId>
-        <artifactId>drools-examples</artifactId>
         <version>${project.version}</version>
         <classifier>sources</classifier>
       </dependency>
