@@ -3,7 +3,7 @@
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
@@ -16,8 +16,8 @@
 package org.drools.example.cdi.cdiexample;
 
 import java.io.PrintStream;
-import javax.enterprise.inject.Instance;
-import javax.inject.Inject;
+import jakarta.enterprise.inject.Instance;
+import jakarta.inject.Inject;
 
 import org.jboss.weld.environment.se.Weld;
 import org.jboss.weld.environment.se.WeldContainer;
@@ -43,7 +43,7 @@ public class CDIInstanceExample {
         Weld w = new Weld();
 
         WeldContainer wc = w.initialize();
-        CDIInstanceExample bean = wc.instance().select(CDIInstanceExample.class).get();
+        CDIInstanceExample bean = wc.select(CDIInstanceExample.class).getHandler().get();
         bean.go(System.out);
 
         w.shutdown();

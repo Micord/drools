@@ -24,7 +24,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.xml.bind.JAXBException;
+import javax.xml.parsers.ParserConfigurationException;
+
+import jakarta.xml.bind.JAXBException;
 
 import org.dmg.pmml.Extension;
 import org.dmg.pmml.Header;
@@ -45,7 +47,13 @@ public class PMMLInfo<M extends PMMLModelInfo> {
     }
 
     public static PMMLInfo<PMMLModelInfo> from(InputStream is) throws SAXException, JAXBException {
-        PMML pmml = org.jpmml.model.PMMLUtil.unmarshal(is);
+        PMML pmml = null;
+        try {
+            pmml = org.jpmml.model.PMMLUtil.unmarshal(is);
+        }
+        catch (ParserConfigurationException e) {
+            throw new RuntimeException(e);
+        }
         List<PMMLModelInfo> models = new ArrayList<>();
         for (Model pm : pmml.getModels()) {
             models.add(pmmlToModelInfo(pm));
@@ -68,15 +76,15 @@ public class PMMLInfo<M extends PMMLModelInfo> {
         miningSchema.getMiningFields()
                     .stream()
                     .filter(mf -> mf.getUsageType() == UsageType.ACTIVE)
-                    .forEach(fn -> inputFields.add(fn.getName().getValue()));
+                    .forEach(fn -> inputFields.add(fn.getName()));
         Collection<String> targetFields = new ArrayList<>();
         miningSchema.getMiningFields()
                     .stream()
                     .filter(mf -> mf.getUsageType() == UsageType.PREDICTED)
-                    .forEach(fn -> targetFields.add(fn.getName().getValue()));
+                    .forEach(fn -> targetFields.add(fn.getName()));
         Collection<String> outputFields = new ArrayList<>();
         if (pm.getOutput() != null && pm.getOutput().getOutputFields() != null) {
-            pm.getOutput().getOutputFields().forEach(of -> outputFields.add(of.getName().getValue()));
+            pm.getOutput().getOutputFields().forEach(of -> outputFields.add(of.getName()));
         }
         return new PMMLModelInfo(pm.getModelName(), pm.getClass().getSimpleName(), inputFields, targetFields, outputFields);
     }

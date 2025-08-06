@@ -16,10 +16,10 @@
 
 package org.drools.example.cdi.scopes;
 
-import javax.enterprise.context.spi.Context;
-import javax.enterprise.context.spi.Contextual;
-import javax.enterprise.context.spi.CreationalContext;
-import javax.enterprise.inject.spi.Bean;
+import jakarta.enterprise.context.spi.Context;
+import jakarta.enterprise.context.spi.Contextual;
+import jakarta.enterprise.context.spi.CreationalContext;
+import jakarta.enterprise.inject.spi.Bean;
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
 import java.util.HashMap;
@@ -41,7 +41,7 @@ public class KieBusinessScopeContext implements Context, Serializable {
     }
 
     // Return an existing instance of certain contextual type or create a new instance by calling
-    // javax.enterprise.context.spi.Contextual.create(CreationalContext) and return the new instance.
+    // jakarta.enterprise.context.spi.Contextual.create(CreationalContext) and return the new instance.
 
     @Override
     @SuppressWarnings("unchecked")

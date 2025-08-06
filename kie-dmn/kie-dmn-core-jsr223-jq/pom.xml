@@ -3,7 +3,7 @@
     <parent>
         <groupId>org.kie</groupId>
         <artifactId>kie-dmn</artifactId>
-        <version>7.74.1.Final</version>
+        <version>7.74.1.Final-Micord.1</version>
     </parent>
     <artifactId>kie-dmn-core-jsr223-jq</artifactId>
     <name>KIE :: Decision Model Notation :: JSR-223 JQ ScriptEngine</name>
@@ -13,7 +13,7 @@
         <version.net.thisptr.jackson.jq>1.0.0-preview.20210928</version.net.thisptr.jackson.jq>
     </properties>
     <dependencyManagement>
-        <dependencies>         
+        <dependencies>
           <dependency>
             <groupId>net.thisptr</groupId>
             <artifactId>jackson-jq</artifactId>

@@ -16,12 +16,12 @@
 
 package org.drools.core.command.runtime.process;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlAttribute;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 import org.drools.core.xml.jaxb.util.JaxbUnknownAdapter;
 import org.kie.api.command.ExecutableCommand;
@@ -47,7 +47,7 @@ public class SignalEventCommand implements ExecutableCommand<Void>, ProcessInsta
     @XmlElement(name = "correlation-key", required = false)
     @XmlJavaTypeAdapter(value = CorrelationKeyXmlAdapter.class)
     private CorrelationKey correlationKey;
-    
+
     @XmlAttribute(name="event-type", required=true)
     private String eventType;
 
@@ -109,14 +109,14 @@ public class SignalEventCommand implements ExecutableCommand<Void>, ProcessInsta
 
     public Void execute(Context context) {
         KieSession ksession = ((RegistryContext) context).lookup( KieSession.class );
-        
+
         if (processInstanceId == -1 && correlationKey == null) {
             ksession.signalEvent(eventType, event);
         } else {
             ProcessInstance processInstance;
-            if( correlationKey != null ) { 
+            if( correlationKey != null ) {
                 processInstance = ((CorrelationAwareProcessRuntime) ksession).getProcessInstance(correlationKey);
-            } else { 
+            } else {
                 processInstance = ksession.getProcessInstance(processInstanceId);
             }
             if (processInstance != null) {
@@ -128,7 +128,7 @@ public class SignalEventCommand implements ExecutableCommand<Void>, ProcessInsta
 
     public String toString() {
         if (processInstanceId == -1 && correlationKey == null) {
-            return "ksession.signalEvent(" + eventType + ", " + event + ");"; 
+            return "ksession.signalEvent(" + eventType + ", " + event + ");";
         } else if (correlationKey != null) {
             return "ksession.signalEvent(" + correlationKey + ", " + eventType + ", " + event + ");";
         } else {

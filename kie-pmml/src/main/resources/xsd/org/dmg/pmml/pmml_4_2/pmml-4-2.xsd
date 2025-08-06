@@ -1,55 +1,58 @@
-<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="http://www.dmg.org/PMML-4_2" elementFormDefault="unqualified" targetNamespace="http://www.dmg.org/PMML-4_2">
+<xs:schema version="1.0"
+					 targetNamespace="http://www.dmg.org/PMML-4_2"
+					 xmlns:pmml="http://www.dmg.org/PMML-4_2"
+					 xmlns:xs="http://www.w3.org/2001/XMLSchema">
 	<xs:element name="DefineFunction">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="ParameterField" minOccurs="1" maxOccurs="unbounded"/>
-				<xs:group ref="EXPRESSION"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:ParameterField" minOccurs="1" maxOccurs="unbounded"/>
+				<xs:group ref="pmml:EXPRESSION"/>
 			</xs:sequence>
 			<xs:attribute name="name" type="xs:string" use="required"/>
-			<xs:attribute name="optype" type="OPTYPE" use="required"/>
-			<xs:attribute name="dataType" type="DATATYPE"/>
+			<xs:attribute name="optype" type="pmml:OPTYPE" use="required"/>
+			<xs:attribute name="dataType" type="pmml:DATATYPE"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="ParameterField">
 		<xs:complexType>
 			<xs:attribute name="name" type="xs:string" use="required"/>
-			<xs:attribute name="optype" type="OPTYPE"/>
-			<xs:attribute name="dataType" type="DATATYPE"/>
+			<xs:attribute name="optype" type="pmml:OPTYPE"/>
+			<xs:attribute name="dataType" type="pmml:DATATYPE"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="Apply">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:group ref="EXPRESSION" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:group ref="pmml:EXPRESSION" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
 			<xs:attribute name="function" type="xs:string" use="required"/>
 			<xs:attribute name="mapMissingTo" type="xs:string"/>
 			<xs:attribute name="defaultValue" type="xs:string"/>
-			<xs:attribute name="invalidValueTreatment" type="INVALID-VALUE-TREATMENT-METHOD" default="returnInvalid"/>
+			<xs:attribute name="invalidValueTreatment" type="pmml:INVALID-VALUE-TREATMENT-METHOD" default="returnInvalid"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="MiningModel">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="MiningSchema"/>
-				<xs:element ref="Output" minOccurs="0"/>
-				<xs:element ref="ModelStats" minOccurs="0"/>
-				<xs:element ref="ModelExplanation" minOccurs="0"/>
-				<xs:element ref="Targets" minOccurs="0"/>
-				<xs:element ref="LocalTransformations" minOccurs="0"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:MiningSchema"/>
+				<xs:element ref="pmml:Output" minOccurs="0"/>
+				<xs:element ref="pmml:ModelStats" minOccurs="0"/>
+				<xs:element ref="pmml:ModelExplanation" minOccurs="0"/>
+				<xs:element ref="pmml:Targets" minOccurs="0"/>
+				<xs:element ref="pmml:LocalTransformations" minOccurs="0"/>
 				<xs:choice minOccurs="0" maxOccurs="unbounded">
-					<xs:element ref="Regression"/>
-					<xs:element ref="DecisionTree"/>
+					<xs:element ref="pmml:Regression"/>
+					<xs:element ref="pmml:DecisionTree"/>
 				</xs:choice>
-				<xs:element ref="Segmentation" minOccurs="0"/>
-				<xs:element ref="ModelVerification" minOccurs="0"/>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Segmentation" minOccurs="0"/>
+				<xs:element ref="pmml:ModelVerification" minOccurs="0"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
 			<xs:attribute name="modelName" type="xs:string" use="optional"/>
-			<xs:attribute name="functionName" type="MINING-FUNCTION" use="required"/>
+			<xs:attribute name="functionName" type="pmml:MINING-FUNCTION" use="required"/>
 			<xs:attribute name="algorithmName" type="xs:string" use="optional"/>
 			<xs:attribute name="isScorable" type="xs:boolean" default="true"/>
 		</xs:complexType>
@@ -57,21 +60,21 @@
 	<xs:element name="Segmentation">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="Segment" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Segment" maxOccurs="unbounded"/>
 			</xs:sequence>
-			<xs:attribute name="multipleModelMethod" type="MULTIPLE-MODEL-METHOD" use="required"/>
+			<xs:attribute name="multipleModelMethod" type="pmml:MULTIPLE-MODEL-METHOD" use="required"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="Segment">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:group ref="PREDICATE"/>
-				<xs:group ref="MODEL-ELEMENT"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:group ref="pmml:PREDICATE"/>
+				<xs:group ref="pmml:MODEL-ELEMENT"/>
 			</xs:sequence>
 			<xs:attribute name="id" type="xs:string" use="optional"/>
-			<xs:attribute name="weight" type="NUMBER" use="optional" default="1"/>
+			<xs:attribute name="weight" type="pmml:NUMBER" use="optional" default="1"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:simpleType name="MULTIPLE-MODEL-METHOD">
@@ -90,60 +93,60 @@
 	</xs:simpleType>
 	<xs:group name="EmbeddedModel">
 		<xs:sequence>
-			<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:choice>
-				<xs:element ref="Regression"/>
-				<xs:element ref="DecisionTree"/>
+				<xs:element ref="pmml:Regression"/>
+				<xs:element ref="pmml:DecisionTree"/>
 			</xs:choice>
 		</xs:sequence>
 	</xs:group>
 	<xs:element name="ResultField">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
-			<xs:attribute name="name" type="FIELD-NAME" use="required"/>
+			<xs:attribute name="name" type="pmml:FIELD-NAME" use="required"/>
 			<xs:attribute name="displayName" type="xs:string"/>
-			<xs:attribute name="optype" type="OPTYPE"/>
-			<xs:attribute name="dataType" type="DATATYPE"/>
-			<xs:attribute name="feature" type="RESULT-FEATURE"/>
+			<xs:attribute name="optype" type="pmml:OPTYPE"/>
+			<xs:attribute name="dataType" type="pmml:DATATYPE"/>
+			<xs:attribute name="feature" type="pmml:RESULT-FEATURE"/>
 			<xs:attribute name="value" type="xs:string"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="Regression">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="Output" minOccurs="0"/>
-				<xs:element ref="ModelStats" minOccurs="0"/>
-				<xs:element ref="Targets" minOccurs="0"/>
-				<xs:element ref="LocalTransformations" minOccurs="0"/>
-				<xs:element ref="ResultField" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="RegressionTable" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Output" minOccurs="0"/>
+				<xs:element ref="pmml:ModelStats" minOccurs="0"/>
+				<xs:element ref="pmml:Targets" minOccurs="0"/>
+				<xs:element ref="pmml:LocalTransformations" minOccurs="0"/>
+				<xs:element ref="pmml:ResultField" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:RegressionTable" maxOccurs="unbounded"/>
 			</xs:sequence>
 			<xs:attribute name="modelName" type="xs:string"/>
-			<xs:attribute name="functionName" type="MINING-FUNCTION" use="required"/>
+			<xs:attribute name="functionName" type="pmml:MINING-FUNCTION" use="required"/>
 			<xs:attribute name="algorithmName" type="xs:string"/>
-			<xs:attribute name="normalizationMethod" type="REGRESSIONNORMALIZATIONMETHOD" default="none"/>
+			<xs:attribute name="normalizationMethod" type="pmml:REGRESSIONNORMALIZATIONMETHOD" default="none"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="DecisionTree">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="Output" minOccurs="0"/>
-				<xs:element ref="ModelStats" minOccurs="0"/>
-				<xs:element ref="Targets" minOccurs="0"/>
-				<xs:element ref="LocalTransformations" minOccurs="0"/>
-				<xs:element ref="ResultField" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="Node"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Output" minOccurs="0"/>
+				<xs:element ref="pmml:ModelStats" minOccurs="0"/>
+				<xs:element ref="pmml:Targets" minOccurs="0"/>
+				<xs:element ref="pmml:LocalTransformations" minOccurs="0"/>
+				<xs:element ref="pmml:ResultField" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Node"/>
 			</xs:sequence>
 			<xs:attribute name="modelName" type="xs:string"/>
-			<xs:attribute name="functionName" type="MINING-FUNCTION" use="required"/>
+			<xs:attribute name="functionName" type="pmml:MINING-FUNCTION" use="required"/>
 			<xs:attribute name="algorithmName" type="xs:string"/>
-			<xs:attribute name="missingValueStrategy" type="MISSING-VALUE-STRATEGY" default="none"/>
-			<xs:attribute name="missingValuePenalty" type="PROB-NUMBER" default="1.0"/>
-			<xs:attribute name="noTrueChildStrategy" type="NO-TRUE-CHILD-STRATEGY" default="returnNullPrediction"/>
+			<xs:attribute name="missingValueStrategy" type="pmml:MISSING-VALUE-STRATEGY" default="none"/>
+			<xs:attribute name="missingValuePenalty" type="pmml:PROB-NUMBER" default="1.0"/>
+			<xs:attribute name="noTrueChildStrategy" type="pmml:NO-TRUE-CHILD-STRATEGY" default="returnNullPrediction"/>
 			<xs:attribute name="splitCharacteristic" default="multiSplit">
 				<xs:simpleType>
 					<xs:restriction base="xs:string">
@@ -157,58 +160,58 @@
 	<xs:element name="AssociationModel">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="MiningSchema"/>
-				<xs:element ref="Output" minOccurs="0"/>
-				<xs:element ref="ModelStats" minOccurs="0"/>
-				<xs:element ref="LocalTransformations" minOccurs="0"/>
-				<xs:element ref="Item" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="Itemset" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="AssociationRule" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="ModelVerification" minOccurs="0"/>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:MiningSchema"/>
+				<xs:element ref="pmml:Output" minOccurs="0"/>
+				<xs:element ref="pmml:ModelStats" minOccurs="0"/>
+				<xs:element ref="pmml:LocalTransformations" minOccurs="0"/>
+				<xs:element ref="pmml:Item" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Itemset" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:AssociationRule" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:ModelVerification" minOccurs="0"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
 			<xs:attribute name="modelName" type="xs:string"/>
-			<xs:attribute name="functionName" type="MINING-FUNCTION" use="required"/>
+			<xs:attribute name="functionName" type="pmml:MINING-FUNCTION" use="required"/>
 			<xs:attribute name="algorithmName" type="xs:string"/>
-			<xs:attribute name="numberOfTransactions" type="INT-NUMBER" use="required"/>
-			<xs:attribute name="maxNumberOfItemsPerTA" type="INT-NUMBER"/>
-			<xs:attribute name="avgNumberOfItemsPerTA" type="REAL-NUMBER"/>
-			<xs:attribute name="minimumSupport" type="PROB-NUMBER" use="required"/>
-			<xs:attribute name="minimumConfidence" type="PROB-NUMBER" use="required"/>
-			<xs:attribute name="lengthLimit" type="INT-NUMBER"/>
-			<xs:attribute name="numberOfItems" type="INT-NUMBER" use="required"/>
-			<xs:attribute name="numberOfItemsets" type="INT-NUMBER" use="required"/>
-			<xs:attribute name="numberOfRules" type="INT-NUMBER" use="required"/>
+			<xs:attribute name="numberOfTransactions" type="pmml:INT-NUMBER" use="required"/>
+			<xs:attribute name="maxNumberOfItemsPerTA" type="pmml:INT-NUMBER"/>
+			<xs:attribute name="avgNumberOfItemsPerTA" type="pmml:REAL-NUMBER"/>
+			<xs:attribute name="minimumSupport" type="pmml:PROB-NUMBER" use="required"/>
+			<xs:attribute name="minimumConfidence" type="pmml:PROB-NUMBER" use="required"/>
+			<xs:attribute name="lengthLimit" type="pmml:INT-NUMBER"/>
+			<xs:attribute name="numberOfItems" type="pmml:INT-NUMBER" use="required"/>
+			<xs:attribute name="numberOfItemsets" type="pmml:INT-NUMBER" use="required"/>
+			<xs:attribute name="numberOfRules" type="pmml:INT-NUMBER" use="required"/>
 			<xs:attribute name="isScorable" type="xs:boolean" default="true"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="Item">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
 			<xs:attribute name="id" type="xs:string" use="required"/>
 			<xs:attribute name="value" type="xs:string" use="required"/>
 			<xs:attribute name="mappedValue" type="xs:string"/>
-			<xs:attribute name="weight" type="REAL-NUMBER"/>
+			<xs:attribute name="weight" type="pmml:REAL-NUMBER"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="Itemset">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element minOccurs="0" maxOccurs="unbounded" ref="ItemRef"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element minOccurs="0" maxOccurs="unbounded" ref="pmml:ItemRef"/>
 			</xs:sequence>
 			<xs:attribute name="id" type="xs:string" use="required"/>
-			<xs:attribute name="support" type="PROB-NUMBER"/>
+			<xs:attribute name="support" type="pmml:PROB-NUMBER"/>
 			<xs:attribute name="numberOfItems" type="xs:nonNegativeInteger"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="ItemRef">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
 			<xs:attribute name="itemRef" type="xs:string" use="required"/>
 		</xs:complexType>
@@ -216,34 +219,34 @@
 	<xs:element name="AssociationRule">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
 			<xs:attribute name="antecedent" type="xs:string" use="required"/>
 			<xs:attribute name="consequent" type="xs:string" use="required"/>
-			<xs:attribute name="support" type="PROB-NUMBER" use="required"/>
-			<xs:attribute name="confidence" type="PROB-NUMBER" use="required"/>
+			<xs:attribute name="support" type="pmml:PROB-NUMBER" use="required"/>
+			<xs:attribute name="confidence" type="pmml:PROB-NUMBER" use="required"/>
 			<xs:attribute name="lift" type="xs:float" use="optional"/>
 			<xs:attribute name="leverage" type="xs:float" use="optional"/>
-			<xs:attribute name="affinity" type="PROB-NUMBER" use="optional"/>
+			<xs:attribute name="affinity" type="pmml:PROB-NUMBER" use="optional"/>
 			<xs:attribute name="id" type="xs:string" use="optional"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="RuleSetModel">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="MiningSchema"/>
-				<xs:element ref="Output" minOccurs="0"/>
-				<xs:element ref="ModelStats" minOccurs="0"/>
-				<xs:element ref="ModelExplanation" minOccurs="0"/>
-				<xs:element ref="Targets" minOccurs="0"/>
-				<xs:element ref="LocalTransformations" minOccurs="0"/>
-				<xs:element ref="RuleSet"/>
-				<xs:element ref="ModelVerification" minOccurs="0"/>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:MiningSchema"/>
+				<xs:element ref="pmml:Output" minOccurs="0"/>
+				<xs:element ref="pmml:ModelStats" minOccurs="0"/>
+				<xs:element ref="pmml:ModelExplanation" minOccurs="0"/>
+				<xs:element ref="pmml:Targets" minOccurs="0"/>
+				<xs:element ref="pmml:LocalTransformations" minOccurs="0"/>
+				<xs:element ref="pmml:RuleSet"/>
+				<xs:element ref="pmml:ModelVerification" minOccurs="0"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
 			<xs:attribute name="modelName" type="xs:string" use="optional"/>
-			<xs:attribute name="functionName" type="MINING-FUNCTION" use="required"/>
+			<xs:attribute name="functionName" type="pmml:MINING-FUNCTION" use="required"/>
 			<xs:attribute name="algorithmName" type="xs:string" use="optional"/>
 			<xs:attribute name="isScorable" type="xs:boolean" default="true"/>
 		</xs:complexType>
@@ -251,21 +254,21 @@
 	<xs:element name="RuleSet">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="RuleSelectionMethod" minOccurs="1" maxOccurs="unbounded"/>
-				<xs:element ref="ScoreDistribution" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:group ref="Rule" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:RuleSelectionMethod" minOccurs="1" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:ScoreDistribution" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:group ref="pmml:Rule" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
-			<xs:attribute name="recordCount" type="NUMBER" use="optional"/>
-			<xs:attribute name="nbCorrect" type="NUMBER" use="optional"/>
+			<xs:attribute name="recordCount" type="pmml:NUMBER" use="optional"/>
+			<xs:attribute name="nbCorrect" type="pmml:NUMBER" use="optional"/>
 			<xs:attribute name="defaultScore" type="xs:string" use="optional"/>
-			<xs:attribute name="defaultConfidence" type="NUMBER" use="optional"/>
+			<xs:attribute name="defaultConfidence" type="pmml:NUMBER" use="optional"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="RuleSelectionMethod">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
 			<xs:attribute name="criterion" use="required">
 				<xs:simpleType>
@@ -280,52 +283,52 @@
 	</xs:element>
 	<xs:group name="Rule">
 		<xs:choice>
-			<xs:element ref="SimpleRule"/>
-			<xs:element ref="CompoundRule"/>
+			<xs:element ref="pmml:SimpleRule"/>
+			<xs:element ref="pmml:CompoundRule"/>
 		</xs:choice>
 	</xs:group>
 	<xs:element name="SimpleRule">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:group ref="PREDICATE"/>
-				<xs:element ref="ScoreDistribution" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:group ref="pmml:PREDICATE"/>
+				<xs:element ref="pmml:ScoreDistribution" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
 			<xs:attribute name="id" type="xs:string" use="optional"/>
 			<xs:attribute name="score" type="xs:string" use="required"/>
-			<xs:attribute name="recordCount" type="NUMBER" use="optional"/>
-			<xs:attribute name="nbCorrect" type="NUMBER" use="optional"/>
-			<xs:attribute name="confidence" type="NUMBER" use="optional" default="1"/>
-			<xs:attribute name="weight" type="NUMBER" use="optional" default="1"/>
+			<xs:attribute name="recordCount" type="pmml:NUMBER" use="optional"/>
+			<xs:attribute name="nbCorrect" type="pmml:NUMBER" use="optional"/>
+			<xs:attribute name="confidence" type="pmml:NUMBER" use="optional" default="1"/>
+			<xs:attribute name="weight" type="pmml:NUMBER" use="optional" default="1"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="CompoundRule">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:group ref="PREDICATE"/>
-				<xs:group ref="Rule" minOccurs="1" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:group ref="pmml:PREDICATE"/>
+				<xs:group ref="pmml:Rule" minOccurs="1" maxOccurs="unbounded"/>
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="ClusteringModel">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="MiningSchema"/>
-				<xs:element ref="Output" minOccurs="0"/>
-				<xs:element ref="ModelStats" minOccurs="0"/>
-				<xs:element ref="ModelExplanation" minOccurs="0"/>
-				<xs:element ref="LocalTransformations" minOccurs="0"/>
-				<xs:element ref="ComparisonMeasure"/>
-				<xs:element ref="ClusteringField" minOccurs="1" maxOccurs="unbounded"/>
-				<xs:element ref="MissingValueWeights" minOccurs="0"/>
-				<xs:element ref="Cluster" maxOccurs="unbounded"/>
-				<xs:element ref="ModelVerification" minOccurs="0"/>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:MiningSchema"/>
+				<xs:element ref="pmml:Output" minOccurs="0"/>
+				<xs:element ref="pmml:ModelStats" minOccurs="0"/>
+				<xs:element ref="pmml:ModelExplanation" minOccurs="0"/>
+				<xs:element ref="pmml:LocalTransformations" minOccurs="0"/>
+				<xs:element ref="pmml:ComparisonMeasure"/>
+				<xs:element ref="pmml:ClusteringField" minOccurs="1" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:MissingValueWeights" minOccurs="0"/>
+				<xs:element ref="pmml:Cluster" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:ModelVerification" minOccurs="0"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
 			<xs:attribute name="modelName" type="xs:string" use="optional"/>
-			<xs:attribute name="functionName" type="MINING-FUNCTION" use="required"/>
+			<xs:attribute name="functionName" type="pmml:MINING-FUNCTION" use="required"/>
 			<xs:attribute name="algorithmName" type="xs:string" use="optional"/>
 			<xs:attribute name="modelClass" use="required">
 				<xs:simpleType>
@@ -335,26 +338,26 @@
 					</xs:restriction>
 				</xs:simpleType>
 			</xs:attribute>
-			<xs:attribute name="numberOfClusters" type="INT-NUMBER" use="required"/>
+			<xs:attribute name="numberOfClusters" type="pmml:INT-NUMBER" use="required"/>
 			<xs:attribute name="isScorable" type="xs:boolean" default="true"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="MissingValueWeights">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:group ref="NUM-ARRAY"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:group ref="pmml:NUM-ARRAY"/>
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="Cluster">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="KohonenMap" minOccurs="0"/>
-				<xs:group ref="NUM-ARRAY" minOccurs="0"/>
-				<xs:element ref="Partition" minOccurs="0"/>
-				<xs:element ref="Covariances" minOccurs="0"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:KohonenMap" minOccurs="0"/>
+				<xs:group ref="pmml:NUM-ARRAY" minOccurs="0"/>
+				<xs:element ref="pmml:Partition" minOccurs="0"/>
+				<xs:element ref="pmml:Covariances" minOccurs="0"/>
 			</xs:sequence>
 			<xs:attribute name="id" type="xs:string" use="optional"/>
 			<xs:attribute name="name" type="xs:string" use="optional"/>
@@ -364,7 +367,7 @@
 	<xs:element name="KohonenMap">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
 			<xs:attribute name="coord1" type="xs:float" use="optional"/>
 			<xs:attribute name="coord2" type="xs:float" use="optional"/>
@@ -374,18 +377,18 @@
 	<xs:element name="Covariances">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="Matrix"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Matrix"/>
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="ClusteringField">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="Comparisons" minOccurs="0"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Comparisons" minOccurs="0"/>
 			</xs:sequence>
-			<xs:attribute name="field" type="FIELD-NAME" use="required"/>
+			<xs:attribute name="field" type="pmml:FIELD-NAME" use="required"/>
 			<xs:attribute name="isCenterField" default="true">
 				<xs:simpleType>
 					<xs:restriction base="xs:string">
@@ -394,16 +397,16 @@
 					</xs:restriction>
 				</xs:simpleType>
 			</xs:attribute>
-			<xs:attribute name="fieldWeight" type="REAL-NUMBER" default="1"/>
-			<xs:attribute name="similarityScale" type="REAL-NUMBER" use="optional"/>
-			<xs:attribute name="compareFunction" type="COMPARE-FUNCTION" use="optional"/>
+			<xs:attribute name="fieldWeight" type="pmml:REAL-NUMBER" default="1"/>
+			<xs:attribute name="similarityScale" type="pmml:REAL-NUMBER" use="optional"/>
+			<xs:attribute name="compareFunction" type="pmml:COMPARE-FUNCTION" use="optional"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="Comparisons">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="Matrix"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Matrix"/>
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>
@@ -419,17 +422,17 @@
 	<xs:element name="ComparisonMeasure">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 				<xs:choice>
-					<xs:element ref="euclidean"/>
-					<xs:element ref="squaredEuclidean"/>
-					<xs:element ref="chebychev"/>
-					<xs:element ref="cityBlock"/>
-					<xs:element ref="minkowski"/>
-					<xs:element ref="simpleMatching"/>
-					<xs:element ref="jaccard"/>
-					<xs:element ref="tanimoto"/>
-					<xs:element ref="binarySimilarity"/>
+					<xs:element ref="pmml:euclidean"/>
+					<xs:element ref="pmml:squaredEuclidean"/>
+					<xs:element ref="pmml:chebychev"/>
+					<xs:element ref="pmml:cityBlock"/>
+					<xs:element ref="pmml:minkowski"/>
+					<xs:element ref="pmml:simpleMatching"/>
+					<xs:element ref="pmml:jaccard"/>
+					<xs:element ref="pmml:tanimoto"/>
+					<xs:element ref="pmml:binarySimilarity"/>
 				</xs:choice>
 			</xs:sequence>
 			<xs:attribute name="kind" use="required">
@@ -440,99 +443,99 @@
 					</xs:restriction>
 				</xs:simpleType>
 			</xs:attribute>
-			<xs:attribute name="compareFunction" type="COMPARE-FUNCTION" default="absDiff"/>
-			<xs:attribute name="minimum" type="NUMBER" use="optional"/>
-			<xs:attribute name="maximum" type="NUMBER" use="optional"/>
+			<xs:attribute name="compareFunction" type="pmml:COMPARE-FUNCTION" default="absDiff"/>
+			<xs:attribute name="minimum" type="pmml:NUMBER" use="optional"/>
+			<xs:attribute name="maximum" type="pmml:NUMBER" use="optional"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="euclidean">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="squaredEuclidean">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="cityBlock">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="chebychev">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="minkowski">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
-			<xs:attribute name="p-parameter" type="NUMBER" use="required"/>
+			<xs:attribute name="p-parameter" type="pmml:NUMBER" use="required"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="simpleMatching">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="jaccard">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="tanimoto">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="binarySimilarity">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
-			<xs:attribute name="c00-parameter" type="NUMBER" use="required"/>
-			<xs:attribute name="c01-parameter" type="NUMBER" use="required"/>
-			<xs:attribute name="c10-parameter" type="NUMBER" use="required"/>
-			<xs:attribute name="c11-parameter" type="NUMBER" use="required"/>
-			<xs:attribute name="d00-parameter" type="NUMBER" use="required"/>
-			<xs:attribute name="d01-parameter" type="NUMBER" use="required"/>
-			<xs:attribute name="d10-parameter" type="NUMBER" use="required"/>
-			<xs:attribute name="d11-parameter" type="NUMBER" use="required"/>
+			<xs:attribute name="c00-parameter" type="pmml:NUMBER" use="required"/>
+			<xs:attribute name="c01-parameter" type="pmml:NUMBER" use="required"/>
+			<xs:attribute name="c10-parameter" type="pmml:NUMBER" use="required"/>
+			<xs:attribute name="c11-parameter" type="pmml:NUMBER" use="required"/>
+			<xs:attribute name="d00-parameter" type="pmml:NUMBER" use="required"/>
+			<xs:attribute name="d01-parameter" type="pmml:NUMBER" use="required"/>
+			<xs:attribute name="d10-parameter" type="pmml:NUMBER" use="required"/>
+			<xs:attribute name="d11-parameter" type="pmml:NUMBER" use="required"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="RegressionModel">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="MiningSchema"/>
-				<xs:element ref="Output" minOccurs="0"/>
-				<xs:element ref="ModelStats" minOccurs="0"/>
-				<xs:element ref="ModelExplanation" minOccurs="0"/>
-				<xs:element ref="Targets" minOccurs="0"/>
-				<xs:element ref="LocalTransformations" minOccurs="0"/>
-				<xs:element ref="RegressionTable" maxOccurs="unbounded"/>
-				<xs:element ref="ModelVerification" minOccurs="0"/>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:MiningSchema"/>
+				<xs:element ref="pmml:Output" minOccurs="0"/>
+				<xs:element ref="pmml:ModelStats" minOccurs="0"/>
+				<xs:element ref="pmml:ModelExplanation" minOccurs="0"/>
+				<xs:element ref="pmml:Targets" minOccurs="0"/>
+				<xs:element ref="pmml:LocalTransformations" minOccurs="0"/>
+				<xs:element ref="pmml:RegressionTable" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:ModelVerification" minOccurs="0"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
 			<xs:attribute name="modelName" type="xs:string"/>
-			<xs:attribute name="functionName" type="MINING-FUNCTION" use="required"/>
+			<xs:attribute name="functionName" type="pmml:MINING-FUNCTION" use="required"/>
 			<xs:attribute name="algorithmName" type="xs:string"/>
 			<xs:attribute name="modelType" use="optional">
 				<xs:simpleType>
@@ -543,8 +546,8 @@
 					</xs:restriction>
 				</xs:simpleType>
 			</xs:attribute>
-			<xs:attribute name="targetFieldName" type="FIELD-NAME" use="optional"/>
-			<xs:attribute name="normalizationMethod" type="REGRESSIONNORMALIZATIONMETHOD" default="none"/>
+			<xs:attribute name="targetFieldName" type="pmml:FIELD-NAME" use="optional"/>
+			<xs:attribute name="normalizationMethod" type="pmml:REGRESSIONNORMALIZATIONMETHOD" default="none"/>
 			<xs:attribute name="isScorable" type="xs:boolean" default="true"/>
 		</xs:complexType>
 	</xs:element>
@@ -564,65 +567,65 @@
 	<xs:element name="RegressionTable">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="NumericPredictor" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="CategoricalPredictor" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="PredictorTerm" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:NumericPredictor" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:CategoricalPredictor" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:PredictorTerm" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
-			<xs:attribute name="intercept" type="REAL-NUMBER" use="required"/>
+			<xs:attribute name="intercept" type="pmml:REAL-NUMBER" use="required"/>
 			<xs:attribute name="targetCategory" type="xs:string"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="NumericPredictor">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
-			<xs:attribute name="name" type="FIELD-NAME" use="required"/>
-			<xs:attribute name="exponent" type="INT-NUMBER" default="1"/>
-			<xs:attribute name="coefficient" type="REAL-NUMBER" use="required"/>
+			<xs:attribute name="name" type="pmml:FIELD-NAME" use="required"/>
+			<xs:attribute name="exponent" type="pmml:INT-NUMBER" default="1"/>
+			<xs:attribute name="coefficient" type="pmml:REAL-NUMBER" use="required"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="CategoricalPredictor">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
-			<xs:attribute name="name" type="FIELD-NAME" use="required"/>
+			<xs:attribute name="name" type="pmml:FIELD-NAME" use="required"/>
 			<xs:attribute name="value" type="xs:string" use="required"/>
-			<xs:attribute name="coefficient" type="REAL-NUMBER" use="required"/>
+			<xs:attribute name="coefficient" type="pmml:REAL-NUMBER" use="required"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="PredictorTerm">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="FieldRef" minOccurs="1" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:FieldRef" minOccurs="1" maxOccurs="unbounded"/>
 			</xs:sequence>
-			<xs:attribute name="name" type="FIELD-NAME"/>
-			<xs:attribute name="coefficient" type="REAL-NUMBER" use="required"/>
+			<xs:attribute name="name" type="pmml:FIELD-NAME"/>
+			<xs:attribute name="coefficient" type="pmml:REAL-NUMBER" use="required"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="TextModel">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="MiningSchema"/>
-				<xs:element ref="Output" minOccurs="0"/>
-				<xs:element ref="ModelStats" minOccurs="0"/>
-				<xs:element ref="ModelExplanation" minOccurs="0"/>
-				<xs:element ref="Targets" minOccurs="0"/>
-				<xs:element ref="LocalTransformations" minOccurs="0"/>
-				<xs:element ref="TextDictionary"/>
-				<xs:element ref="TextCorpus"/>
-				<xs:element ref="DocumentTermMatrix"/>
-				<xs:element ref="TextModelNormalization" minOccurs="0"/>
-				<xs:element ref="TextModelSimiliarity" minOccurs="0"/>
-				<xs:element ref="ModelVerification" minOccurs="0"/>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:MiningSchema"/>
+				<xs:element ref="pmml:Output" minOccurs="0"/>
+				<xs:element ref="pmml:ModelStats" minOccurs="0"/>
+				<xs:element ref="pmml:ModelExplanation" minOccurs="0"/>
+				<xs:element ref="pmml:Targets" minOccurs="0"/>
+				<xs:element ref="pmml:LocalTransformations" minOccurs="0"/>
+				<xs:element ref="pmml:TextDictionary"/>
+				<xs:element ref="pmml:TextCorpus"/>
+				<xs:element ref="pmml:DocumentTermMatrix"/>
+				<xs:element ref="pmml:TextModelNormalization" minOccurs="0"/>
+				<xs:element ref="pmml:TextModelSimiliarity" minOccurs="0"/>
+				<xs:element ref="pmml:ModelVerification" minOccurs="0"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
 			<xs:attribute name="modelName" type="xs:string"/>
-			<xs:attribute name="functionName" type="MINING-FUNCTION" use="required"/>
+			<xs:attribute name="functionName" type="pmml:MINING-FUNCTION" use="required"/>
 			<xs:attribute name="algorithmName" type="xs:string"/>
 			<xs:attribute name="numberOfTerms" type="xs:integer" use="required"/>
 			<xs:attribute name="numberOfDocuments" type="xs:integer" use="required"/>
@@ -632,43 +635,43 @@
 	<xs:element name="TextDictionary">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="Taxonomy" minOccurs="0"/>
-				<xs:group ref="STRING-ARRAY"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Taxonomy" minOccurs="0"/>
+				<xs:group ref="pmml:STRING-ARRAY"/>
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="TextCorpus">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="TextDocument" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:TextDocument" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="TextDocument">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
 			<xs:attribute name="id" type="xs:string" use="required"/>
 			<xs:attribute name="name" type="xs:string" use="optional"/>
-			<xs:attribute name="length" type="INT-NUMBER" use="optional"/>
+			<xs:attribute name="length" type="pmml:INT-NUMBER" use="optional"/>
 			<xs:attribute name="file" type="xs:string" use="optional"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="DocumentTermMatrix">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="Matrix"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Matrix"/>
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="TextModelNormalization">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
 			<xs:attribute name="localTermWeights" default="termFrequency">
 				<xs:simpleType>
@@ -704,7 +707,7 @@
 	<xs:element name="TextModelSimiliarity">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
 			<xs:attribute name="similarityType">
 				<xs:simpleType>
@@ -719,57 +722,57 @@
 	<xs:element name="NearestNeighborModel">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="MiningSchema"/>
-				<xs:element ref="Output" minOccurs="0"/>
-				<xs:element ref="ModelStats" minOccurs="0"/>
-				<xs:element ref="ModelExplanation" minOccurs="0"/>
-				<xs:element ref="Targets" minOccurs="0"/>
-				<xs:element ref="LocalTransformations" minOccurs="0"/>
-				<xs:element ref="TrainingInstances"/>
-				<xs:element ref="ComparisonMeasure"/>
-				<xs:element ref="KNNInputs"/>
-				<xs:element ref="ModelVerification" minOccurs="0"/>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:MiningSchema"/>
+				<xs:element ref="pmml:Output" minOccurs="0"/>
+				<xs:element ref="pmml:ModelStats" minOccurs="0"/>
+				<xs:element ref="pmml:ModelExplanation" minOccurs="0"/>
+				<xs:element ref="pmml:Targets" minOccurs="0"/>
+				<xs:element ref="pmml:LocalTransformations" minOccurs="0"/>
+				<xs:element ref="pmml:TrainingInstances"/>
+				<xs:element ref="pmml:ComparisonMeasure"/>
+				<xs:element ref="pmml:KNNInputs"/>
+				<xs:element ref="pmml:ModelVerification" minOccurs="0"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
 			<xs:attribute name="modelName" type="xs:string"/>
-			<xs:attribute name="functionName" type="MINING-FUNCTION" use="required"/>
+			<xs:attribute name="functionName" type="pmml:MINING-FUNCTION" use="required"/>
 			<xs:attribute name="algorithmName" type="xs:string"/>
-			<xs:attribute name="numberOfNeighbors" type="INT-NUMBER" use="required"/>
-			<xs:attribute name="continuousScoringMethod" type="CONT-SCORING-METHOD" default="average"/>
-			<xs:attribute name="categoricalScoringMethod" type="CAT-SCORING-METHOD" default="majorityVote"/>
+			<xs:attribute name="numberOfNeighbors" type="pmml:INT-NUMBER" use="required"/>
+			<xs:attribute name="continuousScoringMethod" type="pmml:CONT-SCORING-METHOD" default="average"/>
+			<xs:attribute name="categoricalScoringMethod" type="pmml:CAT-SCORING-METHOD" default="majorityVote"/>
 			<xs:attribute name="instanceIdVariable" type="xs:string"/>
-			<xs:attribute name="threshold" type="REAL-NUMBER" default="0.001"/>
+			<xs:attribute name="threshold" type="pmml:REAL-NUMBER" default="0.001"/>
 			<xs:attribute name="isScorable" type="xs:boolean" default="true"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="TrainingInstances">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="InstanceFields"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:InstanceFields"/>
 				<xs:choice>
-					<xs:element ref="TableLocator"/>
-					<xs:element ref="InlineTable"/>
+					<xs:element ref="pmml:TableLocator"/>
+					<xs:element ref="pmml:InlineTable"/>
 				</xs:choice>
 			</xs:sequence>
 			<xs:attribute name="isTransformed" type="xs:boolean" default="false"/>
-			<xs:attribute name="recordCount" type="INT-NUMBER" use="optional"/>
-			<xs:attribute name="fieldCount" type="INT-NUMBER" use="optional"/>
+			<xs:attribute name="recordCount" type="pmml:INT-NUMBER" use="optional"/>
+			<xs:attribute name="fieldCount" type="pmml:INT-NUMBER" use="optional"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="InstanceFields">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="InstanceField" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:InstanceField" maxOccurs="unbounded"/>
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="InstanceField">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
 			<xs:attribute name="field" type="xs:string" use="required"/>
 			<xs:attribute name="column" type="xs:string" use="optional"/>
@@ -778,19 +781,19 @@
 	<xs:element name="KNNInputs">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="KNNInput" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:KNNInput" maxOccurs="unbounded"/>
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="KNNInput">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
-			<xs:attribute name="field" type="FIELD-NAME" use="required"/>
-			<xs:attribute name="fieldWeight" type="REAL-NUMBER" default="1"/>
-			<xs:attribute name="compareFunction" type="COMPARE-FUNCTION"/>
+			<xs:attribute name="field" type="pmml:FIELD-NAME" use="required"/>
+			<xs:attribute name="fieldWeight" type="pmml:REAL-NUMBER" default="1"/>
+			<xs:attribute name="compareFunction" type="pmml:COMPARE-FUNCTION"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:simpleType name="CONT-SCORING-METHOD">
@@ -809,19 +812,19 @@
 	<xs:element name="Targets">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="Target" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Target" maxOccurs="unbounded"/>
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="Target">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="TargetValue" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:TargetValue" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
-			<xs:attribute name="field" type="FIELD-NAME" use="required"/>
-			<xs:attribute name="optype" type="OPTYPE"/>
+			<xs:attribute name="field" type="pmml:FIELD-NAME" use="required"/>
+			<xs:attribute name="optype" type="pmml:OPTYPE"/>
 			<xs:attribute name="castInteger">
 				<xs:simpleType>
 					<xs:restriction base="xs:string">
@@ -840,54 +843,54 @@
 	<xs:element name="TargetValue">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="Partition" minOccurs="0"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Partition" minOccurs="0"/>
 			</xs:sequence>
 			<xs:attribute name="value" type="xs:string"/>
 			<xs:attribute name="displayValue" type="xs:string"/>
-			<xs:attribute name="priorProbability" type="PROB-NUMBER"/>
-			<xs:attribute name="defaultValue" type="NUMBER"/>
+			<xs:attribute name="priorProbability" type="pmml:PROB-NUMBER"/>
+			<xs:attribute name="defaultValue" type="pmml:NUMBER"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="PMML">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Header"/>
-				<xs:element ref="MiningBuildTask" minOccurs="0"/>
-				<xs:element ref="DataDictionary"/>
-				<xs:element ref="TransformationDictionary" minOccurs="0"/>
+				<xs:element ref="pmml:Header"/>
+				<xs:element ref="pmml:MiningBuildTask" minOccurs="0"/>
+				<xs:element ref="pmml:DataDictionary"/>
+				<xs:element ref="pmml:TransformationDictionary" minOccurs="0"/>
 				<xs:sequence minOccurs="0" maxOccurs="unbounded">
-					<xs:group ref="MODEL-ELEMENT"/>
+					<xs:group ref="pmml:MODEL-ELEMENT"/>
 				</xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
 			<xs:attribute name="version" type="xs:string" use="required"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:group name="MODEL-ELEMENT">
 		<xs:choice>
-			<xs:element ref="AssociationModel"/>
-			<xs:element ref="BaselineModel"/>
-			<xs:element ref="ClusteringModel"/>
-			<xs:element ref="GeneralRegressionModel"/>
-			<xs:element ref="MiningModel"/>
-			<xs:element ref="NaiveBayesModel"/>
-			<xs:element ref="NearestNeighborModel"/>
-			<xs:element ref="NeuralNetwork"/>
-			<xs:element ref="RegressionModel"/>
-			<xs:element ref="RuleSetModel"/>
-			<xs:element ref="SequenceModel"/>
-			<xs:element ref="Scorecard"/>
-			<xs:element ref="SupportVectorMachineModel"/>
-			<xs:element ref="TextModel"/>
-			<xs:element ref="TimeSeriesModel"/>
-			<xs:element ref="TreeModel"/>
+			<xs:element ref="pmml:AssociationModel"/>
+			<xs:element ref="pmml:BaselineModel"/>
+			<xs:element ref="pmml:ClusteringModel"/>
+			<xs:element ref="pmml:GeneralRegressionModel"/>
+			<xs:element ref="pmml:MiningModel"/>
+			<xs:element ref="pmml:NaiveBayesModel"/>
+			<xs:element ref="pmml:NearestNeighborModel"/>
+			<xs:element ref="pmml:NeuralNetwork"/>
+			<xs:element ref="pmml:RegressionModel"/>
+			<xs:element ref="pmml:RuleSetModel"/>
+			<xs:element ref="pmml:SequenceModel"/>
+			<xs:element ref="pmml:Scorecard"/>
+			<xs:element ref="pmml:SupportVectorMachineModel"/>
+			<xs:element ref="pmml:TextModel"/>
+			<xs:element ref="pmml:TimeSeriesModel"/>
+			<xs:element ref="pmml:TreeModel"/>
 		</xs:choice>
 	</xs:group>
 	<xs:element name="MiningBuildTask">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>
@@ -935,7 +938,7 @@
 		<xs:restriction base="xs:string"/>
 	</xs:simpleType>
 	<xs:complexType name="ArrayType" mixed="true">
-		<xs:attribute name="n" type="INT-NUMBER" use="optional"/>
+		<xs:attribute name="n" type="pmml:INT-NUMBER" use="optional"/>
 		<xs:attribute name="type" use="required">
 			<xs:simpleType>
 				<xs:restriction base="xs:string">
@@ -946,45 +949,45 @@
 			</xs:simpleType>
 		</xs:attribute>
 	</xs:complexType>
-	<xs:element name="Array" type="ArrayType"/>
+	<xs:element name="Array" type="pmml:ArrayType"/>
 	<xs:group name="NUM-ARRAY">
 		<xs:choice>
-			<xs:element ref="Array"/>
+			<xs:element ref="pmml:Array"/>
 		</xs:choice>
 	</xs:group>
 	<xs:group name="INT-ARRAY">
 		<xs:choice>
-			<xs:element ref="Array"/>
+			<xs:element ref="pmml:Array"/>
 		</xs:choice>
 	</xs:group>
 	<xs:group name="REAL-ARRAY">
 		<xs:choice>
-			<xs:element ref="Array"/>
+			<xs:element ref="pmml:Array"/>
 		</xs:choice>
 	</xs:group>
 	<xs:group name="STRING-ARRAY">
 		<xs:choice>
-			<xs:element ref="Array"/>
+			<xs:element ref="pmml:Array"/>
 		</xs:choice>
 	</xs:group>
 	<xs:element name="INT-SparseArray">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Indices" minOccurs="0"/>
-				<xs:element ref="INT-Entries" minOccurs="0"/>
+				<xs:element ref="pmml:Indices" minOccurs="0"/>
+				<xs:element ref="pmml:INT-Entries" minOccurs="0"/>
 			</xs:sequence>
-			<xs:attribute name="n" type="INT-NUMBER" use="optional"/>
-			<xs:attribute name="defaultValue" type="INT-NUMBER" use="optional" default="0"/>
+			<xs:attribute name="n" type="pmml:INT-NUMBER" use="optional"/>
+			<xs:attribute name="defaultValue" type="pmml:INT-NUMBER" use="optional" default="0"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="REAL-SparseArray">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Indices" minOccurs="0"/>
-				<xs:element ref="REAL-Entries" minOccurs="0"/>
+				<xs:element ref="pmml:Indices" minOccurs="0"/>
+				<xs:element ref="pmml:REAL-Entries" minOccurs="0"/>
 			</xs:sequence>
-			<xs:attribute name="n" type="INT-NUMBER" use="optional"/>
-			<xs:attribute name="defaultValue" type="REAL-NUMBER" use="optional" default="0"/>
+			<xs:attribute name="n" type="pmml:INT-NUMBER" use="optional"/>
+			<xs:attribute name="defaultValue" type="pmml:REAL-NUMBER" use="optional" default="0"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="Indices">
@@ -1005,8 +1008,8 @@
 	<xs:element name="Matrix">
 		<xs:complexType>
 			<xs:choice minOccurs="0">
-				<xs:group ref="NUM-ARRAY" maxOccurs="unbounded"/>
-				<xs:element ref="MatCell" maxOccurs="unbounded"/>
+				<xs:group ref="pmml:NUM-ARRAY" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:MatCell" maxOccurs="unbounded"/>
 			</xs:choice>
 			<xs:attribute name="kind" use="optional" default="any">
 				<xs:simpleType>
@@ -1017,18 +1020,18 @@
 					</xs:restriction>
 				</xs:simpleType>
 			</xs:attribute>
-			<xs:attribute name="nbRows" type="INT-NUMBER" use="optional"/>
-			<xs:attribute name="nbCols" type="INT-NUMBER" use="optional"/>
-			<xs:attribute name="diagDefault" type="REAL-NUMBER" use="optional"/>
-			<xs:attribute name="offDiagDefault" type="REAL-NUMBER" use="optional"/>
+			<xs:attribute name="nbRows" type="pmml:INT-NUMBER" use="optional"/>
+			<xs:attribute name="nbCols" type="pmml:INT-NUMBER" use="optional"/>
+			<xs:attribute name="diagDefault" type="pmml:REAL-NUMBER" use="optional"/>
+			<xs:attribute name="offDiagDefault" type="pmml:REAL-NUMBER" use="optional"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="MatCell">
 		<xs:complexType>
 			<xs:simpleContent>
 				<xs:extension base="xs:string">
-					<xs:attribute name="row" type="INT-NUMBER" use="required"/>
-					<xs:attribute name="col" type="INT-NUMBER" use="required"/>
+					<xs:attribute name="row" type="pmml:INT-NUMBER" use="required"/>
+					<xs:attribute name="col" type="pmml:INT-NUMBER" use="required"/>
 				</xs:extension>
 			</xs:simpleContent>
 		</xs:complexType>
@@ -1036,10 +1039,10 @@
 	<xs:element name="Header">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element minOccurs="0" ref="Application"/>
-				<xs:element minOccurs="0" maxOccurs="unbounded" ref="Annotation"/>
-				<xs:element minOccurs="0" ref="Timestamp"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element minOccurs="0" ref="pmml:Application"/>
+				<xs:element minOccurs="0" maxOccurs="unbounded" ref="pmml:Annotation"/>
+				<xs:element minOccurs="0" ref="pmml:Timestamp"/>
 			</xs:sequence>
 			<xs:attribute name="copyright" type="xs:string"/>
 			<xs:attribute name="description" type="xs:string"/>
@@ -1048,7 +1051,7 @@
 	<xs:element name="Application">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
 			<xs:attribute name="name" type="xs:string" use="required"/>
 			<xs:attribute name="version" type="xs:string"/>
@@ -1057,22 +1060,22 @@
 	<xs:element name="Annotation">
 		<xs:complexType mixed="true">
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="Timestamp">
 		<xs:complexType mixed="true">
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="Taxonomy">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="ChildParent" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:ChildParent" maxOccurs="unbounded"/>
 			</xs:sequence>
 			<xs:attribute name="name" type="xs:string" use="required"/>
 		</xs:complexType>
@@ -1080,11 +1083,11 @@
 	<xs:element name="ChildParent">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element minOccurs="0" maxOccurs="unbounded" ref="FieldColumnPair"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element minOccurs="0" maxOccurs="unbounded" ref="pmml:FieldColumnPair"/>
 				<xs:choice>
-					<xs:element ref="TableLocator"/>
-					<xs:element ref="InlineTable"/>
+					<xs:element ref="pmml:TableLocator"/>
+					<xs:element ref="pmml:InlineTable"/>
 				</xs:choice>
 			</xs:sequence>
 			<xs:attribute name="childField" type="xs:string" use="required"/>
@@ -1103,15 +1106,15 @@
 	<xs:element name="TableLocator">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="InlineTable">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="row" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:row" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>
@@ -1129,21 +1132,21 @@
 	<xs:element name="NaiveBayesModel">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="MiningSchema"/>
-				<xs:element ref="Output" minOccurs="0"/>
-				<xs:element ref="ModelStats" minOccurs="0"/>
-				<xs:element ref="ModelExplanation" minOccurs="0"/>
-				<xs:element ref="Targets" minOccurs="0"/>
-				<xs:element ref="LocalTransformations" minOccurs="0"/>
-				<xs:element ref="BayesInputs"/>
-				<xs:element ref="BayesOutput"/>
-				<xs:element ref="ModelVerification" minOccurs="0"/>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:MiningSchema"/>
+				<xs:element ref="pmml:Output" minOccurs="0"/>
+				<xs:element ref="pmml:ModelStats" minOccurs="0"/>
+				<xs:element ref="pmml:ModelExplanation" minOccurs="0"/>
+				<xs:element ref="pmml:Targets" minOccurs="0"/>
+				<xs:element ref="pmml:LocalTransformations" minOccurs="0"/>
+				<xs:element ref="pmml:BayesInputs"/>
+				<xs:element ref="pmml:BayesOutput"/>
+				<xs:element ref="pmml:ModelVerification" minOccurs="0"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
 			<xs:attribute name="modelName" type="xs:string"/>
-			<xs:attribute name="threshold" type="REAL-NUMBER" use="required"/>
-			<xs:attribute name="functionName" type="MINING-FUNCTION" use="required"/>
+			<xs:attribute name="threshold" type="pmml:REAL-NUMBER" use="required"/>
+			<xs:attribute name="functionName" type="pmml:MINING-FUNCTION" use="required"/>
 			<xs:attribute name="algorithmName" type="xs:string"/>
 			<xs:attribute name="isScorable" type="xs:boolean" default="true"/>
 		</xs:complexType>
@@ -1151,20 +1154,20 @@
 	<xs:element name="BayesInputs">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="BayesInput" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:BayesInput" maxOccurs="unbounded"/>
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="BayesInput">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 				<xs:choice>
-					<xs:element ref="TargetValueStats" minOccurs="1" maxOccurs="1"/>
+					<xs:element ref="pmml:TargetValueStats" minOccurs="1" maxOccurs="1"/>
 					<xs:sequence>
-						<xs:element ref="DerivedField" minOccurs="0" maxOccurs="1"/>
-						<xs:element ref="PairCounts" minOccurs="1" maxOccurs="unbounded"/>
+						<xs:element ref="pmml:DerivedField" minOccurs="0" maxOccurs="1"/>
+						<xs:element ref="pmml:PairCounts" minOccurs="1" maxOccurs="unbounded"/>
 					</xs:sequence>
 				</xs:choice>
 			</xs:sequence>
@@ -1174,8 +1177,8 @@
 	<xs:element name="BayesOutput">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="TargetValueCounts"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:TargetValueCounts"/>
 			</xs:sequence>
 			<xs:attribute name="fieldName" type="xs:string" use="required"/>
 		</xs:complexType>
@@ -1183,16 +1186,16 @@
 	<xs:element name="TargetValueStats">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="TargetValueStat" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:TargetValueStat" maxOccurs="unbounded"/>
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="TargetValueStat">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:group ref="CONTINUOUS-DISTRIBUTION-TYPES" minOccurs="1"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:group ref="pmml:CONTINUOUS-DISTRIBUTION-TYPES" minOccurs="1"/>
 			</xs:sequence>
 			<xs:attribute name="value" type="xs:string" use="required"/>
 		</xs:complexType>
@@ -1200,8 +1203,8 @@
 	<xs:element name="PairCounts">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="TargetValueCounts"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:TargetValueCounts"/>
 			</xs:sequence>
 			<xs:attribute name="value" type="xs:string" use="required"/>
 		</xs:complexType>
@@ -1209,45 +1212,45 @@
 	<xs:element name="TargetValueCounts">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="TargetValueCount" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:TargetValueCount" maxOccurs="unbounded"/>
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="TargetValueCount">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
 			<xs:attribute name="value" type="xs:string" use="required"/>
-			<xs:attribute name="count" type="REAL-NUMBER" use="required"/>
+			<xs:attribute name="count" type="pmml:REAL-NUMBER" use="required"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="Output">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="OutputField" minOccurs="1" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:OutputField" minOccurs="1" maxOccurs="unbounded"/>
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="OutputField">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 				<xs:sequence minOccurs="0" maxOccurs="1">
-					<xs:element ref="Decisions" minOccurs="0" maxOccurs="1"/>
-					<xs:group ref="EXPRESSION" minOccurs="1" maxOccurs="1"/>
+					<xs:element ref="pmml:Decisions" minOccurs="0" maxOccurs="1"/>
+					<xs:group ref="pmml:EXPRESSION" minOccurs="1" maxOccurs="1"/>
 				</xs:sequence>
 			</xs:sequence>
-			<xs:attribute name="name" type="FIELD-NAME" use="required"/>
+			<xs:attribute name="name" type="pmml:FIELD-NAME" use="required"/>
 			<xs:attribute name="displayName" type="xs:string"/>
-			<xs:attribute name="optype" type="OPTYPE"/>
-			<xs:attribute name="dataType" type="DATATYPE"/>
-			<xs:attribute name="targetField" type="FIELD-NAME"/>
-			<xs:attribute name="feature" type="RESULT-FEATURE" default="predictedValue"/>
+			<xs:attribute name="optype" type="pmml:OPTYPE"/>
+			<xs:attribute name="dataType" type="pmml:DATATYPE"/>
+			<xs:attribute name="targetField" type="pmml:FIELD-NAME"/>
+			<xs:attribute name="feature" type="pmml:RESULT-FEATURE" default="predictedValue"/>
 			<xs:attribute name="value" type="xs:string"/>
-			<xs:attribute name="ruleFeature" type="RULE-FEATURE" default="consequent"/>
+			<xs:attribute name="ruleFeature" type="pmml:RULE-FEATURE" default="consequent"/>
 			<xs:attribute name="algorithm" default="exclusiveRecommendation">
 				<xs:simpleType>
 					<xs:restriction base="xs:string">
@@ -1257,7 +1260,7 @@
 					</xs:restriction>
 				</xs:simpleType>
 			</xs:attribute>
-			<xs:attribute name="rank" type="INT-NUMBER" default="1"/>
+			<xs:attribute name="rank" type="pmml:INT-NUMBER" default="1"/>
 			<xs:attribute name="rankBasis" default="confidence">
 				<xs:simpleType>
 					<xs:restriction base="xs:string">
@@ -1311,8 +1314,8 @@
 	<xs:element name="Decisions">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="Decision" minOccurs="1" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Decision" minOccurs="1" maxOccurs="unbounded"/>
 			</xs:sequence>
 			<xs:attribute name="businessProblem" type="xs:string"/>
 			<xs:attribute name="description" type="xs:string"/>
@@ -1321,7 +1324,7 @@
 	<xs:element name="Decision">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
 			<xs:attribute name="value" type="xs:string" use="required"/>
 			<xs:attribute name="displayValue" type="xs:string"/>
@@ -1344,25 +1347,25 @@
 	<xs:element name="GeneralRegressionModel">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element minOccurs="0" maxOccurs="unbounded" ref="Extension"/>
-				<xs:element ref="MiningSchema"/>
-				<xs:element minOccurs="0" ref="Output"/>
-				<xs:element minOccurs="0" ref="ModelStats"/>
-				<xs:element ref="ModelExplanation" minOccurs="0"/>
-				<xs:element minOccurs="0" ref="Targets"/>
-				<xs:element minOccurs="0" ref="LocalTransformations"/>
-				<xs:element ref="ParameterList"/>
-				<xs:element minOccurs="0" ref="FactorList"/>
-				<xs:element minOccurs="0" ref="CovariateList"/>
-				<xs:element ref="PPMatrix"/>
-				<xs:element minOccurs="0" ref="PCovMatrix"/>
-				<xs:element ref="ParamMatrix"/>
-				<xs:element minOccurs="0" ref="EventValues"/>
-				<xs:element minOccurs="0" ref="BaseCumHazardTables"/>
-				<xs:element ref="ModelVerification" minOccurs="0"/>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element minOccurs="0" maxOccurs="unbounded" ref="pmml:Extension"/>
+				<xs:element ref="pmml:MiningSchema"/>
+				<xs:element minOccurs="0" ref="pmml:Output"/>
+				<xs:element minOccurs="0" ref="pmml:ModelStats"/>
+				<xs:element ref="pmml:ModelExplanation" minOccurs="0"/>
+				<xs:element minOccurs="0" ref="pmml:Targets"/>
+				<xs:element minOccurs="0" ref="pmml:LocalTransformations"/>
+				<xs:element ref="pmml:ParameterList"/>
+				<xs:element minOccurs="0" ref="pmml:FactorList"/>
+				<xs:element minOccurs="0" ref="pmml:CovariateList"/>
+				<xs:element ref="pmml:PPMatrix"/>
+				<xs:element minOccurs="0" ref="pmml:PCovMatrix"/>
+				<xs:element ref="pmml:ParamMatrix"/>
+				<xs:element minOccurs="0" ref="pmml:EventValues"/>
+				<xs:element minOccurs="0" ref="pmml:BaseCumHazardTables"/>
+				<xs:element ref="pmml:ModelVerification" minOccurs="0"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
-			<xs:attribute name="targetVariableName" type="FIELD-NAME"/>
+			<xs:attribute name="targetVariableName" type="pmml:FIELD-NAME"/>
 			<xs:attribute name="modelType" use="required">
 				<xs:simpleType>
 					<xs:restriction base="xs:string">
@@ -1376,14 +1379,14 @@
 				</xs:simpleType>
 			</xs:attribute>
 			<xs:attribute name="modelName" type="xs:string"/>
-			<xs:attribute name="functionName" type="MINING-FUNCTION" use="required"/>
+			<xs:attribute name="functionName" type="pmml:MINING-FUNCTION" use="required"/>
 			<xs:attribute name="algorithmName" type="xs:string"/>
 			<xs:attribute name="targetReferenceCategory" type="xs:string"/>
-			<xs:attribute name="cumulativeLink" type="CUMULATIVE-LINK-FUNCTION"/>
-			<xs:attribute name="linkFunction" type="LINK-FUNCTION"/>
-			<xs:attribute name="linkParameter" type="REAL-NUMBER"/>
-			<xs:attribute name="trialsVariable" type="FIELD-NAME"/>
-			<xs:attribute name="trialsValue" type="INT-NUMBER"/>
+			<xs:attribute name="cumulativeLink" type="pmml:CUMULATIVE-LINK-FUNCTION"/>
+			<xs:attribute name="linkFunction" type="pmml:LINK-FUNCTION"/>
+			<xs:attribute name="linkParameter" type="pmml:REAL-NUMBER"/>
+			<xs:attribute name="trialsVariable" type="pmml:FIELD-NAME"/>
+			<xs:attribute name="trialsValue" type="pmml:INT-NUMBER"/>
 			<xs:attribute name="distribution">
 				<xs:simpleType>
 					<xs:restriction base="xs:string">
@@ -1397,75 +1400,75 @@
 					</xs:restriction>
 				</xs:simpleType>
 			</xs:attribute>
-			<xs:attribute name="distParameter" type="REAL-NUMBER"/>
-			<xs:attribute name="offsetVariable" type="FIELD-NAME"/>
-			<xs:attribute name="offsetValue" type="REAL-NUMBER"/>
-			<xs:attribute name="modelDF" type="REAL-NUMBER"/>
-			<xs:attribute name="endTimeVariable" type="FIELD-NAME"/>
-			<xs:attribute name="startTimeVariable" type="FIELD-NAME"/>
-			<xs:attribute name="subjectIDVariable" type="FIELD-NAME"/>
-			<xs:attribute name="statusVariable" type="FIELD-NAME"/>
-			<xs:attribute name="baselineStrataVariable" type="FIELD-NAME"/>
+			<xs:attribute name="distParameter" type="pmml:REAL-NUMBER"/>
+			<xs:attribute name="offsetVariable" type="pmml:FIELD-NAME"/>
+			<xs:attribute name="offsetValue" type="pmml:REAL-NUMBER"/>
+			<xs:attribute name="modelDF" type="pmml:REAL-NUMBER"/>
+			<xs:attribute name="endTimeVariable" type="pmml:FIELD-NAME"/>
+			<xs:attribute name="startTimeVariable" type="pmml:FIELD-NAME"/>
+			<xs:attribute name="subjectIDVariable" type="pmml:FIELD-NAME"/>
+			<xs:attribute name="statusVariable" type="pmml:FIELD-NAME"/>
+			<xs:attribute name="baselineStrataVariable" type="pmml:FIELD-NAME"/>
 			<xs:attribute name="isScorable" type="xs:boolean" default="true"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="ParameterList">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="Parameter" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Parameter" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="Parameter">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
 			<xs:attribute name="name" type="xs:string" use="required"/>
 			<xs:attribute name="label" type="xs:string"/>
-			<xs:attribute name="referencePoint" type="REAL-NUMBER" default="0"/>
+			<xs:attribute name="referencePoint" type="pmml:REAL-NUMBER" default="0"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="FactorList">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element minOccurs="0" maxOccurs="unbounded" ref="Predictor"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element minOccurs="0" maxOccurs="unbounded" ref="pmml:Predictor"/>
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="CovariateList">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element minOccurs="0" maxOccurs="unbounded" ref="Predictor"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element minOccurs="0" maxOccurs="unbounded" ref="pmml:Predictor"/>
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="Predictor">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="Categories" minOccurs="0" maxOccurs="1"/>
-				<xs:element ref="Matrix" minOccurs="0"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Categories" minOccurs="0" maxOccurs="1"/>
+				<xs:element ref="pmml:Matrix" minOccurs="0"/>
 			</xs:sequence>
-			<xs:attribute name="name" type="FIELD-NAME" use="required"/>
+			<xs:attribute name="name" type="pmml:FIELD-NAME" use="required"/>
 			<xs:attribute name="contrastMatrixType" type="xs:string"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="Categories">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="Category" minOccurs="1" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Category" minOccurs="1" maxOccurs="unbounded"/>
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="Category">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
 			<xs:attribute name="value" type="xs:string" use="required"/>
 		</xs:complexType>
@@ -1473,18 +1476,18 @@
 	<xs:element name="PPMatrix">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="PPCell" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:PPCell" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="PPCell">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
 			<xs:attribute name="value" type="xs:string" use="required"/>
-			<xs:attribute name="predictorName" type="FIELD-NAME" use="required"/>
+			<xs:attribute name="predictorName" type="pmml:FIELD-NAME" use="required"/>
 			<xs:attribute name="parameterName" type="xs:string" use="required"/>
 			<xs:attribute name="targetCategory" type="xs:string"/>
 		</xs:complexType>
@@ -1492,8 +1495,8 @@
 	<xs:element name="PCovMatrix">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element maxOccurs="unbounded" ref="PCovCell"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element maxOccurs="unbounded" ref="pmml:PCovCell"/>
 			</xs:sequence>
 			<xs:attribute name="type">
 				<xs:simpleType>
@@ -1508,73 +1511,73 @@
 	<xs:element name="PCovCell">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
 			<xs:attribute name="pRow" type="xs:string" use="required"/>
 			<xs:attribute name="pCol" type="xs:string" use="required"/>
 			<xs:attribute name="tRow" type="xs:string"/>
 			<xs:attribute name="tCol" type="xs:string"/>
-			<xs:attribute name="value" type="REAL-NUMBER" use="required"/>
+			<xs:attribute name="value" type="pmml:REAL-NUMBER" use="required"/>
 			<xs:attribute name="targetCategory" type="xs:string"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="ParamMatrix">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="PCell" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:PCell" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="PCell">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
 			<xs:attribute name="targetCategory" type="xs:string"/>
 			<xs:attribute name="parameterName" type="xs:string" use="required"/>
-			<xs:attribute name="beta" type="REAL-NUMBER" use="required"/>
-			<xs:attribute name="df" type="INT-NUMBER"/>
+			<xs:attribute name="beta" type="pmml:REAL-NUMBER" use="required"/>
+			<xs:attribute name="df" type="pmml:INT-NUMBER"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="BaseCumHazardTables">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 				<xs:choice>
-					<xs:element maxOccurs="unbounded" ref="BaselineStratum"/>
-					<xs:element maxOccurs="unbounded" ref="BaselineCell"/>
+					<xs:element maxOccurs="unbounded" ref="pmml:BaselineStratum"/>
+					<xs:element maxOccurs="unbounded" ref="pmml:BaselineCell"/>
 				</xs:choice>
 			</xs:sequence>
-			<xs:attribute name="maxTime" type="REAL-NUMBER" use="optional"/>
+			<xs:attribute name="maxTime" type="pmml:REAL-NUMBER" use="optional"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="BaselineStratum">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element minOccurs="0" maxOccurs="unbounded" ref="BaselineCell"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element minOccurs="0" maxOccurs="unbounded" ref="pmml:BaselineCell"/>
 			</xs:sequence>
 			<xs:attribute name="value" type="xs:string" use="required"/>
 			<xs:attribute name="label" type="xs:string"/>
-			<xs:attribute name="maxTime" type="REAL-NUMBER" use="required"/>
+			<xs:attribute name="maxTime" type="pmml:REAL-NUMBER" use="required"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="BaselineCell">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
-			<xs:attribute name="time" type="REAL-NUMBER" use="required"/>
-			<xs:attribute name="cumHazard" type="REAL-NUMBER" use="required"/>
+			<xs:attribute name="time" type="pmml:REAL-NUMBER" use="required"/>
+			<xs:attribute name="cumHazard" type="pmml:REAL-NUMBER" use="required"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="EventValues">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element minOccurs="0" maxOccurs="unbounded" ref="Value"/>
-				<xs:element minOccurs="0" maxOccurs="unbounded" ref="Interval"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element minOccurs="0" maxOccurs="unbounded" ref="pmml:Value"/>
+				<xs:element minOccurs="0" maxOccurs="unbounded" ref="pmml:Interval"/>
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>
@@ -1604,23 +1607,23 @@
 	<xs:element name="ModelStats">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="UnivariateStats" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="MultivariateStats" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:UnivariateStats" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:MultivariateStats" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="UnivariateStats">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="Counts" minOccurs="0"/>
-				<xs:element ref="NumericInfo" minOccurs="0"/>
-				<xs:element ref="DiscrStats" minOccurs="0"/>
-				<xs:element ref="ContStats" minOccurs="0"/>
-				<xs:element ref="Anova" minOccurs="0"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Counts" minOccurs="0"/>
+				<xs:element ref="pmml:NumericInfo" minOccurs="0"/>
+				<xs:element ref="pmml:DiscrStats" minOccurs="0"/>
+				<xs:element ref="pmml:ContStats" minOccurs="0"/>
+				<xs:element ref="pmml:Anova" minOccurs="0"/>
 			</xs:sequence>
-			<xs:attribute name="field" type="FIELD-NAME"/>
+			<xs:attribute name="field" type="pmml:FIELD-NAME"/>
 			<xs:attribute name="weighted" default="0">
 				<xs:simpleType>
 					<xs:restriction base="xs:string">
@@ -1634,42 +1637,42 @@
 	<xs:element name="Counts">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
-			<xs:attribute name="totalFreq" type="NUMBER" use="required"/>
-			<xs:attribute name="missingFreq" type="NUMBER"/>
-			<xs:attribute name="invalidFreq" type="NUMBER"/>
+			<xs:attribute name="totalFreq" type="pmml:NUMBER" use="required"/>
+			<xs:attribute name="missingFreq" type="pmml:NUMBER"/>
+			<xs:attribute name="invalidFreq" type="pmml:NUMBER"/>
 			<xs:attribute name="cardinality" type="xs:nonNegativeInteger"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="NumericInfo">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="Quantile" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Quantile" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
-			<xs:attribute name="minimum" type="NUMBER"/>
-			<xs:attribute name="maximum" type="NUMBER"/>
-			<xs:attribute name="mean" type="NUMBER"/>
-			<xs:attribute name="standardDeviation" type="NUMBER"/>
-			<xs:attribute name="median" type="NUMBER"/>
-			<xs:attribute name="interQuartileRange" type="NUMBER"/>
+			<xs:attribute name="minimum" type="pmml:NUMBER"/>
+			<xs:attribute name="maximum" type="pmml:NUMBER"/>
+			<xs:attribute name="mean" type="pmml:NUMBER"/>
+			<xs:attribute name="standardDeviation" type="pmml:NUMBER"/>
+			<xs:attribute name="median" type="pmml:NUMBER"/>
+			<xs:attribute name="interQuartileRange" type="pmml:NUMBER"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="Quantile">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
-			<xs:attribute name="quantileLimit" type="PERCENTAGE-NUMBER" use="required"/>
-			<xs:attribute name="quantileValue" type="NUMBER" use="required"/>
+			<xs:attribute name="quantileLimit" type="pmml:PERCENTAGE-NUMBER" use="required"/>
+			<xs:attribute name="quantileValue" type="pmml:NUMBER" use="required"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="DiscrStats">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="Array" minOccurs="0" maxOccurs="2"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Array" minOccurs="0" maxOccurs="2"/>
 			</xs:sequence>
 			<xs:attribute name="modalValue" type="xs:string"/>
 		</xs:complexType>
@@ -1677,24 +1680,24 @@
 	<xs:element name="ContStats">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="Interval" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:group ref="FrequenciesType" minOccurs="0"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Interval" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:group ref="pmml:FrequenciesType" minOccurs="0"/>
 			</xs:sequence>
-			<xs:attribute name="totalValuesSum" type="NUMBER"/>
-			<xs:attribute name="totalSquaresSum" type="NUMBER"/>
+			<xs:attribute name="totalValuesSum" type="pmml:NUMBER"/>
+			<xs:attribute name="totalSquaresSum" type="pmml:NUMBER"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:group name="FrequenciesType">
 		<xs:sequence>
-			<xs:group ref="NUM-ARRAY" minOccurs="1" maxOccurs="3"/>
+			<xs:group ref="pmml:NUM-ARRAY" minOccurs="1" maxOccurs="3"/>
 		</xs:sequence>
 	</xs:group>
 	<xs:element name="MultivariateStats">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="MultivariateStat" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:MultivariateStat" maxOccurs="unbounded"/>
 			</xs:sequence>
 			<xs:attribute name="targetCategory" type="xs:string" use="optional"/>
 		</xs:complexType>
@@ -1702,39 +1705,39 @@
 	<xs:element name="MultivariateStat">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
 			<xs:attribute name="name" type="xs:string"/>
 			<xs:attribute name="category" type="xs:string"/>
-			<xs:attribute name="exponent" type="INT-NUMBER" default="1"/>
+			<xs:attribute name="exponent" type="pmml:INT-NUMBER" default="1"/>
 			<xs:attribute name="isIntercept" type="xs:boolean" default="false"/>
-			<xs:attribute name="importance" type="PROB-NUMBER"/>
-			<xs:attribute name="stdError" type="NUMBER"/>
-			<xs:attribute name="tValue" type="NUMBER"/>
-			<xs:attribute name="chiSquareValue" type="NUMBER"/>
-			<xs:attribute name="fStatistic" type="NUMBER"/>
-			<xs:attribute name="dF" type="NUMBER"/>
-			<xs:attribute name="pValueAlpha" type="PROB-NUMBER"/>
-			<xs:attribute name="pValueInitial" type="PROB-NUMBER"/>
-			<xs:attribute name="pValueFinal" type="PROB-NUMBER"/>
-			<xs:attribute name="confidenceLevel" type="PROB-NUMBER" default="0.95"/>
-			<xs:attribute name="confidenceLowerBound" type="NUMBER"/>
-			<xs:attribute name="confidenceUpperBound" type="NUMBER"/>
+			<xs:attribute name="importance" type="pmml:PROB-NUMBER"/>
+			<xs:attribute name="stdError" type="pmml:NUMBER"/>
+			<xs:attribute name="tValue" type="pmml:NUMBER"/>
+			<xs:attribute name="chiSquareValue" type="pmml:NUMBER"/>
+			<xs:attribute name="fStatistic" type="pmml:NUMBER"/>
+			<xs:attribute name="dF" type="pmml:NUMBER"/>
+			<xs:attribute name="pValueAlpha" type="pmml:PROB-NUMBER"/>
+			<xs:attribute name="pValueInitial" type="pmml:PROB-NUMBER"/>
+			<xs:attribute name="pValueFinal" type="pmml:PROB-NUMBER"/>
+			<xs:attribute name="confidenceLevel" type="pmml:PROB-NUMBER" default="0.95"/>
+			<xs:attribute name="confidenceLowerBound" type="pmml:NUMBER"/>
+			<xs:attribute name="confidenceUpperBound" type="pmml:NUMBER"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="Anova">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="AnovaRow" minOccurs="3" maxOccurs="3"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:AnovaRow" minOccurs="3" maxOccurs="3"/>
 			</xs:sequence>
-			<xs:attribute name="target" type="FIELD-NAME"/>
+			<xs:attribute name="target" type="pmml:FIELD-NAME"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="AnovaRow">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
 			<xs:attribute name="type" use="required">
 				<xs:simpleType>
@@ -1745,32 +1748,32 @@
 					</xs:restriction>
 				</xs:simpleType>
 			</xs:attribute>
-			<xs:attribute name="sumOfSquares" type="NUMBER" use="required"/>
-			<xs:attribute name="degreesOfFreedom" type="NUMBER" use="required"/>
-			<xs:attribute name="meanOfSquares" type="NUMBER"/>
-			<xs:attribute name="fValue" type="NUMBER"/>
-			<xs:attribute name="pValue" type="PROB-NUMBER"/>
+			<xs:attribute name="sumOfSquares" type="pmml:NUMBER" use="required"/>
+			<xs:attribute name="degreesOfFreedom" type="pmml:NUMBER" use="required"/>
+			<xs:attribute name="meanOfSquares" type="pmml:NUMBER"/>
+			<xs:attribute name="fValue" type="pmml:NUMBER"/>
+			<xs:attribute name="pValue" type="pmml:PROB-NUMBER"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="Partition">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="PartitionFieldStats" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:PartitionFieldStats" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
 			<xs:attribute name="name" type="xs:string" use="required"/>
-			<xs:attribute name="size" type="NUMBER"/>
+			<xs:attribute name="size" type="pmml:NUMBER"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="PartitionFieldStats">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="Counts" minOccurs="0"/>
-				<xs:element ref="NumericInfo" minOccurs="0"/>
-				<xs:group ref="FrequenciesType" minOccurs="0"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Counts" minOccurs="0"/>
+				<xs:element ref="pmml:NumericInfo" minOccurs="0"/>
+				<xs:group ref="pmml:FrequenciesType" minOccurs="0"/>
 			</xs:sequence>
-			<xs:attribute name="field" type="FIELD-NAME" use="required"/>
+			<xs:attribute name="field" type="pmml:FIELD-NAME" use="required"/>
 			<xs:attribute name="weighted" default="0">
 				<xs:simpleType>
 					<xs:restriction base="xs:string">
@@ -1783,52 +1786,52 @@
 	</xs:element>
 	<xs:group name="EXPRESSION">
 		<xs:choice>
-			<xs:element ref="Constant"/>
-			<xs:element ref="FieldRef"/>
-			<xs:element ref="NormContinuous"/>
-			<xs:element ref="NormDiscrete"/>
-			<xs:element ref="Discretize"/>
-			<xs:element ref="MapValues"/>
-			<xs:element ref="TextIndex"/>
-			<xs:element ref="Apply"/>
-			<xs:element ref="Aggregate"/>
+			<xs:element ref="pmml:Constant"/>
+			<xs:element ref="pmml:FieldRef"/>
+			<xs:element ref="pmml:NormContinuous"/>
+			<xs:element ref="pmml:NormDiscrete"/>
+			<xs:element ref="pmml:Discretize"/>
+			<xs:element ref="pmml:MapValues"/>
+			<xs:element ref="pmml:TextIndex"/>
+			<xs:element ref="pmml:Apply"/>
+			<xs:element ref="pmml:Aggregate"/>
 		</xs:choice>
 	</xs:group>
 	<xs:element name="TransformationDictionary">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="DefineFunction" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="DerivedField" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:DefineFunction" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:DerivedField" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="LocalTransformations">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="DerivedField" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:DerivedField" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="DerivedField">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:group ref="EXPRESSION"/>
-				<xs:element ref="Value" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:group ref="pmml:EXPRESSION"/>
+				<xs:element ref="pmml:Value" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
-			<xs:attribute name="name" type="FIELD-NAME"/>
+			<xs:attribute name="name" type="pmml:FIELD-NAME"/>
 			<xs:attribute name="displayName" type="xs:string"/>
-			<xs:attribute name="optype" type="OPTYPE" use="required"/>
-			<xs:attribute name="dataType" type="DATATYPE" use="required"/>
+			<xs:attribute name="optype" type="pmml:OPTYPE" use="required"/>
+			<xs:attribute name="dataType" type="pmml:DATATYPE" use="required"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="Constant">
 		<xs:complexType>
 			<xs:simpleContent>
 				<xs:extension base="xs:string">
-					<xs:attribute name="dataType" type="DATATYPE"/>
+					<xs:attribute name="dataType" type="pmml:DATATYPE"/>
 				</xs:extension>
 			</xs:simpleContent>
 		</xs:complexType>
@@ -1836,38 +1839,38 @@
 	<xs:element name="FieldRef">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
-			<xs:attribute name="field" type="FIELD-NAME" use="required"/>
+			<xs:attribute name="field" type="pmml:FIELD-NAME" use="required"/>
 			<xs:attribute name="mapMissingTo" type="xs:string"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="NormContinuous">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="LinearNorm" minOccurs="2" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:LinearNorm" minOccurs="2" maxOccurs="unbounded"/>
 			</xs:sequence>
-			<xs:attribute name="mapMissingTo" type="NUMBER"/>
-			<xs:attribute name="field" type="FIELD-NAME" use="required"/>
-			<xs:attribute name="outliers" type="OUTLIER-TREATMENT-METHOD" default="asIs"/>
+			<xs:attribute name="mapMissingTo" type="pmml:NUMBER"/>
+			<xs:attribute name="field" type="pmml:FIELD-NAME" use="required"/>
+			<xs:attribute name="outliers" type="pmml:OUTLIER-TREATMENT-METHOD" default="asIs"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="LinearNorm">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
-			<xs:attribute name="orig" type="NUMBER" use="required"/>
-			<xs:attribute name="norm" type="NUMBER" use="required"/>
+			<xs:attribute name="orig" type="pmml:NUMBER" use="required"/>
+			<xs:attribute name="norm" type="pmml:NUMBER" use="required"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="NormDiscrete">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
-			<xs:attribute name="field" type="FIELD-NAME" use="required"/>
+			<xs:attribute name="field" type="pmml:FIELD-NAME" use="required"/>
 			<xs:attribute name="method" fixed="indicator">
 				<xs:simpleType>
 					<xs:restriction base="xs:string">
@@ -1876,26 +1879,26 @@
 				</xs:simpleType>
 			</xs:attribute>
 			<xs:attribute name="value" type="xs:string" use="required"/>
-			<xs:attribute name="mapMissingTo" type="NUMBER"/>
+			<xs:attribute name="mapMissingTo" type="pmml:NUMBER"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="Discretize">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="DiscretizeBin" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:DiscretizeBin" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
-			<xs:attribute name="field" type="FIELD-NAME" use="required"/>
+			<xs:attribute name="field" type="pmml:FIELD-NAME" use="required"/>
 			<xs:attribute name="mapMissingTo" type="xs:string"/>
 			<xs:attribute name="defaultValue" type="xs:string"/>
-			<xs:attribute name="dataType" type="DATATYPE"/>
+			<xs:attribute name="dataType" type="pmml:DATATYPE"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="DiscretizeBin">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="Interval"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Interval"/>
 			</xs:sequence>
 			<xs:attribute name="binValue" type="xs:string" use="required"/>
 		</xs:complexType>
@@ -1903,36 +1906,36 @@
 	<xs:element name="MapValues">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element minOccurs="0" maxOccurs="unbounded" ref="FieldColumnPair"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element minOccurs="0" maxOccurs="unbounded" ref="pmml:FieldColumnPair"/>
 				<xs:choice minOccurs="0">
-					<xs:element ref="TableLocator"/>
-					<xs:element ref="InlineTable"/>
+					<xs:element ref="pmml:TableLocator"/>
+					<xs:element ref="pmml:InlineTable"/>
 				</xs:choice>
 			</xs:sequence>
 			<xs:attribute name="mapMissingTo" type="xs:string"/>
 			<xs:attribute name="defaultValue" type="xs:string"/>
 			<xs:attribute name="outputColumn" type="xs:string" use="required"/>
-			<xs:attribute name="dataType" type="DATATYPE"/>
+			<xs:attribute name="dataType" type="pmml:DATATYPE"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="FieldColumnPair">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
-			<xs:attribute name="field" type="FIELD-NAME" use="required"/>
+			<xs:attribute name="field" type="pmml:FIELD-NAME" use="required"/>
 			<xs:attribute name="column" type="xs:string" use="required"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="TextIndex">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="TextIndexNormalization" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:group ref="EXPRESSION"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:TextIndexNormalization" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:group ref="pmml:EXPRESSION"/>
 			</xs:sequence>
-			<xs:attribute name="textField" type="FIELD-NAME" use="required"/>
+			<xs:attribute name="textField" type="pmml:FIELD-NAME" use="required"/>
 			<xs:attribute name="localTermWeights" default="termFrequency">
 				<xs:simpleType>
 					<xs:restriction base="xs:string">
@@ -1960,10 +1963,10 @@
 	<xs:element name="TextIndexNormalization">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 				<xs:choice minOccurs="0">
-					<xs:element ref="TableLocator"/>
-					<xs:element ref="InlineTable"/>
+					<xs:element ref="pmml:TableLocator"/>
+					<xs:element ref="pmml:InlineTable"/>
 				</xs:choice>
 			</xs:sequence>
 			<xs:attribute name="inField" type="xs:string" default="string"/>
@@ -1979,9 +1982,9 @@
 	<xs:element name="Aggregate">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
-			<xs:attribute name="field" type="FIELD-NAME" use="required"/>
+			<xs:attribute name="field" type="pmml:FIELD-NAME" use="required"/>
 			<xs:attribute name="function" use="required">
 				<xs:simpleType>
 					<xs:restriction base="xs:string">
@@ -1994,34 +1997,34 @@
 					</xs:restriction>
 				</xs:simpleType>
 			</xs:attribute>
-			<xs:attribute name="groupField" type="FIELD-NAME"/>
+			<xs:attribute name="groupField" type="pmml:FIELD-NAME"/>
 			<xs:attribute name="sqlWhere" type="xs:string"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="NeuralNetwork">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="MiningSchema"/>
-				<xs:element ref="Output" minOccurs="0"/>
-				<xs:element ref="ModelStats" minOccurs="0"/>
-				<xs:element ref="ModelExplanation" minOccurs="0"/>
-				<xs:element ref="Targets" minOccurs="0"/>
-				<xs:element ref="LocalTransformations" minOccurs="0"/>
-				<xs:element ref="NeuralInputs"/>
-				<xs:element maxOccurs="unbounded" ref="NeuralLayer"/>
-				<xs:element minOccurs="0" ref="NeuralOutputs"/>
-				<xs:element ref="ModelVerification" minOccurs="0"/>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:MiningSchema"/>
+				<xs:element ref="pmml:Output" minOccurs="0"/>
+				<xs:element ref="pmml:ModelStats" minOccurs="0"/>
+				<xs:element ref="pmml:ModelExplanation" minOccurs="0"/>
+				<xs:element ref="pmml:Targets" minOccurs="0"/>
+				<xs:element ref="pmml:LocalTransformations" minOccurs="0"/>
+				<xs:element ref="pmml:NeuralInputs"/>
+				<xs:element maxOccurs="unbounded" ref="pmml:NeuralLayer"/>
+				<xs:element minOccurs="0" ref="pmml:NeuralOutputs"/>
+				<xs:element ref="pmml:ModelVerification" minOccurs="0"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
 			<xs:attribute name="modelName" type="xs:string"/>
-			<xs:attribute name="functionName" type="MINING-FUNCTION" use="required"/>
+			<xs:attribute name="functionName" type="pmml:MINING-FUNCTION" use="required"/>
 			<xs:attribute name="algorithmName" type="xs:string"/>
-			<xs:attribute name="activationFunction" type="ACTIVATION-FUNCTION" use="required"/>
-			<xs:attribute name="normalizationMethod" type="NN-NORMALIZATION-METHOD" default="none"/>
-			<xs:attribute name="threshold" type="REAL-NUMBER" default="0"/>
-			<xs:attribute name="width" type="REAL-NUMBER"/>
-			<xs:attribute name="altitude" type="REAL-NUMBER" default="1.0"/>
+			<xs:attribute name="activationFunction" type="pmml:ACTIVATION-FUNCTION" use="required"/>
+			<xs:attribute name="normalizationMethod" type="pmml:NN-NORMALIZATION-METHOD" default="none"/>
+			<xs:attribute name="threshold" type="pmml:REAL-NUMBER" default="0"/>
+			<xs:attribute name="width" type="pmml:REAL-NUMBER"/>
+			<xs:attribute name="altitude" type="pmml:REAL-NUMBER" default="1.0"/>
 			<xs:attribute name="numberOfLayers" type="xs:nonNegativeInteger"/>
 			<xs:attribute name="isScorable" type="xs:boolean" default="true"/>
 		</xs:complexType>
@@ -2029,8 +2032,8 @@
 	<xs:element name="NeuralInputs">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element maxOccurs="unbounded" ref="NeuralInput"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element maxOccurs="unbounded" ref="pmml:NeuralInput"/>
 			</xs:sequence>
 			<xs:attribute name="numberOfInputs" type="xs:nonNegativeInteger"/>
 		</xs:complexType>
@@ -2038,22 +2041,22 @@
 	<xs:element name="NeuralLayer">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element maxOccurs="unbounded" ref="Neuron"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element maxOccurs="unbounded" ref="pmml:Neuron"/>
 			</xs:sequence>
 			<xs:attribute name="numberOfNeurons" type="xs:nonNegativeInteger"/>
-			<xs:attribute name="activationFunction" type="ACTIVATION-FUNCTION"/>
-			<xs:attribute name="threshold" type="REAL-NUMBER"/>
-			<xs:attribute name="width" type="REAL-NUMBER"/>
-			<xs:attribute name="altitude" type="REAL-NUMBER"/>
-			<xs:attribute name="normalizationMethod" type="NN-NORMALIZATION-METHOD"/>
+			<xs:attribute name="activationFunction" type="pmml:ACTIVATION-FUNCTION"/>
+			<xs:attribute name="threshold" type="pmml:REAL-NUMBER"/>
+			<xs:attribute name="width" type="pmml:REAL-NUMBER"/>
+			<xs:attribute name="altitude" type="pmml:REAL-NUMBER"/>
+			<xs:attribute name="normalizationMethod" type="pmml:NN-NORMALIZATION-METHOD"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="NeuralOutputs">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element maxOccurs="unbounded" ref="NeuralOutput"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element maxOccurs="unbounded" ref="pmml:NeuralOutput"/>
 			</xs:sequence>
 			<xs:attribute name="numberOfOutputs" type="xs:nonNegativeInteger"/>
 		</xs:complexType>
@@ -2091,58 +2094,58 @@
 	<xs:element name="NeuralInput">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="DerivedField"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:DerivedField"/>
 			</xs:sequence>
-			<xs:attribute name="id" type="NN-NEURON-ID" use="required"/>
+			<xs:attribute name="id" type="pmml:NN-NEURON-ID" use="required"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="Neuron">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element maxOccurs="unbounded" ref="Con"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element maxOccurs="unbounded" ref="pmml:Con"/>
 			</xs:sequence>
-			<xs:attribute name="id" type="NN-NEURON-ID" use="required"/>
-			<xs:attribute name="bias" type="REAL-NUMBER"/>
-			<xs:attribute name="width" type="REAL-NUMBER"/>
-			<xs:attribute name="altitude" type="REAL-NUMBER"/>
+			<xs:attribute name="id" type="pmml:NN-NEURON-ID" use="required"/>
+			<xs:attribute name="bias" type="pmml:REAL-NUMBER"/>
+			<xs:attribute name="width" type="pmml:REAL-NUMBER"/>
+			<xs:attribute name="altitude" type="pmml:REAL-NUMBER"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="Con">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
-			<xs:attribute name="from" type="NN-NEURON-IDREF" use="required"/>
-			<xs:attribute name="weight" type="REAL-NUMBER" use="required"/>
+			<xs:attribute name="from" type="pmml:NN-NEURON-IDREF" use="required"/>
+			<xs:attribute name="weight" type="pmml:REAL-NUMBER" use="required"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="NeuralOutput">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="DerivedField"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:DerivedField"/>
 			</xs:sequence>
-			<xs:attribute name="outputNeuron" type="NN-NEURON-IDREF" use="required"/>
+			<xs:attribute name="outputNeuron" type="pmml:NN-NEURON-IDREF" use="required"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="BaselineModel">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="MiningSchema"/>
-				<xs:element ref="Output" minOccurs="0"/>
-				<xs:element ref="ModelStats" minOccurs="0"/>
-				<xs:element ref="ModelExplanation" minOccurs="0"/>
-				<xs:element ref="Targets" minOccurs="0"/>
-				<xs:element ref="LocalTransformations" minOccurs="0"/>
-				<xs:element ref="TestDistributions"/>
-				<xs:element ref="ModelVerification" minOccurs="0"/>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:MiningSchema"/>
+				<xs:element ref="pmml:Output" minOccurs="0"/>
+				<xs:element ref="pmml:ModelStats" minOccurs="0"/>
+				<xs:element ref="pmml:ModelExplanation" minOccurs="0"/>
+				<xs:element ref="pmml:Targets" minOccurs="0"/>
+				<xs:element ref="pmml:LocalTransformations" minOccurs="0"/>
+				<xs:element ref="pmml:TestDistributions"/>
+				<xs:element ref="pmml:ModelVerification" minOccurs="0"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
 			<xs:attribute name="modelName" type="xs:string" use="optional"/>
-			<xs:attribute name="functionName" type="MINING-FUNCTION" use="required"/>
+			<xs:attribute name="functionName" type="pmml:MINING-FUNCTION" use="required"/>
 			<xs:attribute name="algorithmName" type="xs:string" use="optional"/>
 			<xs:attribute name="isScorable" type="xs:boolean" use="optional" default="true"/>
 		</xs:complexType>
@@ -2150,15 +2153,15 @@
 	<xs:element name="TestDistributions">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Baseline"/>
-				<xs:element ref="Alternate" minOccurs="0"/>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Baseline"/>
+				<xs:element ref="pmml:Alternate" minOccurs="0"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
-			<xs:attribute name="field" type="FIELD-NAME" use="required"/>
-			<xs:attribute name="testStatistic" type="BASELINE-TEST-STATISTIC" use="required"/>
-			<xs:attribute name="resetValue" type="REAL-NUMBER" default="0.0" use="optional"/>
-			<xs:attribute name="windowSize" type="INT-NUMBER" default="0" use="optional"/>
-			<xs:attribute name="weightField" type="FIELD-NAME" use="optional"/>
+			<xs:attribute name="field" type="pmml:FIELD-NAME" use="required"/>
+			<xs:attribute name="testStatistic" type="pmml:BASELINE-TEST-STATISTIC" use="required"/>
+			<xs:attribute name="resetValue" type="pmml:REAL-NUMBER" default="0.0" use="optional"/>
+			<xs:attribute name="windowSize" type="pmml:INT-NUMBER" default="0" use="optional"/>
+			<xs:attribute name="weightField" type="pmml:FIELD-NAME" use="optional"/>
 			<xs:attribute name="normalizationScheme" type="xs:string" use="optional"/>
 		</xs:complexType>
 	</xs:element>
@@ -2174,129 +2177,129 @@
 	<xs:element name="Baseline">
 		<xs:complexType>
 			<xs:choice>
-				<xs:group ref="CONTINUOUS-DISTRIBUTION-TYPES" minOccurs="1"/>
-				<xs:group ref="DISCRETE-DISTRIBUTION-TYPES" minOccurs="1"/>
+				<xs:group ref="pmml:CONTINUOUS-DISTRIBUTION-TYPES" minOccurs="1"/>
+				<xs:group ref="pmml:DISCRETE-DISTRIBUTION-TYPES" minOccurs="1"/>
 			</xs:choice>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="Alternate">
 		<xs:complexType>
 			<xs:choice>
-				<xs:group ref="CONTINUOUS-DISTRIBUTION-TYPES" minOccurs="1"/>
+				<xs:group ref="pmml:CONTINUOUS-DISTRIBUTION-TYPES" minOccurs="1"/>
 			</xs:choice>
 		</xs:complexType>
 	</xs:element>
 	<xs:group name="CONTINUOUS-DISTRIBUTION-TYPES">
 		<xs:sequence>
 			<xs:choice>
-				<xs:element ref="AnyDistribution"/>
-				<xs:element ref="GaussianDistribution"/>
-				<xs:element ref="PoissonDistribution"/>
-				<xs:element ref="UniformDistribution"/>
+				<xs:element ref="pmml:AnyDistribution"/>
+				<xs:element ref="pmml:GaussianDistribution"/>
+				<xs:element ref="pmml:PoissonDistribution"/>
+				<xs:element ref="pmml:UniformDistribution"/>
 			</xs:choice>
-			<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 		</xs:sequence>
 	</xs:group>
 	<xs:element name="AnyDistribution">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
-			<xs:attribute name="mean" type="REAL-NUMBER" use="required"/>
-			<xs:attribute name="variance" type="REAL-NUMBER" use="required"/>
+			<xs:attribute name="mean" type="pmml:REAL-NUMBER" use="required"/>
+			<xs:attribute name="variance" type="pmml:REAL-NUMBER" use="required"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="GaussianDistribution">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
-			<xs:attribute name="mean" type="REAL-NUMBER" use="required"/>
-			<xs:attribute name="variance" type="REAL-NUMBER" use="required"/>
+			<xs:attribute name="mean" type="pmml:REAL-NUMBER" use="required"/>
+			<xs:attribute name="variance" type="pmml:REAL-NUMBER" use="required"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="PoissonDistribution">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
-			<xs:attribute name="mean" type="REAL-NUMBER" use="required"/>
+			<xs:attribute name="mean" type="pmml:REAL-NUMBER" use="required"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="UniformDistribution">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
-			<xs:attribute name="lower" type="REAL-NUMBER" use="required"/>
-			<xs:attribute name="upper" type="REAL-NUMBER" use="required"/>
+			<xs:attribute name="lower" type="pmml:REAL-NUMBER" use="required"/>
+			<xs:attribute name="upper" type="pmml:REAL-NUMBER" use="required"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:group name="DISCRETE-DISTRIBUTION-TYPES">
 		<xs:choice>
-			<xs:element ref="CountTable"/>
-			<xs:element ref="NormalizedCountTable"/>
-			<xs:element ref="FieldRef" minOccurs="2" maxOccurs="unbounded"/>
+			<xs:element ref="pmml:CountTable"/>
+			<xs:element ref="pmml:NormalizedCountTable"/>
+			<xs:element ref="pmml:FieldRef" minOccurs="2" maxOccurs="unbounded"/>
 		</xs:choice>
 	</xs:group>
-	<xs:element name="CountTable" type="COUNT-TABLE-TYPE"/>
-	<xs:element name="NormalizedCountTable" type="COUNT-TABLE-TYPE"/>
+	<xs:element name="CountTable" type="pmml:COUNT-TABLE-TYPE"/>
+	<xs:element name="NormalizedCountTable" type="pmml:COUNT-TABLE-TYPE"/>
 	<xs:complexType name="COUNT-TABLE-TYPE">
 		<xs:sequence>
-			<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:choice>
-				<xs:element ref="FieldValue" minOccurs="1" maxOccurs="unbounded"/>
-				<xs:element ref="FieldValueCount" minOccurs="1" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:FieldValue" minOccurs="1" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:FieldValueCount" minOccurs="1" maxOccurs="unbounded"/>
 			</xs:choice>
 		</xs:sequence>
-		<xs:attribute name="sample" type="NUMBER" use="optional"/>
+		<xs:attribute name="sample" type="pmml:NUMBER" use="optional"/>
 	</xs:complexType>
 	<xs:element name="FieldValue">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 				<xs:choice>
-					<xs:element ref="FieldValue" minOccurs="1" maxOccurs="unbounded"/>
-					<xs:element ref="FieldValueCount" minOccurs="1" maxOccurs="unbounded"/>
+					<xs:element ref="pmml:FieldValue" minOccurs="1" maxOccurs="unbounded"/>
+					<xs:element ref="pmml:FieldValueCount" minOccurs="1" maxOccurs="unbounded"/>
 				</xs:choice>
 			</xs:sequence>
-			<xs:attribute name="field" type="FIELD-NAME" use="required"/>
+			<xs:attribute name="field" type="pmml:FIELD-NAME" use="required"/>
 			<xs:attribute name="value" use="required"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="FieldValueCount">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
-			<xs:attribute name="field" type="FIELD-NAME" use="required"/>
+			<xs:attribute name="field" type="pmml:FIELD-NAME" use="required"/>
 			<xs:attribute name="value" use="required"/>
-			<xs:attribute name="count" type="NUMBER" use="required"/>
+			<xs:attribute name="count" type="pmml:NUMBER" use="required"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="ModelVerification">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="VerificationFields"/>
-				<xs:element ref="InlineTable"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:VerificationFields"/>
+				<xs:element ref="pmml:InlineTable"/>
 			</xs:sequence>
-			<xs:attribute name="recordCount" type="INT-NUMBER" use="optional"/>
-			<xs:attribute name="fieldCount" type="INT-NUMBER" use="optional"/>
+			<xs:attribute name="recordCount" type="pmml:INT-NUMBER" use="optional"/>
+			<xs:attribute name="fieldCount" type="pmml:INT-NUMBER" use="optional"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="VerificationFields">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element maxOccurs="unbounded" ref="VerificationField"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element maxOccurs="unbounded" ref="pmml:VerificationField"/>
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="VerificationField">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
 			<xs:attribute name="field" type="xs:string" use="required"/>
 			<xs:attribute name="column" type="xs:string" use="optional"/>
@@ -2307,32 +2310,32 @@
 	<xs:element name="SupportVectorMachineModel">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="MiningSchema"/>
-				<xs:element ref="Output" minOccurs="0"/>
-				<xs:element ref="ModelStats" minOccurs="0"/>
-				<xs:element ref="ModelExplanation" minOccurs="0"/>
-				<xs:element ref="Targets" minOccurs="0"/>
-				<xs:element ref="LocalTransformations" minOccurs="0"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:MiningSchema"/>
+				<xs:element ref="pmml:Output" minOccurs="0"/>
+				<xs:element ref="pmml:ModelStats" minOccurs="0"/>
+				<xs:element ref="pmml:ModelExplanation" minOccurs="0"/>
+				<xs:element ref="pmml:Targets" minOccurs="0"/>
+				<xs:element ref="pmml:LocalTransformations" minOccurs="0"/>
 				<xs:sequence>
 					<xs:choice>
-						<xs:element ref="LinearKernelType"/>
-						<xs:element ref="PolynomialKernelType"/>
-						<xs:element ref="RadialBasisKernelType"/>
-						<xs:element ref="SigmoidKernelType"/>
+						<xs:element ref="pmml:LinearKernelType"/>
+						<xs:element ref="pmml:PolynomialKernelType"/>
+						<xs:element ref="pmml:RadialBasisKernelType"/>
+						<xs:element ref="pmml:SigmoidKernelType"/>
 					</xs:choice>
 				</xs:sequence>
-				<xs:element ref="VectorDictionary"/>
-				<xs:element ref="SupportVectorMachine" maxOccurs="unbounded"/>
-				<xs:element ref="ModelVerification" minOccurs="0"/>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:VectorDictionary"/>
+				<xs:element ref="pmml:SupportVectorMachine" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:ModelVerification" minOccurs="0"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
 			<xs:attribute name="modelName" type="xs:string" use="optional"/>
-			<xs:attribute name="functionName" type="MINING-FUNCTION" use="required"/>
+			<xs:attribute name="functionName" type="pmml:MINING-FUNCTION" use="required"/>
 			<xs:attribute name="algorithmName" type="xs:string" use="optional"/>
-			<xs:attribute name="threshold" type="REAL-NUMBER" use="optional" default="0"/>
-			<xs:attribute name="svmRepresentation" type="SVM-REPRESENTATION" use="optional" default="SupportVectors"/>
-			<xs:attribute name="classificationMethod" type="SVM-CLASSIFICATION-METHOD" use="optional" default="OneAgainstAll"/>
+			<xs:attribute name="threshold" type="pmml:REAL-NUMBER" use="optional" default="0"/>
+			<xs:attribute name="svmRepresentation" type="pmml:SVM-REPRESENTATION" use="optional" default="SupportVectors"/>
+			<xs:attribute name="classificationMethod" type="pmml:SVM-CLASSIFICATION-METHOD" use="optional" default="OneAgainstAll"/>
 			<xs:attribute name="isScorable" type="xs:boolean" default="true"/>
 		</xs:complexType>
 	</xs:element>
@@ -2351,7 +2354,7 @@
 	<xs:element name="LinearKernelType">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
 			<xs:attribute name="description" type="xs:string" use="optional"/>
 		</xs:complexType>
@@ -2359,31 +2362,31 @@
 	<xs:element name="PolynomialKernelType">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
 			<xs:attribute name="description" type="xs:string" use="optional"/>
-			<xs:attribute name="gamma" type="REAL-NUMBER" use="optional" default="1"/>
-			<xs:attribute name="coef0" type="REAL-NUMBER" use="optional" default="1"/>
-			<xs:attribute name="degree" type="REAL-NUMBER" use="optional" default="1"/>
+			<xs:attribute name="gamma" type="pmml:REAL-NUMBER" use="optional" default="1"/>
+			<xs:attribute name="coef0" type="pmml:REAL-NUMBER" use="optional" default="1"/>
+			<xs:attribute name="degree" type="pmml:REAL-NUMBER" use="optional" default="1"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="RadialBasisKernelType">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
 			<xs:attribute name="description" type="xs:string" use="optional"/>
-			<xs:attribute name="gamma" type="REAL-NUMBER" use="optional" default="1"/>
+			<xs:attribute name="gamma" type="pmml:REAL-NUMBER" use="optional" default="1"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="SigmoidKernelType">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
 			<xs:attribute name="description" type="xs:string" use="optional"/>
-			<xs:attribute name="gamma" type="REAL-NUMBER" use="optional" default="1"/>
-			<xs:attribute name="coef0" type="REAL-NUMBER" use="optional" default="1"/>
+			<xs:attribute name="gamma" type="pmml:REAL-NUMBER" use="optional" default="1"/>
+			<xs:attribute name="coef0" type="pmml:REAL-NUMBER" use="optional" default="1"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:simpleType name="VECTOR-ID">
@@ -2392,100 +2395,100 @@
 	<xs:element name="VectorDictionary">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="VectorFields"/>
-				<xs:element ref="VectorInstance" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:VectorFields"/>
+				<xs:element ref="pmml:VectorInstance" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
-			<xs:attribute name="numberOfVectors" type="INT-NUMBER" use="optional"/>
+			<xs:attribute name="numberOfVectors" type="pmml:INT-NUMBER" use="optional"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="VectorFields">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="FieldRef" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:FieldRef" maxOccurs="unbounded"/>
 			</xs:sequence>
-			<xs:attribute name="numberOfFields" type="INT-NUMBER" use="optional"/>
+			<xs:attribute name="numberOfFields" type="pmml:INT-NUMBER" use="optional"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="VectorInstance">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 				<xs:choice>
-					<xs:element ref="REAL-SparseArray"/>
-					<xs:group ref="REAL-ARRAY"/>
+					<xs:element ref="pmml:REAL-SparseArray"/>
+					<xs:group ref="pmml:REAL-ARRAY"/>
 				</xs:choice>
 			</xs:sequence>
-			<xs:attribute name="id" type="VECTOR-ID" use="required"/>
+			<xs:attribute name="id" type="pmml:VECTOR-ID" use="required"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="SupportVectorMachine">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="SupportVectors" minOccurs="0"/>
-				<xs:element ref="Coefficients"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:SupportVectors" minOccurs="0"/>
+				<xs:element ref="pmml:Coefficients"/>
 			</xs:sequence>
 			<xs:attribute name="targetCategory" type="xs:string" use="optional"/>
 			<xs:attribute name="alternateTargetCategory" type="xs:string" use="optional"/>
-			<xs:attribute name="threshold" type="REAL-NUMBER" use="optional"/>
+			<xs:attribute name="threshold" type="pmml:REAL-NUMBER" use="optional"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="SupportVectors">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="SupportVector" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:SupportVector" maxOccurs="unbounded"/>
 			</xs:sequence>
-			<xs:attribute name="numberOfSupportVectors" type="INT-NUMBER" use="optional"/>
-			<xs:attribute name="numberOfAttributes" type="INT-NUMBER" use="optional"/>
+			<xs:attribute name="numberOfSupportVectors" type="pmml:INT-NUMBER" use="optional"/>
+			<xs:attribute name="numberOfAttributes" type="pmml:INT-NUMBER" use="optional"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="SupportVector">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
-			<xs:attribute name="vectorId" type="VECTOR-ID" use="required"/>
+			<xs:attribute name="vectorId" type="pmml:VECTOR-ID" use="required"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="Coefficients">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="Coefficient" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Coefficient" maxOccurs="unbounded"/>
 			</xs:sequence>
-			<xs:attribute name="numberOfCoefficients" type="INT-NUMBER" use="optional"/>
-			<xs:attribute name="absoluteValue" type="REAL-NUMBER" use="optional" default="0"/>
+			<xs:attribute name="numberOfCoefficients" type="pmml:INT-NUMBER" use="optional"/>
+			<xs:attribute name="absoluteValue" type="pmml:REAL-NUMBER" use="optional" default="0"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="Coefficient">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
-			<xs:attribute name="value" type="REAL-NUMBER" use="optional" default="0"/>
+			<xs:attribute name="value" type="pmml:REAL-NUMBER" use="optional" default="0"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="Scorecard">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="MiningSchema"/>
-				<xs:element ref="Output" minOccurs="0"/>
-				<xs:element ref="ModelStats" minOccurs="0"/>
-				<xs:element ref="ModelExplanation" minOccurs="0"/>
-				<xs:element ref="Targets" minOccurs="0"/>
-				<xs:element ref="LocalTransformations" minOccurs="0"/>
-				<xs:element ref="Characteristics"/>
-				<xs:element ref="ModelVerification" minOccurs="0"/>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:MiningSchema"/>
+				<xs:element ref="pmml:Output" minOccurs="0"/>
+				<xs:element ref="pmml:ModelStats" minOccurs="0"/>
+				<xs:element ref="pmml:ModelExplanation" minOccurs="0"/>
+				<xs:element ref="pmml:Targets" minOccurs="0"/>
+				<xs:element ref="pmml:LocalTransformations" minOccurs="0"/>
+				<xs:element ref="pmml:Characteristics"/>
+				<xs:element ref="pmml:ModelVerification" minOccurs="0"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
 			<xs:attribute name="modelName" type="xs:string"/>
-			<xs:attribute name="functionName" type="MINING-FUNCTION" use="required"/>
+			<xs:attribute name="functionName" type="pmml:MINING-FUNCTION" use="required"/>
 			<xs:attribute name="algorithmName" type="xs:string"/>
-			<xs:attribute name="initialScore" type="NUMBER" default="0"/>
+			<xs:attribute name="initialScore" type="pmml:NUMBER" default="0"/>
 			<xs:attribute name="useReasonCodes" type="xs:boolean" default="true"/>
 			<xs:attribute name="reasonCodeAlgorithm" default="pointsBelow">
 				<xs:simpleType>
@@ -2495,7 +2498,7 @@
 					</xs:restriction>
 				</xs:simpleType>
 			</xs:attribute>
-			<xs:attribute name="baselineScore" type="NUMBER"/>
+			<xs:attribute name="baselineScore" type="pmml:NUMBER"/>
 			<xs:attribute name="baselineMethod" default="other">
 				<xs:simpleType>
 					<xs:restriction base="xs:string">
@@ -2513,88 +2516,88 @@
 	<xs:element name="Characteristics">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="Characteristic" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Characteristic" maxOccurs="unbounded"/>
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="Characteristic">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="Attribute" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Attribute" maxOccurs="unbounded"/>
 			</xs:sequence>
-			<xs:attribute name="name" type="FIELD-NAME" use="optional"/>
+			<xs:attribute name="name" type="pmml:FIELD-NAME" use="optional"/>
 			<xs:attribute name="reasonCode" type="xs:string"/>
-			<xs:attribute name="baselineScore" type="NUMBER"/>
+			<xs:attribute name="baselineScore" type="pmml:NUMBER"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="Attribute">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:group ref="PREDICATE"/>
-				<xs:element ref="ComplexPartialScore" minOccurs="0"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:group ref="pmml:PREDICATE"/>
+				<xs:element ref="pmml:ComplexPartialScore" minOccurs="0"/>
 			</xs:sequence>
 			<xs:attribute name="reasonCode" type="xs:string"/>
-			<xs:attribute name="partialScore" type="NUMBER" use="optional"/>
+			<xs:attribute name="partialScore" type="pmml:NUMBER" use="optional"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="ComplexPartialScore">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:group ref="EXPRESSION" minOccurs="1" maxOccurs="1"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:group ref="pmml:EXPRESSION" minOccurs="1" maxOccurs="1"/>
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="SequenceModel">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="MiningSchema"/>
-				<xs:element ref="ModelStats" minOccurs="0"/>
-				<xs:element ref="LocalTransformations" minOccurs="0"/>
-				<xs:element ref="Constraints" minOccurs="0"/>
-				<xs:element ref="Item" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="Itemset" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="SetPredicate" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="Sequence" maxOccurs="unbounded"/>
-				<xs:element ref="SequenceRule" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:MiningSchema"/>
+				<xs:element ref="pmml:ModelStats" minOccurs="0"/>
+				<xs:element ref="pmml:LocalTransformations" minOccurs="0"/>
+				<xs:element ref="pmml:Constraints" minOccurs="0"/>
+				<xs:element ref="pmml:Item" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Itemset" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:SetPredicate" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Sequence" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:SequenceRule" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
 			<xs:attribute name="modelName" type="xs:string"/>
-			<xs:attribute name="functionName" type="MINING-FUNCTION" use="required"/>
+			<xs:attribute name="functionName" type="pmml:MINING-FUNCTION" use="required"/>
 			<xs:attribute name="algorithmName" type="xs:string"/>
-			<xs:attribute name="numberOfTransactions" type="INT-NUMBER"/>
-			<xs:attribute name="maxNumberOfItemsPerTransaction" type="INT-NUMBER"/>
-			<xs:attribute name="avgNumberOfItemsPerTransaction" type="REAL-NUMBER"/>
-			<xs:attribute name="numberOfTransactionGroups" type="INT-NUMBER"/>
-			<xs:attribute name="maxNumberOfTAsPerTAGroup" type="INT-NUMBER"/>
-			<xs:attribute name="avgNumberOfTAsPerTAGroup" type="REAL-NUMBER"/>
+			<xs:attribute name="numberOfTransactions" type="pmml:INT-NUMBER"/>
+			<xs:attribute name="maxNumberOfItemsPerTransaction" type="pmml:INT-NUMBER"/>
+			<xs:attribute name="avgNumberOfItemsPerTransaction" type="pmml:REAL-NUMBER"/>
+			<xs:attribute name="numberOfTransactionGroups" type="pmml:INT-NUMBER"/>
+			<xs:attribute name="maxNumberOfTAsPerTAGroup" type="pmml:INT-NUMBER"/>
+			<xs:attribute name="avgNumberOfTAsPerTAGroup" type="pmml:REAL-NUMBER"/>
 			<xs:attribute name="isScorable" type="xs:boolean" default="true"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="Constraints">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
-			<xs:attribute name="minimumNumberOfItems" type="INT-NUMBER" default="1"/>
-			<xs:attribute name="maximumNumberOfItems" type="INT-NUMBER"/>
-			<xs:attribute name="minimumNumberOfAntecedentItems" type="INT-NUMBER" default="1"/>
-			<xs:attribute name="maximumNumberOfAntecedentItems" type="INT-NUMBER"/>
-			<xs:attribute name="minimumNumberOfConsequentItems" type="INT-NUMBER" default="1"/>
-			<xs:attribute name="maximumNumberOfConsequentItems" type="INT-NUMBER"/>
-			<xs:attribute name="minimumSupport" type="REAL-NUMBER" default="0"/>
-			<xs:attribute name="minimumConfidence" type="REAL-NUMBER" default="0"/>
-			<xs:attribute name="minimumLift" type="REAL-NUMBER" default="0"/>
-			<xs:attribute name="minimumTotalSequenceTime" type="REAL-NUMBER" default="0"/>
-			<xs:attribute name="maximumTotalSequenceTime" type="REAL-NUMBER"/>
-			<xs:attribute name="minimumItemsetSeparationTime" type="REAL-NUMBER" default="0"/>
-			<xs:attribute name="maximumItemsetSeparationTime" type="REAL-NUMBER"/>
-			<xs:attribute name="minimumAntConsSeparationTime" type="REAL-NUMBER" default="0"/>
-			<xs:attribute name="maximumAntConsSeparationTime" type="REAL-NUMBER"/>
+			<xs:attribute name="minimumNumberOfItems" type="pmml:INT-NUMBER" default="1"/>
+			<xs:attribute name="maximumNumberOfItems" type="pmml:INT-NUMBER"/>
+			<xs:attribute name="minimumNumberOfAntecedentItems" type="pmml:INT-NUMBER" default="1"/>
+			<xs:attribute name="maximumNumberOfAntecedentItems" type="pmml:INT-NUMBER"/>
+			<xs:attribute name="minimumNumberOfConsequentItems" type="pmml:INT-NUMBER" default="1"/>
+			<xs:attribute name="maximumNumberOfConsequentItems" type="pmml:INT-NUMBER"/>
+			<xs:attribute name="minimumSupport" type="pmml:REAL-NUMBER" default="0"/>
+			<xs:attribute name="minimumConfidence" type="pmml:REAL-NUMBER" default="0"/>
+			<xs:attribute name="minimumLift" type="pmml:REAL-NUMBER" default="0"/>
+			<xs:attribute name="minimumTotalSequenceTime" type="pmml:REAL-NUMBER" default="0"/>
+			<xs:attribute name="maximumTotalSequenceTime" type="pmml:REAL-NUMBER"/>
+			<xs:attribute name="minimumItemsetSeparationTime" type="pmml:REAL-NUMBER" default="0"/>
+			<xs:attribute name="maximumItemsetSeparationTime" type="pmml:REAL-NUMBER"/>
+			<xs:attribute name="minimumAntConsSeparationTime" type="pmml:REAL-NUMBER" default="0"/>
+			<xs:attribute name="maximumAntConsSeparationTime" type="pmml:REAL-NUMBER"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:simpleType name="ELEMENT-ID">
@@ -2603,11 +2606,11 @@
 	<xs:element name="SetPredicate">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:group ref="STRING-ARRAY"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:group ref="pmml:STRING-ARRAY"/>
 			</xs:sequence>
-			<xs:attribute name="id" type="ELEMENT-ID" use="required"/>
-			<xs:attribute name="field" type="FIELD-NAME" use="required"/>
+			<xs:attribute name="id" type="pmml:ELEMENT-ID" use="required"/>
+			<xs:attribute name="field" type="pmml:FIELD-NAME" use="required"/>
 			<xs:attribute name="operator" type="xs:string" fixed="supersetOf"/>
 		</xs:complexType>
 	</xs:element>
@@ -2627,110 +2630,110 @@
 	<xs:element name="Delimiter">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
-			<xs:attribute name="delimiter" type="DELIMITER" use="required"/>
-			<xs:attribute name="gap" type="GAP" use="required"/>
+			<xs:attribute name="delimiter" type="pmml:DELIMITER" use="required"/>
+			<xs:attribute name="gap" type="pmml:GAP" use="required"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="Time">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
-			<xs:attribute name="min" type="NUMBER"/>
-			<xs:attribute name="max" type="NUMBER"/>
-			<xs:attribute name="mean" type="NUMBER"/>
-			<xs:attribute name="standardDeviation" type="NUMBER"/>
+			<xs:attribute name="min" type="pmml:NUMBER"/>
+			<xs:attribute name="max" type="pmml:NUMBER"/>
+			<xs:attribute name="mean" type="pmml:NUMBER"/>
+			<xs:attribute name="standardDeviation" type="pmml:NUMBER"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:group name="FOLLOW-SET">
 		<xs:sequence>
-			<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-			<xs:element ref="Delimiter"/>
-			<xs:element ref="Time" minOccurs="0"/>
-			<xs:element ref="SetReference"/>
+			<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element ref="pmml:Delimiter"/>
+			<xs:element ref="pmml:Time" minOccurs="0"/>
+			<xs:element ref="pmml:SetReference"/>
 		</xs:sequence>
 	</xs:group>
 	<xs:element name="Sequence">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="SetReference"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:SetReference"/>
 				<xs:sequence minOccurs="0" maxOccurs="unbounded">
-					<xs:group ref="FOLLOW-SET"/>
+					<xs:group ref="pmml:FOLLOW-SET"/>
 				</xs:sequence>
-				<xs:element ref="Time" minOccurs="0"/>
+				<xs:element ref="pmml:Time" minOccurs="0"/>
 			</xs:sequence>
-			<xs:attribute name="id" type="ELEMENT-ID" use="required"/>
-			<xs:attribute name="numberOfSets" type="INT-NUMBER"/>
-			<xs:attribute name="occurrence" type="INT-NUMBER"/>
-			<xs:attribute name="support" type="REAL-NUMBER"/>
+			<xs:attribute name="id" type="pmml:ELEMENT-ID" use="required"/>
+			<xs:attribute name="numberOfSets" type="pmml:INT-NUMBER"/>
+			<xs:attribute name="occurrence" type="pmml:INT-NUMBER"/>
+			<xs:attribute name="support" type="pmml:REAL-NUMBER"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="SetReference">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
-			<xs:attribute name="setId" type="ELEMENT-ID" use="required"/>
+			<xs:attribute name="setId" type="pmml:ELEMENT-ID" use="required"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="SequenceRule">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="AntecedentSequence"/>
-				<xs:element ref="Delimiter"/>
-				<xs:element ref="Time" minOccurs="0"/>
-				<xs:element ref="ConsequentSequence"/>
-				<xs:element ref="Time" minOccurs="0"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:AntecedentSequence"/>
+				<xs:element ref="pmml:Delimiter"/>
+				<xs:element ref="pmml:Time" minOccurs="0"/>
+				<xs:element ref="pmml:ConsequentSequence"/>
+				<xs:element ref="pmml:Time" minOccurs="0"/>
 			</xs:sequence>
-			<xs:attribute name="id" type="ELEMENT-ID" use="required"/>
-			<xs:attribute name="numberOfSets" type="INT-NUMBER" use="required"/>
-			<xs:attribute name="occurrence" type="INT-NUMBER" use="required"/>
-			<xs:attribute name="support" type="REAL-NUMBER" use="required"/>
-			<xs:attribute name="confidence" type="REAL-NUMBER" use="required"/>
-			<xs:attribute name="lift" type="REAL-NUMBER"/>
+			<xs:attribute name="id" type="pmml:ELEMENT-ID" use="required"/>
+			<xs:attribute name="numberOfSets" type="pmml:INT-NUMBER" use="required"/>
+			<xs:attribute name="occurrence" type="pmml:INT-NUMBER" use="required"/>
+			<xs:attribute name="support" type="pmml:REAL-NUMBER" use="required"/>
+			<xs:attribute name="confidence" type="pmml:REAL-NUMBER" use="required"/>
+			<xs:attribute name="lift" type="pmml:REAL-NUMBER"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:group name="SEQUENCE">
 		<xs:sequence>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
-			<xs:element ref="SequenceReference"/>
-			<xs:element ref="Time" minOccurs="0"/>
+			<xs:element ref="pmml:SequenceReference"/>
+			<xs:element ref="pmml:Time" minOccurs="0"/>
 		</xs:sequence>
 	</xs:group>
 	<xs:element name="SequenceReference">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
-			<xs:attribute name="seqId" type="ELEMENT-ID" use="required"/>
+			<xs:attribute name="seqId" type="pmml:ELEMENT-ID" use="required"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="AntecedentSequence">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:group ref="SEQUENCE"/>
+				<xs:group ref="pmml:SEQUENCE"/>
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="ConsequentSequence">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:group ref="SEQUENCE"/>
+				<xs:group ref="pmml:SEQUENCE"/>
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="DataDictionary">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="DataField" maxOccurs="unbounded"/>
-				<xs:element ref="Taxonomy" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:DataField" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Taxonomy" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
 			<xs:attribute name="numberOfFields" type="xs:nonNegativeInteger"/>
 		</xs:complexType>
@@ -2738,16 +2741,16 @@
 	<xs:element name="DataField">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 				<xs:sequence>
-					<xs:element ref="Interval" minOccurs="0" maxOccurs="unbounded"/>
-					<xs:element ref="Value" minOccurs="0" maxOccurs="unbounded"/>
+					<xs:element ref="pmml:Interval" minOccurs="0" maxOccurs="unbounded"/>
+					<xs:element ref="pmml:Value" minOccurs="0" maxOccurs="unbounded"/>
 				</xs:sequence>
 			</xs:sequence>
-			<xs:attribute name="name" type="FIELD-NAME" use="required"/>
+			<xs:attribute name="name" type="pmml:FIELD-NAME" use="required"/>
 			<xs:attribute name="displayName" type="xs:string"/>
-			<xs:attribute name="optype" type="OPTYPE" use="required"/>
-			<xs:attribute name="dataType" type="DATATYPE" use="required"/>
+			<xs:attribute name="optype" type="pmml:OPTYPE" use="required"/>
+			<xs:attribute name="dataType" type="pmml:DATATYPE" use="required"/>
 			<xs:attribute name="taxonomy" type="xs:string"/>
 			<xs:attribute name="isCyclic" default="0">
 				<xs:simpleType>
@@ -2790,7 +2793,7 @@
 	<xs:element name="Value">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
 			<xs:attribute name="value" type="xs:string" use="required"/>
 			<xs:attribute name="displayValue" type="xs:string"/>
@@ -2808,7 +2811,7 @@
 	<xs:element name="Interval">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
 			<xs:attribute name="closure" use="required">
 				<xs:simpleType>
@@ -2820,31 +2823,31 @@
 					</xs:restriction>
 				</xs:simpleType>
 			</xs:attribute>
-			<xs:attribute name="leftMargin" type="NUMBER"/>
-			<xs:attribute name="rightMargin" type="NUMBER"/>
+			<xs:attribute name="leftMargin" type="pmml:NUMBER"/>
+			<xs:attribute name="rightMargin" type="pmml:NUMBER"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="TimeSeriesModel">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="MiningSchema"/>
-				<xs:element ref="Output" minOccurs="0"/>
-				<xs:element ref="ModelStats" minOccurs="0"/>
-				<xs:element ref="ModelExplanation" minOccurs="0"/>
-				<xs:element ref="LocalTransformations" minOccurs="0"/>
-				<xs:element ref="TimeSeries" minOccurs="0" maxOccurs="3"/>
-				<xs:element ref="SpectralAnalysis" minOccurs="0" maxOccurs="1"/>
-				<xs:element ref="ARIMA" minOccurs="0" maxOccurs="1"/>
-				<xs:element ref="ExponentialSmoothing" minOccurs="0" maxOccurs="1"/>
-				<xs:element ref="SeasonalTrendDecomposition" minOccurs="0" maxOccurs="1"/>
-				<xs:element ref="ModelVerification" minOccurs="0"/>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:MiningSchema"/>
+				<xs:element ref="pmml:Output" minOccurs="0"/>
+				<xs:element ref="pmml:ModelStats" minOccurs="0"/>
+				<xs:element ref="pmml:ModelExplanation" minOccurs="0"/>
+				<xs:element ref="pmml:LocalTransformations" minOccurs="0"/>
+				<xs:element ref="pmml:TimeSeries" minOccurs="0" maxOccurs="3"/>
+				<xs:element ref="pmml:SpectralAnalysis" minOccurs="0" maxOccurs="1"/>
+				<xs:element ref="pmml:ARIMA" minOccurs="0" maxOccurs="1"/>
+				<xs:element ref="pmml:ExponentialSmoothing" minOccurs="0" maxOccurs="1"/>
+				<xs:element ref="pmml:SeasonalTrendDecomposition" minOccurs="0" maxOccurs="1"/>
+				<xs:element ref="pmml:ModelVerification" minOccurs="0"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
 			<xs:attribute name="modelName" type="xs:string" use="optional"/>
-			<xs:attribute name="functionName" type="MINING-FUNCTION" use="required"/>
+			<xs:attribute name="functionName" type="pmml:MINING-FUNCTION" use="required"/>
 			<xs:attribute name="algorithmName" type="xs:string" use="optional"/>
-			<xs:attribute name="bestFit" type="TIMESERIES-ALGORITHM" use="required"/>
+			<xs:attribute name="bestFit" type="pmml:TIMESERIES-ALGORITHM" use="required"/>
 			<xs:attribute name="isScorable" type="xs:boolean" default="true"/>
 		</xs:complexType>
 	</xs:element>
@@ -2859,13 +2862,13 @@
 	<xs:element name="TimeSeries">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="TimeAnchor" minOccurs="0" maxOccurs="1"/>
-				<xs:element ref="TimeValue" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:TimeAnchor" minOccurs="0" maxOccurs="1"/>
+				<xs:element ref="pmml:TimeValue" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
-			<xs:attribute name="usage" type="TIMESERIES-USAGE" default="original"/>
-			<xs:attribute name="startTime" type="REAL-NUMBER"/>
-			<xs:attribute name="endTime" type="REAL-NUMBER"/>
-			<xs:attribute name="interpolationMethod" type="INTERPOLATION-METHOD" default="none"/>
+			<xs:attribute name="usage" type="pmml:TIMESERIES-USAGE" default="original"/>
+			<xs:attribute name="startTime" type="pmml:REAL-NUMBER"/>
+			<xs:attribute name="endTime" type="pmml:REAL-NUMBER"/>
+			<xs:attribute name="interpolationMethod" type="pmml:INTERPOLATION-METHOD" default="none"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:simpleType name="TIMESERIES-USAGE">
@@ -2878,33 +2881,33 @@
 	<xs:element name="TimeValue">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Timestamp" minOccurs="0" maxOccurs="1"/>
+				<xs:element ref="pmml:Timestamp" minOccurs="0" maxOccurs="1"/>
 			</xs:sequence>
-			<xs:attribute name="index" type="INT-NUMBER" use="optional"/>
-			<xs:attribute name="time" type="NUMBER" use="optional"/>
-			<xs:attribute name="value" type="REAL-NUMBER" use="required"/>
-			<xs:attribute name="standardError" type="REAL-NUMBER" use="optional"/>
+			<xs:attribute name="index" type="pmml:INT-NUMBER" use="optional"/>
+			<xs:attribute name="time" type="pmml:NUMBER" use="optional"/>
+			<xs:attribute name="value" type="pmml:REAL-NUMBER" use="required"/>
+			<xs:attribute name="standardError" type="pmml:REAL-NUMBER" use="optional"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="TimeAnchor">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="TimeCycle" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="TimeException" minOccurs="0" maxOccurs="2"/>
+				<xs:element ref="pmml:TimeCycle" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:TimeException" minOccurs="0" maxOccurs="2"/>
 			</xs:sequence>
-			<xs:attribute name="type" type="TIME-ANCHOR"/>
-			<xs:attribute name="offset" type="INT-NUMBER"/>
-			<xs:attribute name="stepsize" type="INT-NUMBER"/>
+			<xs:attribute name="type" type="pmml:TIME-ANCHOR"/>
+			<xs:attribute name="offset" type="pmml:INT-NUMBER"/>
+			<xs:attribute name="stepsize" type="pmml:INT-NUMBER"/>
 			<xs:attribute name="displayName" use="optional"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="TimeCycle">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:group ref="INT-ARRAY" minOccurs="0" maxOccurs="1"/>
+				<xs:group ref="pmml:INT-ARRAY" minOccurs="0" maxOccurs="1"/>
 			</xs:sequence>
-			<xs:attribute name="length" type="INT-NUMBER"/>
-			<xs:attribute name="type" type="VALID-TIME-SPEC"/>
+			<xs:attribute name="length" type="pmml:INT-NUMBER"/>
+			<xs:attribute name="type" type="pmml:VALID-TIME-SPEC"/>
 			<xs:attribute name="displayName" use="optional"/>
 		</xs:complexType>
 	</xs:element>
@@ -2941,10 +2944,10 @@
 	<xs:element name="TimeException">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:group ref="INT-ARRAY" minOccurs="1"/>
+				<xs:group ref="pmml:INT-ARRAY" minOccurs="1"/>
 			</xs:sequence>
-			<xs:attribute name="type" type="TIME-EXCEPTION-TYPE"/>
-			<xs:attribute name="count" type="INT-NUMBER"/>
+			<xs:attribute name="type" type="pmml:TIME-EXCEPTION-TYPE"/>
+			<xs:attribute name="count" type="pmml:INT-NUMBER"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:simpleType name="TIME-EXCEPTION-TYPE">
@@ -2964,12 +2967,12 @@
 	<xs:element name="ExponentialSmoothing">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Level" minOccurs="1" maxOccurs="1"/>
-				<xs:element ref="Trend_ExpoSmooth" minOccurs="0" maxOccurs="1"/>
-				<xs:element ref="Seasonality_ExpoSmooth" minOccurs="0" maxOccurs="1"/>
-				<xs:element ref="TimeValue" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Level" minOccurs="1" maxOccurs="1"/>
+				<xs:element ref="pmml:Trend_ExpoSmooth" minOccurs="0" maxOccurs="1"/>
+				<xs:element ref="pmml:Seasonality_ExpoSmooth" minOccurs="0" maxOccurs="1"/>
+				<xs:element ref="pmml:TimeValue" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
-			<xs:attribute name="RMSE" type="REAL-NUMBER"/>
+			<xs:attribute name="RMSE" type="pmml:REAL-NUMBER"/>
 			<xs:attribute name="transformation" default="none">
 				<xs:simpleType>
 					<xs:restriction base="xs:NMTOKEN">
@@ -2983,14 +2986,14 @@
 	</xs:element>
 	<xs:element name="Level">
 		<xs:complexType>
-			<xs:attribute name="alpha" type="REAL-NUMBER" use="optional"/>
-			<xs:attribute name="smoothedValue" type="REAL-NUMBER"/>
+			<xs:attribute name="alpha" type="pmml:REAL-NUMBER" use="optional"/>
+			<xs:attribute name="smoothedValue" type="pmml:REAL-NUMBER"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="Trend_ExpoSmooth">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:group ref="REAL-ARRAY" minOccurs="0"/>
+				<xs:group ref="pmml:REAL-ARRAY" minOccurs="0"/>
 			</xs:sequence>
 			<xs:attribute name="trend" default="additive">
 				<xs:simpleType>
@@ -3003,15 +3006,15 @@
 					</xs:restriction>
 				</xs:simpleType>
 			</xs:attribute>
-			<xs:attribute name="gamma" type="REAL-NUMBER" use="optional"/>
-			<xs:attribute name="phi" type="REAL-NUMBER" use="optional" default="1"/>
-			<xs:attribute name="smoothedValue" type="REAL-NUMBER" use="optional"/>
+			<xs:attribute name="gamma" type="pmml:REAL-NUMBER" use="optional"/>
+			<xs:attribute name="phi" type="pmml:REAL-NUMBER" use="optional" default="1"/>
+			<xs:attribute name="smoothedValue" type="pmml:REAL-NUMBER" use="optional"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="Seasonality_ExpoSmooth">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:group ref="REAL-ARRAY"/>
+				<xs:group ref="pmml:REAL-ARRAY"/>
 			</xs:sequence>
 			<xs:attribute name="type" use="required">
 				<xs:simpleType>
@@ -3021,10 +3024,10 @@
 					</xs:restriction>
 				</xs:simpleType>
 			</xs:attribute>
-			<xs:attribute name="period" type="INT-NUMBER" use="required"/>
+			<xs:attribute name="period" type="pmml:INT-NUMBER" use="required"/>
 			<xs:attribute name="unit" type="xs:string" use="optional"/>
-			<xs:attribute name="phase" type="INT-NUMBER" use="optional"/>
-			<xs:attribute name="delta" type="REAL-NUMBER" use="optional"/>
+			<xs:attribute name="phase" type="pmml:INT-NUMBER" use="optional"/>
+			<xs:attribute name="delta" type="pmml:REAL-NUMBER" use="optional"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="SpectralAnalysis"/>
@@ -3033,26 +3036,26 @@
 	<xs:element name="MiningSchema">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element maxOccurs="unbounded" ref="MiningField"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element maxOccurs="unbounded" ref="pmml:MiningField"/>
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="MiningField">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
-			<xs:attribute name="name" type="FIELD-NAME" use="required"/>
-			<xs:attribute name="usageType" type="FIELD-USAGE-TYPE" default="active"/>
-			<xs:attribute name="optype" type="OPTYPE"/>
-			<xs:attribute name="importance" type="PROB-NUMBER"/>
-			<xs:attribute name="outliers" type="OUTLIER-TREATMENT-METHOD" default="asIs"/>
-			<xs:attribute name="lowValue" type="NUMBER"/>
-			<xs:attribute name="highValue" type="NUMBER"/>
+			<xs:attribute name="name" type="pmml:FIELD-NAME" use="required"/>
+			<xs:attribute name="usageType" type="pmml:FIELD-USAGE-TYPE" default="active"/>
+			<xs:attribute name="optype" type="pmml:OPTYPE"/>
+			<xs:attribute name="importance" type="pmml:PROB-NUMBER"/>
+			<xs:attribute name="outliers" type="pmml:OUTLIER-TREATMENT-METHOD" default="asIs"/>
+			<xs:attribute name="lowValue" type="pmml:NUMBER"/>
+			<xs:attribute name="highValue" type="pmml:NUMBER"/>
 			<xs:attribute name="missingValueReplacement" type="xs:string"/>
-			<xs:attribute name="missingValueTreatment" type="MISSING-VALUE-TREATMENT-METHOD"/>
-			<xs:attribute name="invalidValueTreatment" type="INVALID-VALUE-TREATMENT-METHOD" default="returnInvalid"/>
+			<xs:attribute name="missingValueTreatment" type="pmml:MISSING-VALUE-TREATMENT-METHOD"/>
+			<xs:attribute name="invalidValueTreatment" type="pmml:INVALID-VALUE-TREATMENT-METHOD" default="returnInvalid"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:simpleType name="FIELD-USAGE-TYPE">
@@ -3093,22 +3096,22 @@
 	<xs:element name="ModelExplanation">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 				<xs:choice>
-					<xs:element ref="PredictiveModelQuality" minOccurs="0" maxOccurs="unbounded"/>
-					<xs:element ref="ClusteringModelQuality" minOccurs="0" maxOccurs="unbounded"/>
+					<xs:element ref="pmml:PredictiveModelQuality" minOccurs="0" maxOccurs="unbounded"/>
+					<xs:element ref="pmml:ClusteringModelQuality" minOccurs="0" maxOccurs="unbounded"/>
 				</xs:choice>
-				<xs:element ref="Correlations" minOccurs="0"/>
+				<xs:element ref="pmml:Correlations" minOccurs="0"/>
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="PredictiveModelQuality">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="ConfusionMatrix" minOccurs="0"/>
-				<xs:element ref="LiftData" minOccurs="0"/>
-				<xs:element ref="ROC" minOccurs="0"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:ConfusionMatrix" minOccurs="0"/>
+				<xs:element ref="pmml:LiftData" minOccurs="0"/>
+				<xs:element ref="pmml:ROC" minOccurs="0"/>
 			</xs:sequence>
 			<xs:attribute name="targetField" type="xs:string" use="required"/>
 			<xs:attribute name="dataName" type="xs:string" use="optional"/>
@@ -3121,116 +3124,116 @@
 					</xs:restriction>
 				</xs:simpleType>
 			</xs:attribute>
-			<xs:attribute name="meanError" type="NUMBER" use="optional"/>
-			<xs:attribute name="meanAbsoluteError" type="NUMBER" use="optional"/>
-			<xs:attribute name="meanSquaredError" type="NUMBER" use="optional"/>
-			<xs:attribute name="rootMeanSquaredError" type="NUMBER" use="optional"/>
-			<xs:attribute name="r-squared" type="NUMBER" use="optional"/>
-			<xs:attribute name="adj-r-squared" type="NUMBER" use="optional"/>
-			<xs:attribute name="sumSquaredError" type="NUMBER" use="optional"/>
-			<xs:attribute name="sumSquaredRegression" type="NUMBER" use="optional"/>
-			<xs:attribute name="numOfRecords" type="NUMBER" use="optional"/>
-			<xs:attribute name="numOfRecordsWeighted" type="NUMBER" use="optional"/>
-			<xs:attribute name="numOfPredictors" type="NUMBER" use="optional"/>
-			<xs:attribute name="degreesOfFreedom" type="NUMBER" use="optional"/>
-			<xs:attribute name="fStatistic" type="NUMBER" use="optional"/>
-			<xs:attribute name="AIC" type="NUMBER" use="optional"/>
-			<xs:attribute name="BIC" type="NUMBER" use="optional"/>
-			<xs:attribute name="AICc" type="NUMBER" use="optional"/>
+			<xs:attribute name="meanError" type="pmml:NUMBER" use="optional"/>
+			<xs:attribute name="meanAbsoluteError" type="pmml:NUMBER" use="optional"/>
+			<xs:attribute name="meanSquaredError" type="pmml:NUMBER" use="optional"/>
+			<xs:attribute name="rootMeanSquaredError" type="pmml:NUMBER" use="optional"/>
+			<xs:attribute name="r-squared" type="pmml:NUMBER" use="optional"/>
+			<xs:attribute name="adj-r-squared" type="pmml:NUMBER" use="optional"/>
+			<xs:attribute name="sumSquaredError" type="pmml:NUMBER" use="optional"/>
+			<xs:attribute name="sumSquaredRegression" type="pmml:NUMBER" use="optional"/>
+			<xs:attribute name="numOfRecords" type="pmml:NUMBER" use="optional"/>
+			<xs:attribute name="numOfRecordsWeighted" type="pmml:NUMBER" use="optional"/>
+			<xs:attribute name="numOfPredictors" type="pmml:NUMBER" use="optional"/>
+			<xs:attribute name="degreesOfFreedom" type="pmml:NUMBER" use="optional"/>
+			<xs:attribute name="fStatistic" type="pmml:NUMBER" use="optional"/>
+			<xs:attribute name="AIC" type="pmml:NUMBER" use="optional"/>
+			<xs:attribute name="BIC" type="pmml:NUMBER" use="optional"/>
+			<xs:attribute name="AICc" type="pmml:NUMBER" use="optional"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="ClusteringModelQuality">
 		<xs:complexType>
 			<xs:attribute name="dataName" type="xs:string" use="optional"/>
-			<xs:attribute name="SSE" type="NUMBER" use="optional"/>
-			<xs:attribute name="SSB" type="NUMBER" use="optional"/>
+			<xs:attribute name="SSE" type="pmml:NUMBER" use="optional"/>
+			<xs:attribute name="SSB" type="pmml:NUMBER" use="optional"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="LiftData">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="ModelLiftGraph"/>
-				<xs:element ref="OptimumLiftGraph" minOccurs="0"/>
-				<xs:element ref="RandomLiftGraph" minOccurs="0"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:ModelLiftGraph"/>
+				<xs:element ref="pmml:OptimumLiftGraph" minOccurs="0"/>
+				<xs:element ref="pmml:RandomLiftGraph" minOccurs="0"/>
 			</xs:sequence>
 			<xs:attribute name="targetFieldValue" type="xs:string"/>
 			<xs:attribute name="targetFieldDisplayValue" type="xs:string"/>
-			<xs:attribute name="rankingQuality" type="NUMBER"/>
+			<xs:attribute name="rankingQuality" type="pmml:NUMBER"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="ModelLiftGraph">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="LiftGraph"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:LiftGraph"/>
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="OptimumLiftGraph">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="LiftGraph"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:LiftGraph"/>
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="RandomLiftGraph">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="LiftGraph"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:LiftGraph"/>
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="LiftGraph">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="XCoordinates"/>
-				<xs:element ref="YCoordinates"/>
-				<xs:element ref="BoundaryValues" minOccurs="0"/>
-				<xs:element ref="BoundaryValueMeans" minOccurs="0"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:XCoordinates"/>
+				<xs:element ref="pmml:YCoordinates"/>
+				<xs:element ref="pmml:BoundaryValues" minOccurs="0"/>
+				<xs:element ref="pmml:BoundaryValueMeans" minOccurs="0"/>
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="XCoordinates">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:group ref="NUM-ARRAY"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:group ref="pmml:NUM-ARRAY"/>
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="YCoordinates">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:group ref="NUM-ARRAY"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:group ref="pmml:NUM-ARRAY"/>
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="BoundaryValues">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:group ref="NUM-ARRAY"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:group ref="pmml:NUM-ARRAY"/>
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="BoundaryValueMeans">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:group ref="NUM-ARRAY"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:group ref="pmml:NUM-ARRAY"/>
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="ROC">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="ROCGraph"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:ROCGraph"/>
 			</xs:sequence>
 			<xs:attribute name="positiveTargetFieldValue" type="xs:string" use="required"/>
 			<xs:attribute name="positiveTargetFieldDisplayValue" type="xs:string"/>
@@ -3241,84 +3244,84 @@
 	<xs:element name="ROCGraph">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="XCoordinates"/>
-				<xs:element ref="YCoordinates"/>
-				<xs:element ref="BoundaryValues" minOccurs="0"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:XCoordinates"/>
+				<xs:element ref="pmml:YCoordinates"/>
+				<xs:element ref="pmml:BoundaryValues" minOccurs="0"/>
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="ConfusionMatrix">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="ClassLabels"/>
-				<xs:element ref="Matrix"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:ClassLabels"/>
+				<xs:element ref="pmml:Matrix"/>
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="ClassLabels">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:group ref="STRING-ARRAY"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:group ref="pmml:STRING-ARRAY"/>
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="Correlations">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="CorrelationFields"/>
-				<xs:element ref="CorrelationValues"/>
-				<xs:element ref="CorrelationMethods" minOccurs="0"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:CorrelationFields"/>
+				<xs:element ref="pmml:CorrelationValues"/>
+				<xs:element ref="pmml:CorrelationMethods" minOccurs="0"/>
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="CorrelationFields">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:group ref="STRING-ARRAY"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:group ref="pmml:STRING-ARRAY"/>
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="CorrelationValues">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="Matrix"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Matrix"/>
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="CorrelationMethods">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="Matrix"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Matrix"/>
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="TreeModel">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="MiningSchema"/>
-				<xs:element ref="Output" minOccurs="0"/>
-				<xs:element ref="ModelStats" minOccurs="0"/>
-				<xs:element ref="ModelExplanation" minOccurs="0"/>
-				<xs:element ref="Targets" minOccurs="0"/>
-				<xs:element ref="LocalTransformations" minOccurs="0"/>
-				<xs:element ref="Node"/>
-				<xs:element ref="ModelVerification" minOccurs="0"/>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:MiningSchema"/>
+				<xs:element ref="pmml:Output" minOccurs="0"/>
+				<xs:element ref="pmml:ModelStats" minOccurs="0"/>
+				<xs:element ref="pmml:ModelExplanation" minOccurs="0"/>
+				<xs:element ref="pmml:Targets" minOccurs="0"/>
+				<xs:element ref="pmml:LocalTransformations" minOccurs="0"/>
+				<xs:element ref="pmml:Node"/>
+				<xs:element ref="pmml:ModelVerification" minOccurs="0"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
 			<xs:attribute name="modelName" type="xs:string"/>
-			<xs:attribute name="functionName" type="MINING-FUNCTION" use="required"/>
+			<xs:attribute name="functionName" type="pmml:MINING-FUNCTION" use="required"/>
 			<xs:attribute name="algorithmName" type="xs:string"/>
-			<xs:attribute name="missingValueStrategy" type="MISSING-VALUE-STRATEGY" default="none"/>
-			<xs:attribute name="missingValuePenalty" type="PROB-NUMBER" default="1.0"/>
-			<xs:attribute name="noTrueChildStrategy" type="NO-TRUE-CHILD-STRATEGY" default="returnNullPrediction"/>
+			<xs:attribute name="missingValueStrategy" type="pmml:MISSING-VALUE-STRATEGY" default="none"/>
+			<xs:attribute name="missingValuePenalty" type="pmml:PROB-NUMBER" default="1.0"/>
+			<xs:attribute name="noTrueChildStrategy" type="pmml:NO-TRUE-CHILD-STRATEGY" default="returnNullPrediction"/>
 			<xs:attribute name="splitCharacteristic" default="multiSplit">
 				<xs:simpleType>
 					<xs:restriction base="xs:string">
@@ -3333,38 +3336,38 @@
 	<xs:element name="Node">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:group ref="PREDICATE"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:group ref="pmml:PREDICATE"/>
 				<xs:choice>
 					<xs:sequence>
-						<xs:element ref="Partition" minOccurs="0"/>
-						<xs:element ref="ScoreDistribution" minOccurs="0" maxOccurs="unbounded"/>
-						<xs:element ref="Node" minOccurs="0" maxOccurs="unbounded"/>
+						<xs:element ref="pmml:Partition" minOccurs="0"/>
+						<xs:element ref="pmml:ScoreDistribution" minOccurs="0" maxOccurs="unbounded"/>
+						<xs:element ref="pmml:Node" minOccurs="0" maxOccurs="unbounded"/>
 					</xs:sequence>
-					<xs:group ref="EmbeddedModel"/>
+					<xs:group ref="pmml:EmbeddedModel"/>
 				</xs:choice>
 			</xs:sequence>
 			<xs:attribute name="id" type="xs:string"/>
 			<xs:attribute name="score" type="xs:string"/>
-			<xs:attribute name="recordCount" type="NUMBER"/>
+			<xs:attribute name="recordCount" type="pmml:NUMBER"/>
 			<xs:attribute name="defaultChild" type="xs:string"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:group name="PREDICATE">
 		<xs:choice>
-			<xs:element ref="SimplePredicate"/>
-			<xs:element ref="CompoundPredicate"/>
-			<xs:element ref="SimpleSetPredicate"/>
-			<xs:element ref="True"/>
-			<xs:element ref="False"/>
+			<xs:element ref="pmml:SimplePredicate"/>
+			<xs:element ref="pmml:CompoundPredicate"/>
+			<xs:element ref="pmml:SimpleSetPredicate"/>
+			<xs:element ref="pmml:True"/>
+			<xs:element ref="pmml:False"/>
 		</xs:choice>
 	</xs:group>
 	<xs:element name="SimplePredicate">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
-			<xs:attribute name="field" type="FIELD-NAME" use="required"/>
+			<xs:attribute name="field" type="pmml:FIELD-NAME" use="required"/>
 			<xs:attribute name="operator" use="required">
 				<xs:simpleType>
 					<xs:restriction base="xs:string">
@@ -3385,9 +3388,9 @@
 	<xs:element name="CompoundPredicate">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 				<xs:sequence minOccurs="2" maxOccurs="unbounded">
-					<xs:group ref="PREDICATE"/>
+					<xs:group ref="pmml:PREDICATE"/>
 				</xs:sequence>
 			</xs:sequence>
 			<xs:attribute name="booleanOperator" use="required">
@@ -3405,10 +3408,10 @@
 	<xs:element name="SimpleSetPredicate">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="Array"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Array"/>
 			</xs:sequence>
-			<xs:attribute name="field" type="FIELD-NAME" use="required"/>
+			<xs:attribute name="field" type="pmml:FIELD-NAME" use="required"/>
 			<xs:attribute name="booleanOperator" use="required">
 				<xs:simpleType>
 					<xs:restriction base="xs:string">
@@ -3422,26 +3425,26 @@
 	<xs:element name="True">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="False">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="ScoreDistribution">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="Extension" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="pmml:Extension" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
 			<xs:attribute name="value" type="xs:string" use="required"/>
-			<xs:attribute name="recordCount" type="NUMBER" use="required"/>
-			<xs:attribute name="confidence" type="PROB-NUMBER"/>
-			<xs:attribute name="probability" type="PROB-NUMBER"/>
+			<xs:attribute name="recordCount" type="pmml:NUMBER" use="required"/>
+			<xs:attribute name="confidence" type="pmml:PROB-NUMBER"/>
+			<xs:attribute name="probability" type="pmml:PROB-NUMBER"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:simpleType name="MISSING-VALUE-STRATEGY">

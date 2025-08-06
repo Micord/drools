@@ -17,22 +17,22 @@ package org.drools.persistence.jta;
 
 import java.io.Serializable;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.OneToOne;
-import javax.persistence.SequenceGenerator;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.SequenceGenerator;
 
 /**
- * This class is used to test transactions. 
- * It specifically has a 
- * 
+ * This class is used to test transactions.
+ * It specifically has a
+ *
  *
  */
 @Entity
-@SequenceGenerator(name="txTestIdSeq", sequenceName="TXTESTOBJ_ID_SEQ")
+@SequenceGenerator(name="txTestIdSeq", sequenceName="TXTESTOBJ_ID_SEQ", allocationSize = 1)
 public class TransactionTestObject implements Serializable {
 
     private static final long serialVersionUID = 8991032325499307158L;
@@ -41,12 +41,12 @@ public class TransactionTestObject implements Serializable {
     @GeneratedValue(strategy=GenerationType.AUTO, generator="txTestIdSeq")
     @Column(name="ID")
     private Long id;
-    
+
     private String name;
 
 	@OneToOne
 	private TransactionTestObject subObject;
-	
+
     public TransactionTestObject(){}
 
     public Long getId() {
@@ -62,7 +62,7 @@ public class TransactionTestObject implements Serializable {
     }
 
     public void setSubObject(TransactionTestObject subObject) {
-        if( subObject == this ) { 
+        if( subObject == this ) {
             // no-op
             return;
         }
@@ -72,5 +72,5 @@ public class TransactionTestObject implements Serializable {
     public TransactionTestObject getSubObject() {
         return subObject;
     }
-    
+
 }

@@ -7,14 +7,14 @@
   <parent>
     <groupId>org.kie</groupId>
     <artifactId>kie-dmn</artifactId>
-    <version>7.74.1.Final</version>
+    <version>7.74.1.Final-Micord.1</version>
   </parent>
 
   <artifactId>kie-dmn-backend</artifactId>
   <packaging>bundle</packaging><!-- bundle = jar + OSGi metadata -->
 
   <name>KIE :: Decision Model Notation :: Backend</name>
-  
+
   <properties>
     <java.module.name>org.kie.dmn.backend</java.module.name>
   </properties>
@@ -49,18 +49,18 @@
       <artifactId>junit</artifactId>
       <scope>test</scope>
     </dependency>
-    
+
     <dependency>
       <groupId>org.xmlunit</groupId>
       <artifactId>xmlunit-core</artifactId>
       <scope>test</scope>
     </dependency>
-    
+
     <dependency>
       <groupId>org.assertj</groupId>
       <artifactId>assertj-core</artifactId>
       <scope>test</scope>
-    </dependency>    
+    </dependency>
 
     <dependency>
       <groupId>org.slf4j</groupId>
@@ -74,7 +74,7 @@
 
 
   </dependencies>
-  
+
   <build>
     <plugins>
       <plugin>

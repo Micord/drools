@@ -50,15 +50,15 @@ public class Miningmodel extends AbstractModel<MiningModel> {
 
     public Miningmodel(String modelId, MiningModel model, PMML4Model parentModel, PMML4Unit owner) {
         super(modelId, PMML4ModelType.MINING, owner, parentModel, model);
-        this.scoreable = model.getIsScorable();
+        this.scoreable = model.isIsScorable();
         initChildModels();
     }
-    
+
     @Override
     public Map<String,PMML4Model> getChildModels() {
         return childModels != null && !childModels.isEmpty() ? new HashMap<>(childModels) : new HashMap<>();
     }
-    
+
     protected void initChildModels() {
         childModels = new HashMap<>();
         Iterator<Serializable> extenIter = rawModel.getExtensionsAndMiningSchemasAndOutputs().iterator();
@@ -69,7 +69,7 @@ public class Miningmodel extends AbstractModel<MiningModel> {
                 segmentation = new MiningSegmentation(this,(Segmentation)obj);
             }
         }
-        
+
         if (segmentation != null) {
             List<MiningSegment> segments = segmentation.getMiningSegments();
             DataDictionary dd = this.getDataDictionary();
@@ -77,9 +77,9 @@ public class Miningmodel extends AbstractModel<MiningModel> {
                 childModels.put(seg.getModel().getModelId(), seg.getModel());
             }
         }
-        
+
     }
-    
+
     private PMMLOutputField getChildOutputField( PMML4Model parentModel, String fieldName) {
         PMMLOutputField output = null;
         for (Iterator<PMML4Model> childIter = parentModel.getChildModels().values().iterator(); childIter.hasNext() && output == null;) {
@@ -99,20 +99,20 @@ public class Miningmodel extends AbstractModel<MiningModel> {
         }
         return output;
     }
-    
+
     public String getTargetField() {
         return this.getMiningFields().stream()
         .filter(mf -> mf.getFieldUsageType() == FIELDUSAGETYPE.TARGET || mf.getFieldUsageType() == FIELDUSAGETYPE.PREDICTED)
         .map(mf -> { return helper.compactAsJavaId(mf.getName(),true); })
         .findFirst().orElse(null);
     }
-    
-    
+
+
     @Override
     public PMMLOutputField findOutputField( String fieldName) {
         return getChildOutputField(this,fieldName);
     }
-    
+
     @Override
     public List<PMMLMiningField> getMiningFields() {
         List<PMMLMiningField> fields = super.getMiningFields();
@@ -136,12 +136,12 @@ public class Miningmodel extends AbstractModel<MiningModel> {
     public String getMiningPojoClassName() {
         return helper.compactAsJavaId(this.getModelId().concat("MiningModelData"), true);
     }
-    
+
     @Override
     public String getOutputPojoClassName() {
         return helper.compactAsJavaId(this.getModelId().concat("MiningModelOutput"), true);
     }
-    
+
     @Override
     public String getRuleUnitClassName() {
         return helper.compactAsJavaId(this.getModelId().concat("MiningModelRuleUnit"),true);
@@ -176,7 +176,7 @@ public class Miningmodel extends AbstractModel<MiningModel> {
             registry.addNamedTemplate(getMiningPojoTemplateName(),ct);
         }
     }
-    
+
     @Override
     protected void addOutputTemplateToRegistry(TemplateRegistry registry) {
         InputStream inputStream = Scorecard.class.getResourceAsStream(OUTPUT_POJO_TEMPLATE);
@@ -188,7 +188,7 @@ public class Miningmodel extends AbstractModel<MiningModel> {
         }
     }
 
-    
+
     @Override
     protected void addRuleUnitTemplateToRegistry(TemplateRegistry registry) {
         InputStream inputStream = Scorecard.class.getResourceAsStream(RULE_UNIT_TEMPLATE);
@@ -223,7 +223,7 @@ public class Miningmodel extends AbstractModel<MiningModel> {
     public void setScoreable(boolean scoreable) {
         this.scoreable = scoreable;
     }
-    
+
     public MiningSegmentation getSegmentation() {
         return this.segmentation;
     }
@@ -235,5 +235,5 @@ public class Miningmodel extends AbstractModel<MiningModel> {
         }
         return bldr.toString();
     }
-    
+
 }

@@ -16,12 +16,12 @@
 
 package org.drools.core.command.runtime.rule;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlAttribute;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 import org.drools.core.command.IdentifiableResult;
 import org.drools.core.common.DefaultFactHandle;
@@ -58,9 +58,9 @@ public class InsertObjectCommand
     private boolean disconnected = false;
 
     public InsertObjectCommand() {
-        
+
     }
-    
+
     public InsertObjectCommand(Object object) {
         this.object = object;
     }
@@ -78,7 +78,7 @@ public class InsertObjectCommand
 
     public FactHandle execute(Context context) {
         KieSession ksession = ((RegistryContext)context).lookup( KieSession.class );
-        
+
         FactHandle factHandle;
         if ( StringUtils.isEmpty( this.entryPoint ) ) {
             factHandle = ksession.insert( object );
@@ -100,8 +100,8 @@ public class InsertObjectCommand
         }
         return factHandle;
     }
-    
-    
+
+
 
     public void setObject(Object object) {
         this.object = object;
@@ -126,7 +126,7 @@ public class InsertObjectCommand
     public void setReturnObject(boolean returnObject) {
         this.returnObject = returnObject;
     }
-    
+
     public boolean isDisconnected() {
         return disconnected;
     }
