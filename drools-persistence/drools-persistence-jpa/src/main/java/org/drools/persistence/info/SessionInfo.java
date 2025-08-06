@@ -3,7 +3,7 @@
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
@@ -17,42 +17,42 @@ package org.drools.persistence.info;
 
 import java.util.Date;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Lob;
-import javax.persistence.SequenceGenerator;
-import javax.persistence.Transient;
-import javax.persistence.Version;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Lob;
+import jakarta.persistence.SequenceGenerator;
+import jakarta.persistence.Transient;
+import jakarta.persistence.Version;
 
 import org.drools.persistence.api.PersistentSession;
 import org.drools.persistence.api.SessionMarshallingHelper;
 import org.drools.persistence.api.Transformable;
 
 @Entity
-@SequenceGenerator(name="sessionInfoIdSeq", sequenceName="SESSIONINFO_ID_SEQ")
+@SequenceGenerator(name="sessionInfoIdSeq", sequenceName="SESSIONINFO_ID_SEQ", allocationSize = 1)
 public class SessionInfo implements PersistentSession {
-    
+
     private @Id
     @GeneratedValue(strategy = GenerationType.AUTO, generator="sessionInfoIdSeq")
     Long                        id;
 
     @Version
-    @Column(name = "OPTLOCK")     
+    @Column(name = "OPTLOCK")
     private int                version;
 
     private Date               startDate;
     private Date               lastModificationDate;
-    
+
     @Lob
     @Column(length=2147483647)
     private byte[]             rulesByteArray;
 
     @Transient
     SessionMarshallingHelper helper;
-    
+
     public SessionInfo() {
         this.startDate = new Date();
     }
@@ -60,7 +60,7 @@ public class SessionInfo implements PersistentSession {
     public Long getId() {
         return this.id;
     }
-    
+
     public int getVersion() {
         return this.version;
     }
@@ -72,15 +72,15 @@ public class SessionInfo implements PersistentSession {
     public SessionMarshallingHelper getJPASessionMashallingHelper() {
         return helper;
     }
-    
+
     public void setData( byte[] data) {
         this.rulesByteArray = data;
     }
-    
+
     public byte[] getData() {
         return this.rulesByteArray;
     }
-    
+
     public Date getStartDate() {
         return this.startDate;
     }

@@ -18,15 +18,16 @@ package org.drools.modelcompiler.builder;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.drools.compiler.builder.impl.KnowledgeBuilderConfigurationImpl;
 import org.drools.compiler.builder.impl.KnowledgeBuilderImpl;
 import org.drools.compiler.builder.impl.TypeDeclarationFactory;
-import org.drools.compiler.compiler.DialectCompiletimeRegistry;
 import org.drools.compiler.compiler.PackageRegistry;
 import org.drools.compiler.kie.builder.impl.BuildContext;
 import org.drools.compiler.lang.descr.AbstractClassTypeDeclarationDescr;
@@ -41,6 +42,7 @@ import org.drools.core.definitions.InternalKnowledgePackage;
 import org.drools.core.rule.ImportDeclaration;
 import org.drools.core.rule.TypeDeclaration;
 import org.drools.core.util.StringUtils;
+import org.drools.modelcompiler.builder.errors.UnsupportedFeatureError;
 import org.drools.modelcompiler.builder.generator.DRLIdGenerator;
 import org.drools.modelcompiler.builder.generator.DrlxParseUtil;
 import org.drools.modelcompiler.builder.generator.declaredtype.POJOGenerator;
@@ -112,7 +114,7 @@ public class ModelBuilderImpl<T extends PackageSources> extends KnowledgeBuilder
         registerTypeDeclarations( packages );
         buildDeclaredTypes( packages );
         storeGeneratedPojosInPackages( packages );
-        buildOtherDeclarations(packages);
+        buildOtherDeclarations( packages );
         deregisterTypeDeclarations( packages );
         buildRules(packages);
         DrlxParseUtil.clearAccessorCache();
@@ -129,6 +131,17 @@ public class ModelBuilderImpl<T extends PackageSources> extends KnowledgeBuilder
 
     private Collection<CompositePackageDescr> findPackages( Collection<CompositePackageDescr> compositePackages ) {
         if (compositePackages != null && !compositePackages.isEmpty()) {
+            if (compositePackagesMap != null) {
+                compositePackages = new HashSet<>(compositePackages);
+                for (Map.Entry<String, CompositePackageDescr> entry : compositePackagesMap.entrySet()) {
+                    Optional<CompositePackageDescr> optPkg = compositePackages.stream().filter(pkg -> pkg.getNamespace().equals(entry.getKey()) ).findFirst();
+                    if (optPkg.isPresent()) {
+                        optPkg.get().addPackageDescr(entry.getValue().getResource(), entry.getValue());
+                    } else {
+                        compositePackages.add(entry.getValue());
+                    }
+                }
+            }
             return compositePackages;
         }
         if (compositePackagesMap != null) {
@@ -180,6 +193,9 @@ public class ModelBuilderImpl<T extends PackageSources> extends KnowledgeBuilder
                 type.setTypeClassDef( createClassDefinition( typeClass, typeDescr.getResource() ) );
             }
             TypeDeclarationFactory.processAnnotations(typeDescr, type);
+            if (!type.isTypesafe()) {
+                addBuilderResult(new UnsupportedFeatureError("@typesafe(false) is not supported in executable model : " + type));
+            }
             getOrCreatePackageRegistry(new PackageDescr(typePkg)).getPackage().addTypeDeclaration(type );
         } catch (ClassNotFoundException e) {
             TypeDeclaration type = new TypeDeclaration( typeDescr.getTypeName() );
@@ -266,17 +282,13 @@ public class ModelBuilderImpl<T extends PackageSources> extends KnowledgeBuilder
     protected void compileKnowledgePackages(PackageDescr packageDescr, PackageRegistry pkgRegistry) {
         validateUniqueRuleNames(packageDescr);
         InternalKnowledgePackage pkg = pkgRegistry.getPackage();
-        PackageModel model = getPackageModel(packageDescr, pkgRegistry, pkg.getName());
-        generateModel(this, pkg, packageDescr, model);
+        PackageModel packageModel = getPackageModel(packageDescr, pkgRegistry, pkg.getName());
+        PackageModel.initPackageModel( this, pkgRegistry.getPackage(), pkgRegistry.getTypeResolver(), packageDescr, packageModel );
+        generateModel(this, pkg, packageDescr, packageModel);
     }
 
-    protected PackageModel getPackageModel(PackageDescr packageDescr, PackageRegistry pkgRegistry,  String pkgName) {
-        return packageModels.computeIfAbsent(pkgName, s -> {
-            final DialectCompiletimeRegistry dialectCompiletimeRegistry = pkgRegistry.getDialectCompiletimeRegistry();
-            return packageDescr.getPreferredPkgUUID()
-                    .map(pkgUUI -> new PackageModel(pkgName, this.getBuilderConfiguration(), dialectCompiletimeRegistry, exprIdGenerator, pkgUUI))
-                    .orElse(new PackageModel(releaseId, pkgName, this.getBuilderConfiguration(), dialectCompiletimeRegistry, exprIdGenerator));
-        });
+    protected PackageModel getPackageModel(PackageDescr packageDescr, PackageRegistry pkgRegistry, String pkgName) {
+        return packageModels.computeIfAbsent(pkgName, s -> PackageModel.createPackageModel(getBuilderConfiguration(), packageDescr, pkgRegistry, pkgName, releaseId, exprIdGenerator));
     }
 
     public Collection<T> getPackageSources() {

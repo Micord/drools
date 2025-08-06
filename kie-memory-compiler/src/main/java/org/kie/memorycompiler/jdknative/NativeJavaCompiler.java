@@ -35,7 +35,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.jar.JarEntry;
-
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.NestingKind;
 import javax.tools.Diagnostic;
@@ -47,7 +46,7 @@ import javax.tools.JavaFileObject;
 import javax.tools.SimpleJavaFileObject;
 import javax.tools.StandardJavaFileManager;
 import javax.tools.StandardLocation;
-import javax.tools.ToolProvider;
+
 import org.kie.memorycompiler.AbstractJavaCompiler;
 import org.kie.memorycompiler.CompilationProblem;
 import org.kie.memorycompiler.CompilationResult;
@@ -59,8 +58,18 @@ import org.kie.memorycompiler.resources.ResourceStore;
 
 public class NativeJavaCompiler extends AbstractJavaCompiler {
 
+    private JavaCompilerFinder javaCompilerFinder;
+
     public JavaCompilerSettings createDefaultSettings() {
         return new JavaCompilerSettings();
+    }
+
+    public NativeJavaCompiler() {
+        this(new NativeJavaCompilerFinder());
+    }
+
+    NativeJavaCompiler(JavaCompilerFinder javaCompilerFinder) {
+        this.javaCompilerFinder = javaCompilerFinder;
     }
 
     @Override
@@ -70,7 +79,7 @@ public class NativeJavaCompiler extends AbstractJavaCompiler {
                                       ClassLoader pClassLoader,
                                       JavaCompilerSettings pSettings) {
         DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<JavaFileObject>();
-        javax.tools.JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+        javax.tools.JavaCompiler compiler = javaCompilerFinder.getJavaCompiler();
         if (compiler == null) {
             throw new KieMemoryCompilerException("Cannot find the System's Java compiler. Please use JDK instead of JRE or add drools-ecj dependency to use in memory Eclipse compiler");
         }
@@ -116,12 +125,10 @@ public class NativeJavaCompiler extends AbstractJavaCompiler {
         public static final Charset UTF8_CHARSET = Charset.forName("UTF-8");
 
         private final String content;
-        private final String name;
 
         CompilationUnit(String name, String content) {
             super(URI.create("memo:///" + name), Kind.SOURCE);
             this.content = content;
-            this.name = name;
         }
 
         CompilationUnit(String name, ResourceReader pReader) {
@@ -289,12 +296,6 @@ public class NativeJavaCompiler extends AbstractJavaCompiler {
             CompilationOutput compilationOutput = new CompilationOutput(name, kind);
             outputs.add(compilationOutput);
             return compilationOutput;
-        }
-
-        @Override
-        public boolean hasLocation(Location location) {
-            // we don't care about source and other location types - not needed for compilation
-            return location == StandardLocation.CLASS_PATH || location == StandardLocation.PLATFORM_CLASS_PATH;
         }
 
         @Override

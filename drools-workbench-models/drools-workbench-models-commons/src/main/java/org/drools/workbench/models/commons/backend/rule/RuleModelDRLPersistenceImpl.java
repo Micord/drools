@@ -4012,7 +4012,7 @@ public class RuleModelDRLPersistenceImpl
                                                    String factType,
                                                    final String fieldName,
                                                    final ExpressionFormLine expression) {
-            String[] splits = fieldName.split("\\.");
+            String[] splits = Splitter.split(fieldName);
 
             boolean isBoundParam = false;
             if (factType == null) {
@@ -4281,7 +4281,7 @@ public class RuleModelDRLPersistenceImpl
                 con.setValue(value.substring(1,
                                              value.length() - 1));
             } else if (value.startsWith("(")) {
-                if (operator != null && operator.contains("in")) {
+                if (operator != null && (Objects.equals("in", operator) || Objects.equals("not in", operator))) {
                     con.setConstraintValueType(SingleFieldConstraint.TYPE_LITERAL);
                     String[] split = ListSplitter.splitPreserveQuotes("\"", true, unwrapParenthesis(value));
                     con.setValue(String.join(", ", split));

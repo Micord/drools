@@ -17,7 +17,6 @@ package org.drools.compiler.integrationtests;
 
 import java.util.Collection;
 
-import org.assertj.core.api.Assertions;
 import org.drools.testcoverage.common.util.KieBaseTestConfiguration;
 import org.drools.testcoverage.common.util.KieBaseUtil;
 import org.drools.testcoverage.common.util.KieUtil;
@@ -33,7 +32,7 @@ import org.kie.api.definition.type.Role;
 import org.kie.api.definition.type.Timestamp;
 import org.kie.api.runtime.KieSession;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(Parameterized.class)
 public class CepJavaTypeTest {
@@ -65,7 +64,7 @@ public class CepJavaTypeTest {
                 + "end\n";
 
         final KieBuilder kieBuilder = KieUtil.getKieBuilderFromDrls(kieBaseTestConfiguration, false, drl);
-        Assertions.assertThat(kieBuilder.getResults().getMessages()).isEmpty();
+        assertThat(kieBuilder.getResults().getMessages()).isEmpty();
     }
 
     @Test
@@ -81,7 +80,7 @@ public class CepJavaTypeTest {
                 + "end\n";
 
         final KieBuilder kieBuilder = KieUtil.getKieBuilderFromDrls(kieBaseTestConfiguration, false, drl);
-        Assertions.assertThat(kieBuilder.getResults().getMessages()).isEmpty();
+        assertThat(kieBuilder.getResults().getMessages()).isEmpty();
     }
 
     @Role(value = Role.Type.EVENT)
@@ -116,16 +115,16 @@ public class CepJavaTypeTest {
         final KieSession ksession = kbase.newKieSession();
         try {
             ksession.insert(new MyMessage("ATrigger"));
-            assertEquals(1, ksession.fireAllRules());
+            assertThat(ksession.fireAllRules()).isEqualTo(1);
             TimeUtil.sleepMillis(2L);
-            assertEquals(0, ksession.fireAllRules());
+            assertThat(ksession.fireAllRules()).isEqualTo(0);
             while (ksession.getObjects().size() != 0) {
                 TimeUtil.sleepMillis(30L);
                 // Expire action is put into propagation queue by timer job, so there
                 // can be a race condition where it puts it there right after previous fireAllRules
                 // flushes the queue. So there needs to be another flush -> another fireAllRules
                 // to flush the queue.
-                assertEquals(0, ksession.fireAllRules());
+                assertThat(ksession.fireAllRules()).isEqualTo(0);
             }
         } finally {
             ksession.dispose();

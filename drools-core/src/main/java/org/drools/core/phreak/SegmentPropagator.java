@@ -27,6 +27,7 @@ import org.drools.core.reteoo.SegmentMemory;
 
 import static org.drools.core.phreak.AddRemoveRule.forceFlushLeftTuple;
 import static org.drools.core.phreak.AddRemoveRule.forceFlushWhenRiaNode;
+import static org.drools.core.reteoo.NodeTypeEnums.hasNodeMemory;
 
 public class SegmentPropagator {
 
@@ -62,8 +63,8 @@ public class SegmentPropagator {
     private static void processPeers(SegmentMemory sourceSegment, TupleSets<LeftTuple> leftTuples, InternalWorkingMemory wm) {
         SegmentMemory firstSmem = sourceSegment.getFirst();
 
-        processPeerDeletes( leftTuples, leftTuples.getDeleteFirst(), firstSmem, wm );
-        processPeerDeletes( leftTuples, leftTuples.getNormalizedDeleteFirst(), firstSmem, wm );
+        processPeerDeletes( leftTuples.getDeleteFirst(), firstSmem );
+        processPeerDeletes( leftTuples.getNormalizedDeleteFirst(), firstSmem );
         processPeerUpdates( leftTuples, firstSmem );
         processPeerInserts( leftTuples, firstSmem );
 
@@ -116,22 +117,29 @@ public class SegmentPropagator {
         }
     }
 
-    public static void updateChildLeftTupleDuringInsert(LeftTuple childLeftTuple,
-                                                        TupleSets<LeftTuple> stagedLeftTuples,
-                                                        TupleSets<LeftTuple> trgLeftTuples) {
+    private static void updateChildLeftTupleDuringInsert(LeftTuple childLeftTuple, TupleSets<LeftTuple> stagedLeftTuples, TupleSets<LeftTuple> trgLeftTuples) {
         switch ( childLeftTuple.getStagedType() ) {
-            // handle clash when they re already staged entries
+            // handle clash with already staged entries
             case LeftTuple.INSERT:
-                // was staged as insert before, remove it from staging and now process
+                // Was insert before, should continue as insert
                 stagedLeftTuples.removeInsert( childLeftTuple );
+                trgLeftTuples.addInsert( childLeftTuple );
                 break;
             case LeftTuple.UPDATE:
-                throw new IllegalStateException("It should not be possible that an existing udpate is staged, when an insert is later requested.");
+                stagedLeftTuples.removeUpdate( childLeftTuple );
+                trgLeftTuples.addUpdate( childLeftTuple );
+                break;
+            default:
+                // no clash, so just add
+                if ( hasNodeMemory( childLeftTuple.getTupleSink() ) ) {
+                    trgLeftTuples.addInsert(childLeftTuple);
+                } else {
+                    trgLeftTuples.addUpdate(childLeftTuple);
+                }
         }
-        trgLeftTuples.addInsert( childLeftTuple );
     }
 
-    private static void processPeerDeletes( TupleSets<LeftTuple> leftTuples, LeftTuple leftTuple, SegmentMemory firstSmem, InternalWorkingMemory wm ) {
+    private static void processPeerDeletes( LeftTuple leftTuple, SegmentMemory firstSmem ) {
         for (; leftTuple != null; leftTuple = leftTuple.getStagedNext()) {
             SegmentMemory smem = firstSmem.getNext();
             if ( smem != null ) {

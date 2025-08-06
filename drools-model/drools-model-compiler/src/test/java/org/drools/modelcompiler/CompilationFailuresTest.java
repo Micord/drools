@@ -16,14 +16,15 @@
 
 package org.drools.modelcompiler;
 
+import java.math.BigDecimal;
+
 import org.drools.modelcompiler.domain.Person;
 import org.drools.modelcompiler.domain.Result;
 import org.junit.Test;
 import org.kie.api.builder.Message;
 import org.kie.api.builder.Results;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class CompilationFailuresTest extends BaseModelTest {
 
@@ -43,10 +44,10 @@ public class CompilationFailuresTest extends BaseModelTest {
                 "end\n";
 
         Results results = getCompilationResults(drl);
-        assertFalse(results.getMessages( Message.Level.ERROR).isEmpty());
+        assertThat(results.getMessages(Message.Level.ERROR).isEmpty()).isFalse();
 
         // line = -1 even with STANDARD_FROM_DRL (PredicateDescr)
-        assertEquals(-1, results.getMessages().get(0).getLine());
+        assertThat(results.getMessages().get(0).getLine()).isEqualTo(-1);
     }
 
     @Test
@@ -59,9 +60,9 @@ public class CompilationFailuresTest extends BaseModelTest {
                 "end\n";
 
         Results results = getCompilationResults(drl);
-        assertFalse(results.getMessages( Message.Level.ERROR).isEmpty());
+        assertThat(results.getMessages(Message.Level.ERROR).isEmpty()).isFalse();
 
-        assertEquals(3, results.getMessages().get(0).getLine());
+        assertThat(results.getMessages().get(0).getLine()).isEqualTo(3);
     }
 
     private Results getCompilationResults( String drl ) {
@@ -91,21 +92,6 @@ public class CompilationFailuresTest extends BaseModelTest {
         public String getValueType() {
             return value.getClass().getName();
         }
-    }
-
-    @Test
-    public void testBadQueryArg() {
-        String drl =
-                "import " + Person.class.getCanonicalName() + "\n" +
-                "query queryWithParamWithoutType( tname , tage)\n" +
-                "    person : Person(name == tname, age < tage )\n" +
-                "end\n";
-
-        Results results = getCompilationResults(drl);
-        assertFalse(results.getMessages( Message.Level.ERROR).isEmpty());
-
-        // line = -1 even with STANDARD_FROM_DRL (PredicateDescr)
-        assertEquals(-1, results.getMessages().get(0).getLine());
     }
 
     @Test
@@ -141,28 +127,180 @@ public class CompilationFailuresTest extends BaseModelTest {
                 "end";
 
         Results results = getCompilationResults(drl);
-        assertFalse(results.getMessages( Message.Level.ERROR).isEmpty());
+        assertThat(results.getMessages(Message.Level.ERROR).isEmpty()).isFalse();
 
         // line = 1 with STANDARD_FROM_DRL (RuleDescr)
-        assertEquals(1, results.getMessages().get(0).getLine());
+        assertThat(results.getMessages().get(0).getLine()).isEqualTo(1);
     }
 
 
     @Test
-    public void testModifyOnFactInScope() {
-        // DROOLS-5242
+    public void modify_factInScope_java() {
+        // DROOLS-5242, DROOLS-7195
         String drl =
                 "import " + Person.class.getCanonicalName() + ";" +
-                "rule R1 when\n" +
+                "rule R1\n" +
+                "when\n" +
                 "  $p : Person(name == \"Mario\")\n" +
                 "then\n" +
                 "  modify($p) { $p.setName(\"Mark\") }\n" +
                 "end";
 
         Results results = getCompilationResults(drl);
-        assertFalse(results.getMessages( Message.Level.ERROR).isEmpty());
+        assertThat(results.getMessages(Message.Level.ERROR).isEmpty()).isFalse();
+    }
 
-        // RHS error : line = 1 with STANDARD_FROM_DRL (RuleDescr)
-        assertEquals(1, results.getMessages().get(0).getLine());
+    @Test
+    public void modify_factInScope_mvel() {
+        // DROOLS-5242, DROOLS-7195
+        String drl =
+                "import " + Person.class.getCanonicalName() + ";" +
+                "rule R1\n" +
+                "dialect 'mvel'\n" +
+                "when\n" +
+                "  $p : Person(name == \"Mario\")\n" +
+                "then\n" +
+                "  modify($p) { $p.setName(\"Mark\") }\n" +
+                "end";
+
+        Results results = getCompilationResults(drl);
+        assertThat(results.getMessages(Message.Level.ERROR).isEmpty()).isFalse();
+    }
+
+    @Test
+    public void modify_factInScope_nestedPropertySetter_java() {
+        // DROOLS-5242, DROOLS-7195
+        String drl =
+                "import " + Person.class.getCanonicalName() + ";" +
+                "rule R1\n" +
+                "when\n" +
+                "  $p : Person(name == \"Mario\")\n" +
+                "then\n" +
+                "  modify($p) { $p.address.setCity(\"London\") }\n" +
+                "end";
+
+        Results results = getCompilationResults(drl);
+        assertThat(results.getMessages(Message.Level.ERROR).isEmpty()).isFalse();
+    }
+
+    @Test
+    public void modify_factInScope_nestedPropertySetter_mvel() {
+        // DROOLS-5242, DROOLS-7195
+        String drl =
+                "import " + Person.class.getCanonicalName() + ";" +
+                "rule R1\n" +
+                "dialect 'mvel'\n" +
+                "when\n" +
+                "  $p : Person(name == \"Mario\")\n" +
+                "then\n" +
+                "  modify($p) { $p.address.setCity(\"London\") }\n" +
+                "end";
+
+        Results results = getCompilationResults(drl);
+        assertThat(results.getMessages(Message.Level.ERROR).isEmpty()).isFalse();
+    }
+
+    @Test
+    public void modify_factInScope_nestedPropertyAssign_java() {
+        // DROOLS-5242, DROOLS-7195
+        String drl =
+                "import " + Person.class.getCanonicalName() + ";" +
+                "rule R1\n" +
+                "when\n" +
+                "  $p : Person(name == \"Mario\")\n" +
+                "then\n" +
+                "  modify($p) { $p.address.city = \"London\" }\n" +
+                "end";
+
+        Results results = getCompilationResults(drl);
+        assertThat(results.getMessages(Message.Level.ERROR).isEmpty()).isFalse();
+    }
+
+    @Test
+    public void modify_factInScope_nestedPropertyAssign_mvel() {
+        // DROOLS-5242, DROOLS-7195
+        String drl =
+                "import " + Person.class.getCanonicalName() + ";" +
+                "rule R1\n" +
+                "dialect 'mvel'\n" +
+                "when\n" +
+                "  $p : Person(name == \"Mario\")\n" +
+                "then\n" +
+                "  modify($p) { $p.address.city = \"London\" }\n" +
+                "end";
+
+        Results results = getCompilationResults(drl);
+        assertThat(results.getMessages(Message.Level.ERROR).isEmpty()).isFalse();
+    }
+
+    @Test
+    public void testVariableInsideBinding() {
+        String str =
+                "import " + Person.class.getCanonicalName() + ";" +
+                        "import " + NameLengthCount.class.getCanonicalName() + ";" +
+                        "rule X when\n" +
+                        "  $nlc : NameLengthCount() \n" +
+                        "  Person ( $nameLength : $nlc.self.getNameLength(name))" +
+                        "then\n" +
+                        "end";
+
+        Results results = createKieBuilder(str ).getResults();
+        assertThat(results.getMessages(Message.Level.ERROR).stream().map(Message::getText))
+                .contains("Variables can not be used inside bindings. Variable [$nlc] is being used in binding '$nlc.self.getNameLength(name)'");
+    }
+
+    @Test
+    public void testVariableInsideBindingInParameter() {
+        String str =
+                "import " + Person.class.getCanonicalName() + ";" +
+                        "import " + NameLengthCount.class.getCanonicalName() + ";" +
+                        "rule X when\n" +
+                        "  $nlc : NameLengthCount() \n" +
+                        "  Person ( $nameLength : identityBigDecimal($nlc.fortyTwo))" +
+                        "then\n" +
+                        "end";
+
+        Results results = createKieBuilder(str ).getResults();
+        assertThat(results.getMessages(Message.Level.ERROR).stream().map(Message::getText))
+                .contains("Variables can not be used inside bindings. Variable [$nlc] is being used in binding 'identityBigDecimal($nlc.fortyTwo)'");
+    }
+
+    public static class NameLengthCount {
+
+        public NameLengthCount getSelf() {
+            return this;
+        }
+
+        public int getNameLength(String name) {
+            return name.length();
+        }
+
+        public BigDecimal getFortyTwo() {
+            return BigDecimal.valueOf(42);
+        }
+    }
+
+    @Test
+    public void testTypeSafe() {
+        String str =
+                "import " + Parent.class.getCanonicalName() + ";" +
+                     "declare\n" +
+                     "   Parent @typesafe(false)\n" +
+                     "end\n" +
+                     "rule R1\n" +
+                     "when\n" +
+                     "   $a : Parent( x == 1 )\n" +
+                     "then\n" +
+                     "end\n";
+
+        Results results = createKieBuilder(str).getResults();
+        if (testRunType.isExecutableModel()) {
+            assertThat(results.getMessages(Message.Level.ERROR).get(0).getText().contains("@typesafe(false) is not supported in executable model"));
+        } else {
+            assertThat(results.getMessages(Message.Level.ERROR).isEmpty()).isTrue();
+        }
+    }
+
+    public static class Parent {
     }
 }

@@ -20,6 +20,7 @@ import java.util.Optional;
 
 import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.MethodCallExpr;
+import com.github.javaparser.ast.expr.UnaryExpr;
 import org.drools.compiler.compiler.PackageRegistry;
 import org.drools.compiler.lang.descr.BaseDescr;
 import org.drools.compiler.lang.descr.ConditionalElementDescr;
@@ -27,6 +28,7 @@ import org.drools.compiler.lang.descr.NotDescr;
 import org.drools.compiler.lang.descr.PatternDescr;
 import org.drools.compiler.lang.descr.RuleDescr;
 import org.drools.core.util.ClassUtils;
+import org.drools.core.util.MethodUtils;
 import org.drools.impact.analysis.model.Rule;
 import org.drools.impact.analysis.model.left.Constraint;
 import org.drools.impact.analysis.model.left.LeftHandSide;
@@ -40,9 +42,13 @@ import org.drools.modelcompiler.builder.generator.drlxparse.ConstraintExpression
 import org.drools.modelcompiler.builder.generator.drlxparse.ConstraintParser;
 import org.drools.modelcompiler.builder.generator.drlxparse.DrlxParseResult;
 import org.drools.modelcompiler.builder.generator.drlxparse.SingleDrlxParseSuccess;
+import org.drools.modelcompiler.util.PatternUtil;
 
 import static org.drools.impact.analysis.parser.impl.ParserUtil.getLiteralString;
 import static org.drools.impact.analysis.parser.impl.ParserUtil.literalToValue;
+import static org.drools.impact.analysis.parser.impl.ParserUtil.objectCreationExprToValue;
+import static org.drools.impact.analysis.parser.impl.ParserUtil.stripEnclosedAndCast;
+import static org.drools.modelcompiler.builder.generator.DrlxParseUtil.isBooleanBoxedUnboxed;
 import static org.drools.modelcompiler.builder.generator.DrlxParseUtil.isThisExpression;
 
 public class LhsParser {
@@ -75,6 +81,9 @@ public class LhsParser {
     }
 
     private Pattern parsePattern( RuleContext context, PatternDescr patternDescr, boolean positive ) {
+        if (context.getRuleUnitDescr() != null) {
+            patternDescr = PatternUtil.normalizeOOPathPattern(patternDescr, context);
+        }
         String type = patternDescr.getObjectType();
         Class<?> patternClass;
         try {
@@ -88,7 +97,7 @@ public class LhsParser {
             context.addDeclaration( patternDescr.getIdentifier(), patternClass );
         }
 
-        ConstraintParser constraintParser = new ConstraintParser(context, packageModel);
+        ConstraintParser constraintParser = ConstraintParser.defaultConstraintParser(context, packageModel);
         for (BaseDescr constraintDescr : patternDescr.getConstraint().getDescrs()) {
             parseConstraint( context, patternDescr, pattern, constraintParser, constraintDescr );
         }
@@ -117,21 +126,55 @@ public class LhsParser {
                 }
             } else if (result.getExprBinding() != null && result.getExpr() != null && result.getExpr().isLiteralExpr()) {
                 ((ImpactAnalysisRuleContext)context).getBindVariableLiteralMap().put(result.getExprBinding(), ParserUtil.literalToValue(result.getExpr().asLiteralExpr()));
+            } else if (isPredicateMethodCall(result)) {
+                MethodCallExpr mce = result.getExpr().asMethodCallExpr();
+                addConstraintIfBooleanProperty(pattern, mce, true);
+            } else if (isNegatedPredicateMethodCall(result)) {
+                MethodCallExpr mce = result.getExpr().asUnaryExpr().getExpression().asMethodCallExpr();
+                addConstraintIfBooleanProperty(pattern, mce, false);
             }
         }
     }
 
+    private void addConstraintIfBooleanProperty(Pattern pattern, MethodCallExpr mce, boolean value) {
+        if (isThisExpression(mce.getScope().orElse(null))) {
+            String methodName = mce.getName().asString();
+            String prop = ClassUtils.getter2property(methodName);
+            if (prop != null) {
+                Method method = MethodUtils.findMethod(pattern.getPatternClass(), methodName, new Class[0]);
+                if (method != null && isBooleanBoxedUnboxed(method.getReturnType())) {
+                    Constraint constraint = new Constraint(Constraint.Type.EQUAL, prop, value);
+                    pattern.addConstraint(constraint);
+                }
+            }
+        }
+    }
+
+    private boolean isPredicateMethodCall(SingleDrlxParseSuccess result) {
+        return result.isPredicate() && result.getRight() == null && result.getExpr() != null && result.getExpr().isMethodCallExpr();
+    }
+
+    private boolean isNegatedPredicateMethodCall(SingleDrlxParseSuccess result) {
+        return result.isPredicate() && result.getRight() == null && result.getExpr() != null && result.getExpr().isUnaryExpr()
+                && result.getExpr().asUnaryExpr().getOperator().equals(UnaryExpr.Operator.LOGICAL_COMPLEMENT)
+                && result.getExpr().asUnaryExpr().getExpression().isMethodCallExpr();
+    }
+
     private Constraint parseExpressionInConstraint( RuleContext context, Constraint constraint, TypedExpression expr ) {
-        if (expr.getExpression() instanceof MethodCallExpr) {
-            if (isThisExpression( (( MethodCallExpr ) expr.getExpression()).getScope().orElse( null ) )) {
+        Expression expression = expr.getExpression();
+        expression = stripEnclosedAndCast(expression);
+        if (expression.isMethodCallExpr()) {
+            if (isThisExpression( expression.asMethodCallExpr().getScope().orElse( null ) )) {
                 constraint.setProperty( expr.getFieldName() );
             } else {
                 constraint = processMapProperty(context, constraint, expr);
             }
-        } else if (expr.getExpression().isLiteralExpr()) {
-            constraint.setValue( literalToValue( expr.getExpression().asLiteralExpr() ) );
-        } else if (expr.getExpression().isNameExpr() && expr.getExpression().asNameExpr().getNameAsString().equals("_this")) {
+        } else if (expression.isLiteralExpr()) {
+            constraint.setValue( literalToValue( expression.asLiteralExpr() ) );
+        } else if (expression.isNameExpr() && expression.asNameExpr().getNameAsString().equals("_this")) {
             constraint.setProperty("this");
+        } else if (expression.isObjectCreationExpr()) {
+            constraint.setValue(objectCreationExprToValue(expression.asObjectCreationExpr(), context));
         }
         return constraint;
     }

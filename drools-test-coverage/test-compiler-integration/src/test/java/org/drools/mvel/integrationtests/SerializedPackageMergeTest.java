@@ -34,7 +34,6 @@ import org.drools.core.impl.InternalKnowledgeBase;
 import org.drools.core.impl.KnowledgeBaseFactory;
 import org.drools.mvel.compiler.Message;
 import org.junit.Test;
-import org.kie.api.KieBase;
 import org.kie.api.definition.KiePackage;
 import org.kie.api.io.ResourceType;
 import org.kie.api.runtime.KieSession;
@@ -43,9 +42,8 @@ import org.kie.internal.builder.KnowledgeBuilder;
 import org.kie.internal.builder.KnowledgeBuilderFactory;
 import org.kie.internal.io.ResourceFactory;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 public class SerializedPackageMergeTest {
 
@@ -83,8 +81,7 @@ public class SerializedPackageMergeTest {
 
         session.execute( getObject() );
 
-        assertEquals( 2,
-                      list.size() );
+        assertThat(list.size()).isEqualTo(2);
     }
 
     private Message getObject() throws ParseException {
@@ -104,9 +101,8 @@ public class SerializedPackageMergeTest {
             KnowledgeBuilder kbuilder = KnowledgeBuilderFactory.newKnowledgeBuilder();
             kbuilder.add( ResourceFactory.newInputStreamResource(getClass().getResourceAsStream(drl)),
                           ResourceType.DRL );
-            
-            assertFalse( kbuilder.getErrors().toString(),
-                         kbuilder.hasErrors() );
+
+            assertThat(kbuilder.hasErrors()).as(kbuilder.getErrors().toString()).isFalse();
             
             Collection<KiePackage> kpkgs = kbuilder.getKnowledgePackages();
 
@@ -186,85 +182,7 @@ public class SerializedPackageMergeTest {
             ksession.insert(new org.drools.mvel.compiler.Person("Paul"));
             ksession.fireAllRules();
 
-            assertEquals(2, list.size());
-        } finally {
-            ksession.dispose();
-        }
-    }
-
-    @Test
-    public void testBuildAndSerializePackagesWithGetterInLHS() throws Exception {
-        // DROOLS-2495
-        String drl =   "package com.sample\n" +
-                        "import org.drools.compiler.Person\n" +
-                        "import org.drools.compiler.Cheese\n" +
-                        "rule R1\n" +
-                        "when\n" +
-                        "  $p : Person()\n" +
-                        "  $c : Cheese(type == $p.getName())\n" +
-                        "then\n" +
-                        "end\n";
-
-        KnowledgeBuilder builder1 = KnowledgeBuilderFactory.newKnowledgeBuilder();
-        builder1.add(ResourceFactory.newByteArrayResource(drl.getBytes()), ResourceType.DRL);
-        Collection<KiePackage> knowledgePackages = builder1.getKnowledgePackages();
-
-        byte[] pkgBin = null;
-        try (ByteArrayOutputStream byteOutStream = new ByteArrayOutputStream();
-                DroolsObjectOutputStream out = new DroolsObjectOutputStream(byteOutStream);) {
-            out.writeObject(knowledgePackages);
-            out.flush();
-            pkgBin = byteOutStream.toByteArray();
-        }
-
-        KnowledgeBuilder builder2 = KnowledgeBuilderFactory.newKnowledgeBuilder();
-        builder2.add(ResourceFactory.newByteArrayResource(pkgBin), ResourceType.PKG);
-        KieBase kbase = builder2.newKieBase();
-
-        KieSession ksession = kbase.newKieSession();
-        try {
-            ksession.insert(new org.drools.mvel.compiler.Person("aaa"));
-            ksession.insert(new org.drools.mvel.compiler.Cheese("aaa"));
-            ksession.fireAllRules();
-        } finally {
-            ksession.dispose();
-        }
-    }
-
-    @Test
-    public void testBuildAndSerializePackagesWithGlobalMethodInLHS() throws Exception {
-        // DROOLS-2517
-        String drl =   "package com.sample\n" +
-                "import org.drools.mvel.compiler.Person\n" +
-                "global org.drools.mvel.compiler.MyUtil myUtil\n" +
-                "rule R1\n" +
-                "when\n" +
-                "  Person(myUtil.transform(name) == \"John-san\")\n" + // call global's method
-                "then\n" +
-                "end\n";
-
-        KnowledgeBuilder builder1 = KnowledgeBuilderFactory.newKnowledgeBuilder();
-        builder1.add(ResourceFactory.newByteArrayResource(drl.getBytes()), ResourceType.DRL);
-        Collection<KiePackage> knowledgePackages = builder1.getKnowledgePackages();
-
-        byte[] pkgBin = null;
-        try (ByteArrayOutputStream byteOutStream = new ByteArrayOutputStream();
-                DroolsObjectOutputStream out = new DroolsObjectOutputStream(byteOutStream);) {
-            out.writeObject(knowledgePackages);
-            out.flush();
-            pkgBin = byteOutStream.toByteArray();
-        }
-
-        KnowledgeBuilder builder2 = KnowledgeBuilderFactory.newKnowledgeBuilder();
-        builder2.add(ResourceFactory.newByteArrayResource(pkgBin), ResourceType.PKG);
-        KieBase kbase = builder2.newKieBase();
-
-        KieSession ksession = kbase.newKieSession();
-        try {
-            ksession.setGlobal("myUtil", new org.drools.mvel.compiler.MyUtil());
-            ksession.insert(new org.drools.mvel.compiler.Person("John"));
-            int fired = ksession.fireAllRules();
-            assertEquals(1, fired);
+            assertThat(list.size()).isEqualTo(2);
         } finally {
             ksession.dispose();
         }

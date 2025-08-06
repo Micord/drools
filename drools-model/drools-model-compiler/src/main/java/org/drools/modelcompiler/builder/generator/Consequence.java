@@ -45,7 +45,6 @@ import com.github.javaparser.ast.expr.LambdaExpr;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.expr.NameExpr;
 import com.github.javaparser.ast.expr.SimpleName;
-import com.github.javaparser.ast.expr.StringLiteralExpr;
 import com.github.javaparser.ast.expr.VariableDeclarationExpr;
 import com.github.javaparser.ast.stmt.BlockStmt;
 import com.github.javaparser.ast.stmt.ExpressionStmt;
@@ -80,12 +79,14 @@ import static org.drools.modelcompiler.builder.generator.DrlxParseUtil.findAllCh
 import static org.drools.modelcompiler.builder.generator.DrlxParseUtil.isNameExprWithName;
 import static org.drools.modelcompiler.builder.generator.DrlxParseUtil.parseBlock;
 import static org.drools.modelcompiler.builder.generator.DrlxParseUtil.toClassOrInterfaceType;
+import static org.drools.modelcompiler.builder.generator.DrlxParseUtil.toStringLiteral;
 import static org.drools.modelcompiler.builder.generator.DslMethodNames.BREAKING_CALL;
 import static org.drools.modelcompiler.builder.generator.DslMethodNames.EXECUTE_CALL;
 import static org.drools.modelcompiler.builder.generator.DslMethodNames.GET_CHANNEL_CALL;
 import static org.drools.modelcompiler.builder.generator.DslMethodNames.ON_CALL;
+import static org.drools.modelcompiler.builder.generator.DslMethodNames.createDslTopLevelMethod;
 import static org.drools.modelcompiler.util.ClassUtil.asJavaSourceName;
-import static org.drools.mvel.parser.printer.PrintUtil.printConstraint;
+import static org.drools.mvel.parser.printer.PrintUtil.printNode;
 
 public class Consequence {
 
@@ -99,6 +100,7 @@ public class Consequence {
     static {
         implicitDroolsMethods.add("insert");
         implicitDroolsMethods.add("insertLogical");
+        implicitDroolsMethods.add("insertAsync");
         implicitDroolsMethods.add("delete");
         implicitDroolsMethods.add("retract");
         implicitDroolsMethods.add("update");
@@ -195,7 +197,7 @@ public class Consequence {
         String mvelBlock = addCurlyBracesToBlock(consequenceString);
         CompiledBlockResult compile;
         try {
-            compile = DrlxParseUtil.createMvelCompiler(context).compileStatement(mvelBlock);
+            compile = DrlxParseUtil.createMvelCompiler(context, true).compileStatement(mvelBlock);
         } catch (MvelCompilerException e) {
             context.addCompilationError(new CompilationProblemErrorResult(new MvelCompilationError(e)) );
             return null;
@@ -296,7 +298,7 @@ public class Consequence {
         MethodCallExpr onCall = null;
 
         if (!usedArguments.isEmpty()) {
-            onCall = new MethodCallExpr(null, ON_CALL);
+            onCall = createDslTopLevelMethod(ON_CALL);
             usedArguments.stream().map(context::getVar).forEach(onCall::addArgument);
         }
         return onCall;
@@ -311,7 +313,7 @@ public class Consequence {
         ModifyCompiler modifyCompiler = new ModifyCompiler();
         CompiledBlockResult compile = modifyCompiler.compile(addCurlyBracesToBlock(consequence));
 
-        return printConstraint(compile.statementResults());
+        return printNode(compile.statementResults());
     }
 
     private boolean rewriteRHS(BlockStmt ruleBlock, BlockStmt rhs) {
@@ -398,7 +400,7 @@ public class Consequence {
             String domainClassSourceName = asJavaSourceName( updatedClass );
             bitMaskCreation = new MethodCallExpr(new NameExpr(BitMask.class.getCanonicalName()), "getPatternMask");
             bitMaskCreation.addArgument( DOMAIN_CLASSESS_METADATA_FILE_NAME + packageModel.getPackageUUID() + "." + domainClassSourceName + DOMAIN_CLASS_METADATA_INSTANCE );
-            modifiedProps.forEach(s -> bitMaskCreation.addArgument(new StringLiteralExpr(s)));
+            modifiedProps.forEach(s -> bitMaskCreation.addArgument(toStringLiteral(s)));
         } else {
             bitMaskCreation = new MethodCallExpr(new NameExpr(AllSetButLastBitMask.class.getCanonicalName()), "get");
         }

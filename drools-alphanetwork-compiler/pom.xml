@@ -5,7 +5,7 @@
   <parent>
     <artifactId>drools</artifactId>
     <groupId>org.drools</groupId>
-    <version>7.58.0.Final</version>
+    <version>7.74.1.Final-Micord.1</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
@@ -43,13 +43,6 @@
       <groupId>org.kie</groupId>
       <artifactId>kie-internal</artifactId>
     </dependency>
-
-    <dependency>
-      <groupId>org.hamcrest</groupId>
-      <artifactId>hamcrest-library</artifactId>
-      <scope>test</scope>
-    </dependency>
-
 
     <!-- Logging -->
     <dependency>

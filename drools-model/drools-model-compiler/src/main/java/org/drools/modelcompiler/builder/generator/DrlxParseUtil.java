@@ -88,10 +88,13 @@ import org.drools.compiler.lang.descr.AnnotationDescr;
 import org.drools.compiler.lang.descr.PatternDescr;
 import org.drools.core.addon.TypeResolver;
 import org.drools.core.util.ClassUtils;
+import org.drools.core.util.IncompatibleGetterOverloadException;
 import org.drools.core.util.MethodUtils;
 import org.drools.core.util.StringUtils;
 import org.drools.model.Index;
+import org.drools.modelcompiler.builder.errors.IncompatibleGetterOverloadError;
 import org.drools.modelcompiler.builder.errors.InvalidExpressionErrorResult;
+import org.drools.modelcompiler.consequence.DroolsImpl;
 import org.drools.mvel.parser.DrlxParser;
 import org.drools.mvel.parser.ast.expr.BigDecimalLiteralExpr;
 import org.drools.mvel.parser.ast.expr.BigIntegerLiteralExpr;
@@ -110,9 +113,9 @@ import static java.util.Optional.of;
 import static java.util.stream.Collectors.toList;
 import static org.drools.core.util.MethodUtils.findMethod;
 import static org.drools.modelcompiler.builder.generator.DslMethodNames.PATTERN_CALL;
-import static org.drools.modelcompiler.builder.generator.expressiontyper.ExpressionTyper.findLeftLeafOfNameExpr;
+import static org.drools.modelcompiler.builder.generator.DslMethodNames.isDslTopLevelNamespace;
+import static org.drools.modelcompiler.builder.generator.expressiontyper.ExpressionTyper.findLeftLeafOfNameExprTraversingParent;
 import static org.drools.modelcompiler.util.ClassUtil.toRawClass;
-import static org.drools.mvelcompiler.util.TypeUtils.toJPType;
 
 public class DrlxParseUtil {
 
@@ -147,12 +150,12 @@ public class DrlxParseUtil {
         return Operator.valueOf(operator.name());
     }
 
-    public static TypedExpression nameExprToMethodCallExpr(String name, java.lang.reflect.Type type, Expression scope) {
+    public static TypedExpression nameExprToMethodCallExpr(String name, java.lang.reflect.Type type, Expression scope, RuleContext context) {
         if (type == null) {
             return null;
         }
         Class<?> clazz = toRawClass( type );
-        Method accessor = getAccessor( clazz, name );
+        Method accessor = getAccessor(clazz, name, context);
         if (accessor != null) {
             MethodCallExpr body = new MethodCallExpr( scope, accessor.getName() );
             return new TypedExpression( body, accessor.getGenericReturnType() );
@@ -179,6 +182,10 @@ public class DrlxParseUtil {
             return new TypedExpression( expr, field.getType() );
         } catch (NoSuchFieldException e) {
             // There's no field with the given name, return null and manage the problem on the caller
+        }
+        if (Map.class.isAssignableFrom(clazz)) {
+            MethodCallExpr body = new MethodCallExpr( scope, "get", new NodeList<>(new StringLiteralExpr(name)) );
+            return new TypedExpression( body, Object.class );
         }
         return null;
     }
@@ -277,7 +284,7 @@ public class DrlxParseUtil {
             return Class.class;
         }
 
-        throw new RuntimeException("Unknown expression type: " + PrintUtil.printConstraint(expr));
+        throw new RuntimeException("Unknown expression type: " + PrintUtil.printNode(expr));
     }
 
     private static java.lang.reflect.Type expressionTypeNameExpr(RuleContext context, Collection<String> usedDeclarations, String nameAsString) {
@@ -359,10 +366,8 @@ public class DrlxParseUtil {
     public static Expression trasformHalfBinaryToBinary(Expression drlxExpr) {
         final Optional<Node> parent = drlxExpr.getParentNode();
         if(drlxExpr instanceof HalfBinaryExpr && parent.isPresent()) {
-
             HalfBinaryExpr halfBinaryExpr = (HalfBinaryExpr) drlxExpr;
-
-            Expression parentLeft = findLeftLeafOfNameExpr( parent.get() );
+            Expression parentLeft = findLeftLeafOfNameExprTraversingParent( halfBinaryExpr );
             Operator operator = toBinaryExprOperator(halfBinaryExpr.getOperator());
             return new BinaryExpr(parentLeft, halfBinaryExpr.getRight(), operator);
         }
@@ -400,10 +405,13 @@ public class DrlxParseUtil {
         } else if (expr instanceof NodeWithTraversableScope) {
             final NodeWithTraversableScope exprWithScope = (NodeWithTraversableScope) expr;
 
-            return exprWithScope.traverseScope().map((Expression scope) -> {
+            return exprWithScope.traverseScope().flatMap((Expression scope) -> {
+                if (isDslTopLevelNamespace(scope)) {
+                    return empty();
+                }
                 Expression sanitizedExpr = DrlxParseUtil.transformDrlNameExprToNameExpr(expr);
                 acc.addLast(sanitizedExpr.clone());
-                return findRootNodeViaScopeRec(scope, acc);
+                return of(findRootNodeViaScopeRec(scope, acc));
             }).orElse(new RemoveRootNodeResult(Optional.of(expr), expr, acc.isEmpty() ? expr : acc.getLast()));
         } else if (expr instanceof NameExpr) {
             if(!acc.isEmpty() && acc.getLast() instanceof NodeWithOptionalScope<?>) {
@@ -455,9 +463,9 @@ public class DrlxParseUtil {
         @Override
         public String toString() {
             return "RemoveRootNodeResult{" +
-                    "rootNode=" + rootNode.map(PrintUtil::printConstraint) +
-                    ", withoutRootNode=" + PrintUtil.printConstraint(withoutRootNode) +
-                    ", firstChild=" + PrintUtil.printConstraint(firstChild) +
+                    "rootNode=" + rootNode.map(PrintUtil::printNode) +
+                    ", withoutRootNode=" + PrintUtil.printNode(withoutRootNode) +
+                    ", firstChild=" + PrintUtil.printNode(firstChild) +
                     '}';
         }
 
@@ -470,9 +478,9 @@ public class DrlxParseUtil {
                 return false;
             }
             RemoveRootNodeResult that = (RemoveRootNodeResult) o;
-            return Objects.equals(rootNode.map(PrintUtil::printConstraint), that.rootNode.map(PrintUtil::printConstraint)) &&
-                    Objects.equals(PrintUtil.printConstraint(withoutRootNode), PrintUtil.printConstraint(that.withoutRootNode)) &&
-                    Objects.equals(PrintUtil.printConstraint(firstChild), PrintUtil.printConstraint(that.firstChild));
+            return Objects.equals(rootNode.map(PrintUtil::printNode), that.rootNode.map(PrintUtil::printNode)) &&
+                    Objects.equals(PrintUtil.printNode(withoutRootNode), PrintUtil.printNode(that.withoutRootNode)) &&
+                    Objects.equals(PrintUtil.printNode(firstChild), PrintUtil.printNode(that.firstChild));
         }
 
         @Override
@@ -518,7 +526,7 @@ public class DrlxParseUtil {
         if (!skipFirstParamAsThis) {
             Type type;
             if (canResolve) {
-                type = toJPType(patternClass.get());
+                type = toClassOrInterfaceType(patternClass.get());
             } else {
                 type = new UnknownType();
             }
@@ -569,7 +577,6 @@ public class DrlxParseUtil {
 
     public static Type classToReferenceType(DeclarationSpec declaration) {
         Class<?> declarationClass = declaration.getDeclarationClass();
-        String className = declarationClass.getCanonicalName();
         ReferenceType parsedType = classNameToReferenceTypeWithBoxing(declarationClass);
         declaration.setBoxed(parsedType.wasBoxed);
         return parsedType.parsedType;
@@ -634,6 +641,10 @@ public class DrlxParseUtil {
     public static ClassOrInterfaceType toClassOrInterfaceType( String className ) {
         String withoutDollars = className.replace("$", "."); // nested class in Java cannot be used in casts
         return withoutDollars.indexOf('<') >= 0 ? StaticJavaParser.parseClassOrInterfaceType(withoutDollars) : new ClassOrInterfaceType(null, withoutDollars);
+    }
+
+    public static StringLiteralExpr toStringLiteral(String s) {
+        return new StringLiteralExpr(null, s);
     }
 
     public static Optional<String> findBindingIdFromDotExpression(String expression) {
@@ -816,8 +827,17 @@ public class DrlxParseUtil {
         return empty();
     }
 
-    public static Method getAccessor( Class<?> clazz, String name ) {
-        return ACCESSOR_CACHE.computeIfAbsent( clazz.getCanonicalName() + "." + name, k -> ClassUtils.getAccessor(clazz, name) );
+    public static Method getAccessor(Class<?> clazz, String name, RuleContext context) {
+        String key = clazz.getCanonicalName() + "." + name;
+        return ACCESSOR_CACHE.computeIfAbsent(key, k -> {
+            Method accessor = null;
+            try {
+                accessor = ClassUtils.getAccessor(clazz, name, true);
+            } catch (IncompatibleGetterOverloadException e) {
+                context.addCompilationError(new IncompatibleGetterOverloadError(clazz, e.getOldName(), e.getOldType(), e.getNewName(), e.getOldType()));
+            }
+            return accessor;
+        });
     }
 
     public static void clearAccessorCache() {
@@ -833,13 +853,11 @@ public class DrlxParseUtil {
     }
 
     public static <T extends Node> T transformDrlNameExprToNameExpr(T e) {
-        e.findAll(DrlNameExpr.class)
-                .forEach(n -> n.replace(new NameExpr(n.getName())));
-        if(e instanceof DrlNameExpr) {
+        if (e instanceof DrlNameExpr) {
             return (T) new NameExpr(((DrlNameExpr) e).getName());
-        } else {
-            return e;
         }
+        e.findAll(DrlNameExpr.class).forEach(n -> n.replace(new NameExpr(n.getName())));
+        return e;
     }
 
     public static String addCurlyBracesToBlock(String blockString) {
@@ -883,6 +901,10 @@ public class DrlxParseUtil {
     }
 
     public static MvelCompiler createMvelCompiler(RuleContext context) {
+        return createMvelCompiler(context, false);
+    }
+
+    public static MvelCompiler createMvelCompiler(RuleContext context, boolean withDrools) {
         MvelCompilerContext mvelCompilerContext = new MvelCompilerContext( context.getTypeResolver(), context.getCurrentScopeSuffix() );
 
         for (DeclarationSpec ds : context.getAllDeclarations()) {
@@ -898,9 +920,12 @@ public class DrlxParseUtil {
             mvelCompilerContext.addDeclaredFunction(m.getNameAsString(), m.getTypeAsString(), parametersType);
         }
 
+        if (withDrools) {
+            mvelCompilerContext.addDeclaration("drools", DroolsImpl.class);
+        }
+
         return new MvelCompiler(mvelCompilerContext);
     }
-
 
     public static ConstraintCompiler createConstraintCompiler(RuleContext context, Optional<Class<?>> originalPatternType) {
         MvelCompilerContext mvelCompilerContext = new MvelCompilerContext( context.getTypeResolver(), context.getCurrentScopeSuffix() );
@@ -931,13 +956,12 @@ public class DrlxParseUtil {
         return ruleBlock.findFirst(expr.getClass(), expr::equals).isPresent();
     }
 
-    public static Expression stripEnclosedExpr(EnclosedExpr eExpr) {
-        Expression inner = eExpr.getInner();
-        if (inner instanceof EnclosedExpr) {
-            return stripEnclosedExpr((EnclosedExpr) inner);
-        } else {
-            return inner;
+    public static Expression stripEnclosedExpr(Expression expr) {
+        if (!(expr instanceof EnclosedExpr)) {
+            return expr;
         }
+        Expression inner = ((EnclosedExpr) expr).getInner();
+        return stripEnclosedExpr(inner);
     }
 
     private DrlxParseUtil() {

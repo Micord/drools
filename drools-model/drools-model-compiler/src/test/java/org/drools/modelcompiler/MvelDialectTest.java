@@ -17,29 +17,35 @@
 package org.drools.modelcompiler;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.assertj.core.api.Assertions;
+import org.drools.core.WorkingMemory;
+import org.drools.core.spi.Tuple;
 import org.drools.modelcompiler.domain.Address;
+import org.drools.modelcompiler.domain.Counter;
 import org.drools.modelcompiler.domain.InternationalAddress;
 import org.drools.modelcompiler.domain.Person;
+import org.drools.modelcompiler.domain.ValueHolder;
 import org.junit.Test;
 import org.kie.api.builder.Message;
 import org.kie.api.builder.Results;
+import org.kie.api.definition.rule.Rule;
+import org.kie.api.runtime.KieRuntime;
 import org.kie.api.runtime.KieSession;
 import org.kie.api.runtime.rule.FactHandle;
+import org.kie.api.runtime.rule.Match;
+import org.slf4j.Logger;
 
 import static java.math.BigDecimal.valueOf;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 
 public class MvelDialectTest extends BaseModelTest {
 
@@ -64,7 +70,7 @@ public class MvelDialectTest extends BaseModelTest {
         ksession.fireAllRules();
 
         Collection<String> results = getObjectsIntoList(ksession, String.class);
-        assertTrue(results.contains("Hello World"));
+        assertThat(results.contains("Hello World")).isTrue();
     }
 
     @Test
@@ -100,11 +106,11 @@ public class MvelDialectTest extends BaseModelTest {
 
         ksession.insert(p);
 
-        assertEquals(1, ksession.fireAllRules());
+        assertThat(ksession.fireAllRules()).isEqualTo(1);
 
         Map<String, String> itemsString = p.getItemsString();
 
-        assertEquals(4, itemsString.keySet().size());
+        assertThat(itemsString.keySet().size()).isEqualTo(4);
     }
 
     @Test
@@ -124,7 +130,8 @@ public class MvelDialectTest extends BaseModelTest {
         ksession.fireAllRules();
 
         Collection<Person> results = getObjectsIntoList(ksession, Person.class);
-        assertEquals(1, results.iterator().next().getAge());
+        assertThat(results.iterator().next().getAge()).isEqualTo(1);
+
         results.forEach(System.out::println);
     }
 
@@ -163,8 +170,8 @@ public class MvelDialectTest extends BaseModelTest {
 
         Collection<String> results = getObjectsIntoList(ksession, String.class);
         System.out.println(results);
-        assertFalse(results.contains("Hello World"));
-        assertTrue(results.contains("Modified person age to 1 for: Matteo"));
+        assertThat(results.contains("Hello World")).isFalse();
+        assertThat(results.contains("Modified person age to 1 for: Matteo")).isTrue();
     }
 
     @Test
@@ -186,7 +193,7 @@ public class MvelDialectTest extends BaseModelTest {
         ksession.fireAllRules();
 
         List<Address> results = getObjectsIntoList(ksession, Address.class);
-        assertEquals(1, results.size());
+        assertThat(results.size()).isEqualTo(1);
     }
 
     public static class TempDecl1 {}
@@ -245,7 +252,7 @@ public class MvelDialectTest extends BaseModelTest {
         ksession.fireAllRules();
 
         List<String> results = getObjectsIntoList(ksession, String.class);
-        assertEquals(1, results.size());
+        assertThat(results.size()).isEqualTo(1);
     }
 
     @Test
@@ -298,7 +305,7 @@ public class MvelDialectTest extends BaseModelTest {
         ksession.fireAllRules();
 
         List<String> results = getObjectsIntoList(ksession, String.class);
-        assertEquals(1, results.size());
+        assertThat(results.size()).isEqualTo(1);
     }
 
     @Test
@@ -332,7 +339,7 @@ public class MvelDialectTest extends BaseModelTest {
             ksession.setGlobal( "value", sb );
             ksession.fireAllRules();
 
-            assertEquals( "mario", sb.toString() );
+            assertThat(sb.toString()).isEqualTo("mario");
         } finally {
             ksession.dispose();
         }
@@ -371,7 +378,7 @@ public class MvelDialectTest extends BaseModelTest {
             ksession.setGlobal( "value", sb );
             ksession.fireAllRules();
 
-            assertEquals( "mario", sb.toString() );
+            assertThat(sb.toString()).isEqualTo("mario");
         } finally {
             ksession.dispose();
         }
@@ -398,8 +405,8 @@ public class MvelDialectTest extends BaseModelTest {
 
         Person john = new Person("John", 24);
         ksession.insert(john);
-        assertEquals(1, ksession.fireAllRules());
-        assertEquals(1, john.getAge());
+        assertThat(ksession.fireAllRules()).isEqualTo(1);
+        assertThat(john.getAge()).isEqualTo(1);
     }
 
     @Test
@@ -416,7 +423,7 @@ public class MvelDialectTest extends BaseModelTest {
                 "end";
 
         Results results = createKieBuilder( drl ).getResults();
-        assertFalse(results.getMessages( Message.Level.ERROR ).isEmpty());
+        assertThat(results.getMessages(Message.Level.ERROR).isEmpty()).isFalse();
     }
 
     @Test
@@ -438,8 +445,8 @@ public class MvelDialectTest extends BaseModelTest {
         john.setMoney( new BigDecimal( 70000 ) );
 
         ksession.insert(john);
-        assertEquals(1, ksession.fireAllRules());
-        assertEquals(new BigDecimal( 120000 ), john.getMoney());
+        assertThat(ksession.fireAllRules()).isEqualTo(1);
+        assertThat(john.getMoney()).isEqualTo(new BigDecimal( 120000 ));
     }
 
     @Test
@@ -464,8 +471,9 @@ public class MvelDialectTest extends BaseModelTest {
         john.setMoney( new BigDecimal( 70000 ) );
 
         ksession.insert(john);
-        assertEquals(1, ksession.fireAllRules());
-        assertEquals(new BigDecimal( 70200 ), john.getMoney());
+        assertThat(ksession.fireAllRules()).isEqualTo(1);
+        assertThat(john.getMoney()).isEqualTo(new BigDecimal( 70200 ));
+
     }
 
     @Test
@@ -495,7 +503,7 @@ public class MvelDialectTest extends BaseModelTest {
 
         ksession.insert(john);
 
-        assertEquals(1, ksession.fireAllRules());
+        assertThat(ksession.fireAllRules()).isEqualTo(1);
         assertThat(results).containsExactly(valueOf(1), valueOf(2));
     }
 
@@ -527,8 +535,8 @@ public class MvelDialectTest extends BaseModelTest {
         ksession.insert(john);
         ksession.insert(mark);
 
-        assertEquals(1, ksession.fireAllRules());
-        assertEquals(new BigDecimal( 70000 ), results.iterator().next());
+        assertThat(ksession.fireAllRules()).isEqualTo(1);
+        assertThat(results.iterator().next()).isEqualTo(new BigDecimal( 70000 ));
     }
 
     @Test
@@ -559,8 +567,8 @@ public class MvelDialectTest extends BaseModelTest {
         ksession.insert(john);
         ksession.insert(mark);
 
-        assertEquals(1, ksession.fireAllRules());
-        assertEquals(new BigDecimal( 80 ), results.iterator().next());
+        assertThat(ksession.fireAllRules()).isEqualTo(1);
+        assertThat(results.iterator().next()).isEqualTo(new BigDecimal( 80 ));
     }
 
     @Test
@@ -599,7 +607,7 @@ public class MvelDialectTest extends BaseModelTest {
         ksession.insert(john);
         ksession.insert(mark);
 
-        assertEquals(1, ksession.fireAllRules());
+        assertThat(ksession.fireAllRules()).isEqualTo(1);
         assertThat(results).containsOnly(john);
         assertThat(results.iterator().next().getName()).isEqualTo("144");
     }
@@ -634,7 +642,7 @@ public class MvelDialectTest extends BaseModelTest {
         ksession.insert(john);
         ksession.insert(mark);
 
-        assertEquals(1, ksession.fireAllRules());
+        assertThat(ksession.fireAllRules()).isEqualTo(1);
         assertThat(results).containsExactly(john);
     }
 
@@ -668,7 +676,7 @@ public class MvelDialectTest extends BaseModelTest {
         ksession.insert(john);
         ksession.insert(mark);
 
-        assertEquals(1, ksession.fireAllRules());
+        assertThat(ksession.fireAllRules()).isEqualTo(1);
         assertThat(results).containsExactly(john);
     }
 
@@ -698,8 +706,8 @@ public class MvelDialectTest extends BaseModelTest {
         john.setMoney( new BigDecimal( 70000 ) );
 
         ksession.insert(john);
-        assertEquals(1, ksession.fireAllRules());
-        assertEquals(new BigDecimal( 400000 ), john.getMoney());
+        assertThat(ksession.fireAllRules()).isEqualTo(1);
+        assertThat(john.getMoney()).isEqualTo(new BigDecimal( 400000 ));
     }
 
     @Test
@@ -736,8 +744,8 @@ public class MvelDialectTest extends BaseModelTest {
         john.setMoney( new BigDecimal( 70000 ) );
 
         ksession.insert(john);
-        assertEquals(1, ksession.fireAllRules());
-        assertEquals(new BigDecimal( 0 ), john.getMoney());
+        assertThat(ksession.fireAllRules()).isEqualTo(1);
+        assertThat(john.getMoney()).isEqualTo(new BigDecimal( 0 ));
     }
 
     @Test
@@ -761,8 +769,8 @@ public class MvelDialectTest extends BaseModelTest {
         john.setOtherBigDecimalField(new BigDecimal("10"));
 
         ksession.insert(john);
-        assertEquals(1, ksession.fireAllRules());
-        assertEquals(new BigDecimal( 7002 ), john.getMoney());
+        assertThat(ksession.fireAllRules()).isEqualTo(1);
+        assertThat(john.getMoney()).isEqualTo(new BigDecimal( 7002 ));
     }
 
     @Test
@@ -785,8 +793,8 @@ public class MvelDialectTest extends BaseModelTest {
         john.setMoney( new BigDecimal( 70000 ) );
 
         ksession.insert(john);
-        assertEquals(1, ksession.fireAllRules());
-        assertEquals(new BigDecimal( 140000 ), john.getMoney());
+        assertThat(ksession.fireAllRules()).isEqualTo(1);
+        assertThat(john.getMoney()).isEqualTo(new BigDecimal( 140000 ));
     }
 
     @Test
@@ -816,8 +824,8 @@ public class MvelDialectTest extends BaseModelTest {
         john.setMoney( new BigDecimal( 70000 ) );
 
         ksession.insert(john);
-        assertEquals(1, ksession.fireAllRules());
-        assertEquals(new BigDecimal( 30000 ), john.getMoney());
+        assertThat(ksession.fireAllRules()).isEqualTo(1);
+        assertThat(john.getMoney()).isEqualTo(new BigDecimal( 30000 ));
         assertThat(logMessages).containsExactly(
                 "before John, money = 70000",
                 "after John, money = 30000");
@@ -847,9 +855,10 @@ public class MvelDialectTest extends BaseModelTest {
         leonardo.setMoney( new BigDecimal( 500 ) );
 
         ksession.insert(john);
-        assertEquals(1, ksession.fireAllRules());
-        assertEquals(new BigDecimal( "1000.23" ), john.getMoney());
-        assertEquals(new BigDecimal( 500 ), leonardo.getMoney());
+        assertThat(ksession.fireAllRules()).isEqualTo(1);
+        assertThat(john.getMoney()).isEqualTo(new BigDecimal( "1000.23" ));
+        assertThat(leonardo.getMoney()).isEqualTo(new BigDecimal( 500 ));
+
     }
 
     @Test
@@ -871,8 +880,8 @@ public class MvelDialectTest extends BaseModelTest {
         john.setSalary( 70000 );
 
         ksession.insert(john);
-        assertEquals(1, ksession.fireAllRules());
-        assertEquals(120000, (int) john.getSalary());
+        assertThat(ksession.fireAllRules()).isEqualTo(1);
+        assertThat((int) john.getSalary()).isEqualTo(120000);
     }
 
     @Test
@@ -894,8 +903,8 @@ public class MvelDialectTest extends BaseModelTest {
         john.setSalary( 70000 );
 
         ksession.insert(john);
-        assertEquals(1, ksession.fireAllRules());
-        assertEquals(50000, (int) john.getSalary());
+        assertThat(ksession.fireAllRules()).isEqualTo(1);
+        assertThat((int) john.getSalary()).isEqualTo(50000);
     }
 
     @Test
@@ -926,8 +935,8 @@ public class MvelDialectTest extends BaseModelTest {
 
         Arrays.asList(mario, luca, leonardo).forEach(ksession::insert);
 
-        assertEquals(1, ksession.fireAllRules());
-        Assertions.assertThat(names).containsExactlyInAnyOrder("Mario", "Luca", "Leonardo");
+        assertThat(ksession.fireAllRules()).isEqualTo(1);
+        assertThat(names).containsExactlyInAnyOrder("Mario", "Luca", "Leonardo");
     }
 
     @Test
@@ -971,9 +980,9 @@ public class MvelDialectTest extends BaseModelTest {
         Address a = new Address("Milan");
         ksession.insert(a);
 
-        assertEquals(1, ksession.fireAllRules());
-        Assertions.assertThat(names).containsExactlyInAnyOrder("Mario", "Luca", "Leonardo");
-        Assertions.assertThat(addresses).contains("Milan");
+        assertThat(ksession.fireAllRules()).isEqualTo(1);
+        assertThat(names).containsExactlyInAnyOrder("Mario", "Luca", "Leonardo");
+        assertThat(addresses).contains("Milan");
     }
 
     @Test
@@ -995,9 +1004,9 @@ public class MvelDialectTest extends BaseModelTest {
         Person mario = new Person();
         ksession.insert( mario );
 
-        assertEquals(1, ksession.fireAllRules());
-        assertEquals("Mario", mario.getName());
-        assertEquals(46, mario.getAge());
+        assertThat(ksession.fireAllRules()).isEqualTo(1);
+        assertThat(mario.getName()).isEqualTo("Mario");
+        assertThat(mario.getAge()).isEqualTo(46);
     }
 
     @Test
@@ -1038,8 +1047,8 @@ public class MvelDialectTest extends BaseModelTest {
         john.setMoney( new BigDecimal( 70000 ) );
 
         ksession.insert(john);
-        assertEquals(1, ksession.fireAllRules());
-        assertEquals(new BigDecimal( 0 ), john.getMoney());
+        assertThat(ksession.fireAllRules()).isEqualTo(1);
+        assertThat(john.getMoney()).isEqualTo(new BigDecimal( 0 ));
     }
 
     @Test
@@ -1061,7 +1070,7 @@ public class MvelDialectTest extends BaseModelTest {
         ksession.insert(47);
         ksession.fireAllRules();
 
-        assertTrue(result.contains("R"));
+        assertThat(result.contains("R")).isTrue();
     }
 
     @Test
@@ -1085,7 +1094,7 @@ public class MvelDialectTest extends BaseModelTest {
         ksession.insert(p);
         int fired = ksession.fireAllRules();
 
-        assertEquals(1, fired);
+        assertThat(fired).isEqualTo(1);
     }
 
     @Test
@@ -1108,7 +1117,7 @@ public class MvelDialectTest extends BaseModelTest {
 
         Person me = new Person( "Mario", 47 );
         ksession.insert( me );
-        assertEquals( 2, ksession.fireAllRules() );
+        assertThat(ksession.fireAllRules()).isEqualTo(2);
     }
 
     @Test
@@ -1132,7 +1141,7 @@ public class MvelDialectTest extends BaseModelTest {
 
         Person me = new Person( "Mario", 47 );
         ksession.insert( me );
-        assertEquals( 2, ksession.fireAllRules() );
+        assertThat(ksession.fireAllRules()).isEqualTo(2);
     }
 
     @Test
@@ -1162,7 +1171,7 @@ public class MvelDialectTest extends BaseModelTest {
         me.addAddress(address);
 
         ksession.insert( me);
-        assertEquals( 1, ksession.fireAllRules() );
+        assertThat(ksession.fireAllRules()).isEqualTo(1);
 
         assertThat(results).containsOnly("Address");
     }
@@ -1225,7 +1234,7 @@ public class MvelDialectTest extends BaseModelTest {
         ksession.insert(john);
         ksession.insert(leonardo);
 
-        assertEquals( 1, ksession.fireAllRules() );
+        assertThat(ksession.fireAllRules()).isEqualTo(1);
 
         assertThat(results).containsOnly(leonardo);
     }
@@ -1268,7 +1277,7 @@ public class MvelDialectTest extends BaseModelTest {
 
         ksession.insert(leonardo);
 
-        assertEquals( 1, ksession.fireAllRules() );
+        assertThat(ksession.fireAllRules()).isEqualTo(1);
 
         assertThat(results).containsExactly(valueOf(1012), valueOf(1012), valueOf(1012), valueOf(101212));
     }
@@ -1320,7 +1329,7 @@ public class MvelDialectTest extends BaseModelTest {
         ksession.insert(leonardo);
 
         int rulesFired = ksession.fireAllRules();
-        assertEquals( 3, rulesFired);
+        assertThat(rulesFired).isEqualTo(3);
         assertThat(results).containsExactly("John");
     }
 
@@ -1447,5 +1456,324 @@ public class MvelDialectTest extends BaseModelTest {
         ksession.insert(person);
         ksession.fireAllRules();
         assertThat(result).containsExactly(1);
+    }
+
+    @Test
+    public void testMVELBigIntegerLiteralRHS() {
+        String str = "package com.example.reproducer\n" +
+                "import " + Person.class.getCanonicalName() + ";\n" +
+                "rule R\n" +
+                "dialect \"mvel\"\n" +
+                "when\n" +
+                "  $p : Person()\n" +
+                "then\n" +
+                "  $p.setAgeInSeconds(10000I);\n" +
+                "end";
+
+        KieSession ksession = getKieSession(str);
+
+        Person p = new Person();
+        ksession.insert(p);
+        ksession.fireAllRules();
+
+        assertThat(p.getAgeInSeconds().equals(new BigInteger("10000"))).isTrue();
+    }
+
+    @Test
+    public void testMVELBigDecimalLiteralRHS() {
+        String str = "package com.example.reproducer\n" +
+                "import " + Person.class.getCanonicalName() + ";\n" +
+                "rule R\n" +
+                "dialect \"mvel\"\n" +
+                "when\n" +
+                "  $p : Person()\n" +
+                "then\n" +
+                "  $p.setMoney(10000B);\n" +
+                "end";
+
+        KieSession ksession = getKieSession(str);
+
+        Person p = new Person();
+        ksession.insert(p);
+        ksession.fireAllRules();
+
+        assertThat(p.getMoney().equals(new BigDecimal("10000"))).isTrue();
+    }
+
+    @Test
+    public void testMVELBigIntegerLiteralLHS() {
+        String str = "package com.example.reproducer\n" +
+                "import " + Person.class.getCanonicalName() + ";\n" +
+                "rule R\n" +
+                "dialect \"mvel\"\n" +
+                "when\n" +
+                "  $p : Person(ageInSeconds == 10000I)\n" +
+                "then\n" +
+                "end";
+
+        KieSession ksession = getKieSession(str);
+
+        Person p = new Person();
+        p.setAgeInSeconds(new BigInteger("10000"));
+        ksession.insert(p);
+        int fired = ksession.fireAllRules();
+
+        assertThat(fired).isEqualTo(1);
+    }
+
+    @Test
+    public void testMVELModifyPropMethodCall() {
+        String str = "package com.example.reproducer\n" +
+                "import " + Person.class.getCanonicalName() + ";\n" +
+                "rule R\n" +
+                "dialect \"mvel\"\n" +
+                "when\n" +
+                "  $p : Person()\n" +
+                "then\n" +
+                "  modify($p) {\n" +
+                "    age = 20,\n" +
+                "    addresses.clear();\n" +
+                "  }\n" +
+                "end";
+
+        KieSession ksession = getKieSession(str);
+
+        Person p = new Person("John");
+        List<Address> addresses = new ArrayList<>();
+        addresses.add(new Address("London"));
+        p.setAddresses(addresses);
+        ksession.insert(p);
+        int fired = ksession.fireAllRules();
+
+        assertThat(p.getAge()).isEqualTo(20);
+        assertThat(p.getAddresses().size()).isEqualTo(0);
+        assertThat(fired).isEqualTo(1);
+    }
+
+    @Test
+    public void assign_primitiveBooleanProperty() {
+        // DROOLS-7250
+        String str = "package com.example.reproducer\n" +
+                     "import " + ValueHolder.class.getCanonicalName() + ";\n" +
+                     "rule R\n" +
+                     "dialect \"mvel\"\n" +
+                     "when\n" +
+                     "  $holder : ValueHolder()\n" +
+                     "then\n" +
+                     "  $holder.primitiveBooleanValue = true;\n" +
+                     "end";
+
+        KieSession ksession = getKieSession(str);
+
+        ValueHolder holder = new ValueHolder();
+        holder.setPrimitiveBooleanValue(false);
+        ksession.insert(holder);
+        ksession.fireAllRules();
+
+        assertThat(holder.isPrimitiveBooleanValue()).isTrue();
+    }
+
+    @Test
+    public void assign_wrapperBooleanProperty() {
+        // DROOLS-7250
+        String str = "package com.example.reproducer\n" +
+                     "import " + ValueHolder.class.getCanonicalName() + ";\n" +
+                     "rule R\n" +
+                     "dialect \"mvel\"\n" +
+                     "when\n" +
+                     "  $holder : ValueHolder()\n" +
+                     "then\n" +
+                     "  $holder.wrapperBooleanValue = true;\n" +
+                     "end";
+
+        KieSession ksession = getKieSession(str);
+
+        ValueHolder holder = new ValueHolder();
+        holder.setWrapperBooleanValue(false);
+        ksession.insert(holder);
+        ksession.fireAllRules();
+
+        assertThat(holder.getWrapperBooleanValue()).isTrue();
+    }
+
+    public void assign_nestedProperty() {
+        // DROOLS-7195
+        String str = "package com.example.reproducer\n" +
+                "import " + Person.class.getCanonicalName() + ";\n" +
+                "rule R\n" +
+                "dialect \"mvel\"\n" +
+                "when\n" +
+                "  $p : Person()\n" +
+                "then\n" +
+                "  $p.address.city = \"Tokyo\";\n" +
+                "end";
+
+        KieSession ksession = getKieSession(str);
+
+        Person p = new Person("John");
+        p.setAddress(new Address("London"));
+        ksession.insert(p);
+        ksession.fireAllRules();
+
+        assertThat(p.getAddress().getCity()).isEqualTo("Tokyo");
+    }
+
+    @Test
+    public void assign_nestedPropertyInModify() {
+        // DROOLS-7195
+        String str = "package com.example.reproducer\n" +
+                "import " + Person.class.getCanonicalName() + ";\n" +
+                "rule R\n" +
+                "dialect \"mvel\"\n" +
+                "when\n" +
+                "  $p : Person(name == \"John\")\n" +
+                "then\n" +
+                "  modify($p) {" +
+                "    address.city = \"Tokyo\";\n" +
+                "  }\n" +
+                "end";
+
+        KieSession ksession = getKieSession(str);
+
+        Person p = new Person("John");
+        p.setAddress(new Address("London"));
+        ksession.insert(p);
+        ksession.fireAllRules();
+
+        assertThat(p.getAddress().getCity()).isEqualTo("Tokyo");
+    }
+
+    @Test
+    public void setter_nestedPropertyInModify() {
+        // DROOLS-7195
+        String str = "package com.example.reproducer\n" +
+                "import " + Person.class.getCanonicalName() + ";\n" +
+                "rule R\n" +
+                "dialect \"mvel\"\n" +
+                "when\n" +
+                "  $p : Person(name == \"John\")\n" +
+                "then\n" +
+                "  modify($p) {" +
+                "    address.setCity(\"Tokyo\");\n" +
+                "  }\n" +
+                "end";
+
+        KieSession ksession = getKieSession(str);
+
+        Person p = new Person("John");
+        p.setAddress(new Address("London"));
+        ksession.insert(p);
+        ksession.fireAllRules();
+
+        assertThat(p.getAddress().getCity()).isEqualTo("Tokyo");
+    }
+
+    @Test
+    public void assign_deepNestedPropertyInModify() {
+        // DROOLS-7195
+        String str = "package com.example.reproducer\n" +
+                "import " + Person.class.getCanonicalName() + ";\n" +
+                "rule R\n" +
+                "dialect \"mvel\"\n" +
+                "when\n" +
+                "  $p : Person(name == \"John\")\n" +
+                "then\n" +
+                "  modify($p) {" +
+                "    address.visitorCounter.value = 1;\n" +
+                "  }\n" +
+                "end";
+
+        KieSession ksession = getKieSession(str);
+
+        Person person = new Person("John");
+        Address address = new Address("London");
+        Counter counter = new Counter();
+        counter.setValue(0);
+        address.setVisitorCounter(counter);
+        person.setAddress(address);
+        ksession.insert(person);
+        ksession.fireAllRules();
+
+        assertThat(person.getAddress().getVisitorCounter().getValue()).isEqualTo(1);
+    }
+
+    @Test
+    public void setter_deepNestedPropertyInModify() {
+        // DROOLS-7195
+        String str = "package com.example.reproducer\n" +
+                "import " + Person.class.getCanonicalName() + ";\n" +
+                "rule R\n" +
+                "dialect \"mvel\"\n" +
+                "when\n" +
+                "  $p : Person(name == \"John\")\n" +
+                "then\n" +
+                "  modify($p) {" +
+                "    address.visitorCounter.setValue(1);\n" +
+                "  }\n" +
+                "end";
+
+        KieSession ksession = getKieSession(str);
+
+        Person person = new Person("John");
+        Address address = new Address("London");
+        Counter counter = new Counter();
+        counter.setValue(0);
+        address.setVisitorCounter(counter);
+        person.setAddress(address);
+        ksession.insert(person);
+        ksession.fireAllRules();
+
+        assertThat(person.getAddress().getVisitorCounter().getValue()).isEqualTo(1);
+    }
+
+    @Test
+    public void drools_workingMemory_setGlobal() {
+        // DROOLS-7338
+        String str = "package com.example.reproducer\n" +
+                     "import " + Logger.class.getCanonicalName() + ";\n" +
+                     "global Logger logger;\n" +
+                     "rule R\n" +
+                     "  dialect \"mvel\"\n" +
+                     "  when\n" +
+                     "  then\n" +
+                     "    drools.workingMemory.setGlobal(\"logger\", org.slf4j.LoggerFactory.getLogger(getClass()));\n" +
+                     "end";
+
+        KieSession ksession = getKieSession(str);
+
+        ksession.fireAllRules();
+
+        Object logger = ksession.getGlobal("logger");
+        assertThat(logger).isInstanceOf(Logger.class);
+    }
+
+    @Test
+    public void drools_fieldAccess() {
+        String str = "package com.example.reproducer\n" +
+                     "global java.util.Map results;\n" +
+                     "rule R\n" +
+                     "  dialect \"mvel\"\n" +
+                     "  when\n" +
+                     "  then\n" +
+                     "    results.put(\"workingMemory\", drools.workingMemory);\n" +
+                     "    results.put(\"rule\", drools.rule);\n" +
+                     "    results.put(\"match\", drools.match);\n" +
+                     "    results.put(\"tuple\", drools.tuple);\n" +
+                     "    results.put(\"knowledgeRuntime\", drools.knowledgeRuntime);\n" +
+                     "    results.put(\"kieRuntime\", drools.kieRuntime);\n" +
+                     "end";
+
+        KieSession ksession = getKieSession(str);
+        Map<String, Object> results = new HashMap<>();
+        ksession.setGlobal("results", results);
+
+        ksession.fireAllRules();
+
+        assertThat(results.get("workingMemory")).isInstanceOf(WorkingMemory.class);
+        assertThat(results.get("rule")).isInstanceOf(Rule.class);
+        assertThat(results.get("match")).isInstanceOf(Match.class);
+        assertThat(results.get("tuple")).isInstanceOf(Tuple.class);
+        assertThat(results.get("knowledgeRuntime")).isInstanceOf(KieRuntime.class);
+        assertThat(results.get("kieRuntime")).isInstanceOf(KieRuntime.class);
     }
 }

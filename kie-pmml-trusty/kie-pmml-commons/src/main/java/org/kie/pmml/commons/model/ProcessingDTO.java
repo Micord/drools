@@ -17,8 +17,11 @@ package org.kie.pmml.commons.model;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
+import org.kie.pmml.api.models.MiningField;
 import org.kie.pmml.commons.model.tuples.KiePMMLNameValue;
 import org.kie.pmml.commons.transformations.KiePMMLDefineFunction;
 import org.kie.pmml.commons.transformations.KiePMMLDerivedField;
@@ -35,33 +38,36 @@ public class ProcessingDTO {
     private final List<KiePMMLTarget> kiePMMLTargets;
     private final List<KiePMMLNameValue> kiePMMLNameValues;
     private final List<String> orderedReasonCodes;
+    private final List<MiningField> miningFields;
+    private Object predictedDisplayValue;
+    private Object entityId;
+    private Object affinity;
+    private Map<String, Double> probabilityMap;
 
     /**
      *
      * @param model
      * @param kiePMMLNameValues a <b>mutable</b> list of <code>KiePMMLNameValue</code>
-     * @param orderedReasonCodes a <b>mutable</b> list
      */
-    public ProcessingDTO(final KiePMMLModel model,
-                         final List<KiePMMLNameValue> kiePMMLNameValues,
-                         final List<String> orderedReasonCodes) {
-        derivedFields = new ArrayList<>();
-        defineFunctions = new ArrayList<>();
+    public ProcessingDTO(final KiePMMLModel model, final List<KiePMMLNameValue> kiePMMLNameValues) {
+        this.derivedFields = new ArrayList<>();
+        this.defineFunctions = new ArrayList<>();
         if (model.getTransformationDictionary() != null) {
             if (model.getTransformationDictionary().getDerivedFields() != null) {
-                derivedFields.addAll(model.getTransformationDictionary().getDerivedFields());
+                this.derivedFields.addAll(model.getTransformationDictionary().getDerivedFields());
             }
             if (model.getTransformationDictionary().getDefineFunctions() != null) {
-                defineFunctions.addAll(model.getTransformationDictionary().getDefineFunctions());
+                this.defineFunctions.addAll(model.getTransformationDictionary().getDefineFunctions());
             }
         }
         if (model.getLocalTransformations() != null && model.getLocalTransformations().getDerivedFields() != null) {
-            derivedFields.addAll(model.getLocalTransformations().getDerivedFields());
+            this.derivedFields.addAll(model.getLocalTransformations().getDerivedFields());
         }
-        outputFields =  model.getKiePMMLOutputFields();
-        kiePMMLTargets = model.getKiePMMLTargets();
+        this.outputFields = model.getKiePMMLOutputFields();
+        this.kiePMMLTargets = model.getKiePMMLTargets();
         this.kiePMMLNameValues = kiePMMLNameValues;
-        this.orderedReasonCodes = orderedReasonCodes;
+        this.orderedReasonCodes = new ArrayList<>();
+        this.miningFields = model.getMiningFields();
     }
 
     /**
@@ -69,34 +75,29 @@ public class ProcessingDTO {
      * @param defineFunctions
      * @param derivedFields
      * @param outputFields
+     * @param kiePMMLTargets
      * @param kiePMMLNameValues a <b>mutable</b> list of <code>KiePMMLNameValue</code>
+     * @param miningFields
      * @param orderedReasonCodes a <b>mutable</b> list
      */
     public ProcessingDTO(final List<KiePMMLDefineFunction> defineFunctions,
                          final List<KiePMMLDerivedField> derivedFields,
                          final List<KiePMMLOutputField> outputFields,
+                         final List<KiePMMLTarget> kiePMMLTargets,
                          final List<KiePMMLNameValue> kiePMMLNameValues,
+                         final List<MiningField> miningFields,
                          final List<String> orderedReasonCodes) {
         this.defineFunctions = defineFunctions;
         this.derivedFields = derivedFields;
         this.outputFields =  outputFields;
-        kiePMMLTargets = Collections.emptyList();
+        this.kiePMMLTargets = kiePMMLTargets;
+        this.miningFields =  miningFields;
         this.kiePMMLNameValues = kiePMMLNameValues;
         this.orderedReasonCodes = orderedReasonCodes;
-    }
-
-    /**
-     *
-     * @param defineFunctions
-     * @param derivedFields
-     * @param outputFields
-     * @param kiePMMLNameValues a <b>mutable</b> list of <code>KiePMMLNameValue</code>
-     */
-    public ProcessingDTO(final List<KiePMMLDefineFunction> defineFunctions,
-                         final List<KiePMMLDerivedField> derivedFields,
-                         final List<KiePMMLOutputField> outputFields,
-                         final List<KiePMMLNameValue> kiePMMLNameValues) {
-        this(defineFunctions, derivedFields, outputFields,kiePMMLNameValues, Collections.emptyList());
+        this.predictedDisplayValue = null;
+        this.entityId = null;
+        this.affinity = null;
+        this.probabilityMap = new LinkedHashMap<>();
     }
 
     public List<KiePMMLDefineFunction> getDefineFunctions() {
@@ -136,5 +137,41 @@ public class ProcessingDTO {
 
     public boolean addOrderedReasonCodes(List<String> toAdd) {
         return orderedReasonCodes.addAll(toAdd);
+    }
+
+    public List<MiningField> getMiningFields() {
+        return Collections.unmodifiableList(miningFields);
+    }
+
+    public Object getPredictedDisplayValue() {
+        return predictedDisplayValue;
+    }
+
+    public void setPredictedDisplayValue(Object predictedDisplayValue) {
+        this.predictedDisplayValue = predictedDisplayValue;
+    }
+
+    public Object getEntityId() {
+        return entityId;
+    }
+
+    public void setEntityId(Object entityId) {
+        this.entityId = entityId;
+    }
+
+    public Object getAffinity() {
+        return affinity;
+    }
+
+    public void setAffinity(Object affinity) {
+        this.affinity = affinity;
+    }
+
+    public Map<String, Double> getProbabilityMap() {
+        return probabilityMap;
+    }
+
+    public void setProbabilityMap(Map<String, Double> probabilityMap) {
+        this.probabilityMap = probabilityMap;
     }
 }

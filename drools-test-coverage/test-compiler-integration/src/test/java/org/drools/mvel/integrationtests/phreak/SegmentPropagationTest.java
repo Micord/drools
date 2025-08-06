@@ -29,12 +29,11 @@ import org.drools.core.reteoo.LeftTupleSink;
 import org.drools.core.reteoo.NodeTypeEnums;
 import org.drools.core.reteoo.SegmentMemory;
 import org.drools.core.reteoo.builder.BuildContext;
-import org.drools.mvel.MVELDialectRuntimeData;
+import org.drools.core.rule.JavaDialectRuntimeData;
 import org.junit.Test;
 
 import static org.drools.mvel.integrationtests.phreak.Pair.t;
 
-// TODO: EM Need to migrate this to executable model
 public class SegmentPropagationTest {
     
     BuildContext          buildContext;
@@ -163,18 +162,20 @@ public class SegmentPropagationTest {
                                          t(a1, b0) )
                                 .delete( )
                                 .update( )
+
               .postStaged( smem1 ).insert( t(a1, b0),
                                            t(a1, b2),
                                            t(a0, b1),
                                            t(a0, b2) )
                                   .delete( )
                                   .update( )
+
               .postStaged( smem2 ).insert( t(a1, b0),
                                            t(a1, b2),
                                            t(a0, b1),
                                            t(a0, b2) )
-              .delete( )
-              .update( )
+                                  .delete( )
+                                  .update( )
               .run();
         test().right().delete( b2 )
               .preStaged(smem0).insert( t(a0, b1),
@@ -218,7 +219,7 @@ public class SegmentPropagationTest {
 
         RuleImpl rule = new RuleImpl( "rule1").setPackage( "org.pkg1" );
         InternalKnowledgePackage pkg = new KnowledgePackageImpl( "org.pkg1" );
-        pkg.getDialectRuntimeRegistry().setDialectData( "mvel", new MVELDialectRuntimeData() );
+        pkg.getDialectRuntimeRegistry().setDialectData( "java", new JavaDialectRuntimeData() );
         pkg.addRule( rule );
         buildContext.setRule( rule );
     

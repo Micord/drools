@@ -32,6 +32,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.kie.api.builder.ReleaseId;
 
@@ -1007,6 +1008,14 @@ public class StringUtils {
         return codeAwareSplitOnChar(string, true, ';', '\n');
     }
 
+    public static List<String> splitStatementsAcrossBlocks(CharSequence string) {
+        List<String> statements = codeAwareSplitOnChar(string, true, ';', '\n', '{', '}');
+        return statements.stream()
+                .filter(stmt -> !(stmt.isEmpty()))
+                .filter(stmt -> !(stmt.startsWith("//")))
+                .collect(Collectors.toList());
+    }
+
     public static List<String> splitArgumentsList(CharSequence string) {
         return splitArgumentsList(string, true);
     }
@@ -1019,10 +1028,11 @@ public class StringUtils {
         List<String> args = new ArrayList<String>();
         int lastStart = 0;
         int nestedParam = 0;
-        boolean isQuoted = false;
+        boolean isSingleQuoted = false;
+        boolean isDoubleQuoted = false;
         for (int i = 0; i < string.length(); i++) {
             if (contains(chs, string.charAt( i ))) {
-                if (!isQuoted && nestedParam == 0) {
+                if (!isSingleQuoted && !isDoubleQuoted && nestedParam == 0) {
                     String arg = string.subSequence(lastStart, i).toString();
                     args.add(trimArgs ? arg.trim() : arg);
                     lastStart = i+1;
@@ -1032,17 +1042,21 @@ public class StringUtils {
                     case '(':
                     case '[':
                     case '{':
-                        if (!isQuoted) nestedParam++;
+                        if (!isSingleQuoted && !isDoubleQuoted) nestedParam++;
                         break;
                     case ')':
                     case ']':
                     case '}':
-                        if (!isQuoted) nestedParam--;
+                        if (!isSingleQuoted && !isDoubleQuoted) nestedParam--;
                         break;
                     case '"':
+                        if (!isSingleQuoted && (i == 0 || string.charAt(i-1) != '\\')) {
+                            isDoubleQuoted = !isDoubleQuoted;
+                        }
+                        break;
                     case '\'':
-                        if (i == 0 || string.charAt(i-1) != '\\') {
-                            isQuoted = !isQuoted;
+                        if (!isDoubleQuoted && (i == 0 || string.charAt(i-1) != '\\')) {
+                            isSingleQuoted = !isSingleQuoted;
                         }
                         break;
                     case '\\':
@@ -1265,7 +1279,7 @@ public class StringUtils {
                     if (!inMultiLineComment && i+1 < pos) {
                         if (str.charAt( i+1 ) == '*') {
                             inMultiLineComment = true;
-                        } else if (str.charAt( i+1 ) == '/') {
+                        } else if (str.charAt( i+1 ) == '/' && !isInQuotes( str, i )) {
                             inSingleLineComment = true;
                         }
                         i++;
@@ -1371,5 +1385,23 @@ public class StringUtils {
 
     public static String uuid() {
         return "x" + UUID.randomUUID().toString().replace( '-', 'x' );
+    }
+
+    public static boolean doesFirstPropHaveListMapAccessor(String expression) {
+        StringBuilder propertyNameBuilder = new StringBuilder();
+        int cursor = extractFirstIdentifier(expression, propertyNameBuilder, 0);
+        Character nextChar = lookAheadIgnoringSpaces(expression, cursor);
+        return nextChar != null && nextChar.equals('[');
+    }
+
+    public static Character lookAheadIgnoringSpaces(String expression, int cursor) {
+        while (cursor < expression.length()) {
+            char c = expression.charAt(cursor);
+            if (!Character.isWhitespace(c)) {
+                return c;
+            }
+            cursor++;
+        }
+        return null;
     }
 }

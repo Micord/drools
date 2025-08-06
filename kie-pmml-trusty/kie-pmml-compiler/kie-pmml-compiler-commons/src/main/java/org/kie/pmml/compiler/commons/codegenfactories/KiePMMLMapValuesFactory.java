@@ -23,22 +23,21 @@ import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.expr.NameExpr;
-import com.github.javaparser.ast.expr.NullLiteralExpr;
 import com.github.javaparser.ast.expr.StringLiteralExpr;
 import com.github.javaparser.ast.stmt.BlockStmt;
 import org.dmg.pmml.FieldColumnPair;
 import org.dmg.pmml.MapValues;
-import org.kie.pmml.api.enums.BOOLEAN_OPERATOR;
-import org.kie.pmml.api.enums.DATA_TYPE;
 import org.kie.pmml.api.exceptions.KiePMMLException;
 import org.kie.pmml.compiler.commons.utils.JavaParserUtils;
 
 import static org.kie.pmml.commons.Constants.MISSING_BODY_TEMPLATE;
 import static org.kie.pmml.commons.Constants.MISSING_VARIABLE_INITIALIZER_TEMPLATE;
 import static org.kie.pmml.commons.Constants.MISSING_VARIABLE_IN_BODY;
+import static org.kie.pmml.commons.Constants.VARIABLE_NAME_TEMPLATE;
 import static org.kie.pmml.compiler.commons.codegenfactories.KiePMMLFieldColumnPairFactory.getFieldColumnPairVariableDeclaration;
 import static org.kie.pmml.compiler.commons.codegenfactories.KiePMMLInlineTableFactory.getInlineTableVariableDeclaration;
 import static org.kie.pmml.compiler.commons.utils.CommonCodegenUtils.getChainedMethodCallExprFrom;
+import static org.kie.pmml.compiler.commons.utils.CommonCodegenUtils.getExpressionForDataType;
 import static org.kie.pmml.compiler.commons.utils.CommonCodegenUtils.getExpressionForObject;
 import static org.kie.pmml.compiler.commons.utils.CommonCodegenUtils.getVariableDeclarator;
 import static org.kie.pmml.compiler.commons.utils.JavaParserUtils.MAIN_CLASS_NOT_FOUND;
@@ -82,7 +81,7 @@ public class KiePMMLMapValuesFactory {
         final NodeList<Expression> arguments = new NodeList<>();
         if (mapValues.hasFieldColumnPairs()) {
             for (FieldColumnPair fieldColumnPair : mapValues.getFieldColumnPairs()) {
-                String nestedVariableName = String.format("%s_%s", variableName, counter);
+                String nestedVariableName = String.format(VARIABLE_NAME_TEMPLATE, variableName, counter);
                 arguments.add(new NameExpr(nestedVariableName));
                 BlockStmt toAdd = getFieldColumnPairVariableDeclaration(nestedVariableName, fieldColumnPair);
                 toAdd.getStatements().forEach(toReturn::addStatement);
@@ -101,13 +100,7 @@ public class KiePMMLMapValuesFactory {
         final StringLiteralExpr outputColumnExpr = new StringLiteralExpr(mapValues.getOutputColumn());
         builder.setArgument(0, nameExpr);
         builder.setArgument(2, outputColumnExpr);
-        final Expression dataTypeExpression;
-        if (mapValues.getDataType() != null) {
-            final DATA_TYPE dataType = DATA_TYPE.byName(mapValues.getDataType().value());
-            dataTypeExpression = new NameExpr(DATA_TYPE.class.getName() + "." + dataType.name());
-        } else {
-            dataTypeExpression = new NullLiteralExpr();
-        }
+        final Expression dataTypeExpression = getExpressionForDataType(mapValues.getDataType());
         getChainedMethodCallExprFrom("withDefaultValue", initializer).setArgument(0, getExpressionForObject
         (mapValues.getDefaultValue()));
         getChainedMethodCallExprFrom("withMapMissingTo", initializer).setArgument(0, getExpressionForObject

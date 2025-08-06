@@ -19,7 +19,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Predicate;
 
-import org.assertj.core.api.Assertions;
 import org.drools.compiler.kie.builder.impl.InternalKieModule;
 import org.drools.compiler.kproject.models.KieModuleModelImpl;
 import org.drools.mvel.compiler.Message;
@@ -49,10 +48,9 @@ import org.kie.internal.builder.KnowledgeBuilder;
 import org.kie.internal.builder.KnowledgeBuilderFactory;
 import org.kie.internal.io.ResourceFactory;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.fail;
 
 @RunWith(Parameterized.class)
 public class KieBuilderTest {
@@ -97,8 +95,8 @@ public class KieBuilderTest {
 
         final String kmodule = "<kmodule xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" \n" +
                 "         xmlns=\"http://www.drools.org/xsd/kmodule\">\n" +
-                "  <kbase name=\"kbase1\" default=\"true\" eventProcessingMode=\"stream\" equalsBehavior=\"identity\" scope=\"javax.enterprise.context.ApplicationScoped\">\n" +
-                "    <ksession name=\"ksession1\" type=\"stateful\" default=\"true\" clockType=\"realtime\" scope=\"javax.enterprise.context.ApplicationScoped\"/>\n" +
+                "  <kbase name=\"kbase1\" default=\"true\" eventProcessingMode=\"stream\" equalsBehavior=\"identity\" scope=\"jakarta.enterprise.context.ApplicationScoped\">\n" +
+                "    <ksession name=\"ksession1\" type=\"stateful\" default=\"true\" clockType=\"realtime\" scope=\"jakarta.enterprise.context.ApplicationScoped\"/>\n" +
                 "  </kbase>\n" +
                 "</kmodule>";
 
@@ -114,16 +112,16 @@ public class KieBuilderTest {
         KieModule km = KieUtil.buildAndInstallKieModuleIntoRepo(kieBaseTestConfiguration, releaseId1, KieModuleModelImpl.fromXML(kmodule), r1, r2, r3, r4);
 
         final InternalKieModule ikm = (InternalKieModule) km;
-        assertNotNull( ikm.getResource( r1.getSourcePath() ) );
-        assertNotNull( ikm.getResource( r2.getSourcePath() ) );
-        assertNotNull( ikm.getResource( r3.getSourcePath() ) );
-        assertNotNull( ikm.getResource( r4.getSourcePath() ) );
+        assertThat(ikm.getResource( r1.getSourcePath())).isNotNull();
+        assertThat( ikm.getResource( r2.getSourcePath())).isNotNull();
+        assertThat( ikm.getResource( r3.getSourcePath())).isNotNull();
+        assertThat( ikm.getResource( r4.getSourcePath())).isNotNull();
 
         // Create a session and fire rules
         final KieContainer kc = ks.newKieContainer( km.getReleaseId() );
         final KieSession ksession = kc.newKieSession();
         ksession.insert( new Message( "Hello World" ) );
-        assertEquals( 2, ksession.fireAllRules() );
+        assertThat(ksession.fireAllRules()).isEqualTo(2);
         ksession.dispose();
     }
 
@@ -173,7 +171,7 @@ public class KieBuilderTest {
         final ReleaseId releaseId1 = ks.newReleaseId( "org.kie", "test-kie-builder", "1.0.0" );
         final Resource r1 = ResourceFactory.newByteArrayResource( drl1.getBytes() ).setResourceType( ResourceType.DRL ).setSourcePath( "kbase1/drl1.drl" );
 
-        Assertions.assertThatThrownBy(() -> KieUtil.buildAndInstallKieModuleIntoRepo(kieBaseTestConfiguration, releaseId1, KieModuleModelImpl.fromXML(kmodule), r1))
+        assertThatThrownBy(() -> KieUtil.buildAndInstallKieModuleIntoRepo(kieBaseTestConfiguration, releaseId1, KieModuleModelImpl.fromXML(kmodule), r1))
         .isInstanceOf(RuntimeException.class)
         .hasMessageContaining("XSD validation failed");
     }
@@ -233,14 +231,14 @@ public class KieBuilderTest {
         kfs.writeKModuleXML( kmoduleModel.toXML() );
 
         final KieBuilder builder = KieUtil.getKieBuilderFromKieFileSystem(kieBaseTestConfiguration, kfs, false);
-        assertEquals( 0, builder.getResults().getMessages().size() );
+        assertThat(builder.getResults().getMessages().size()).isEqualTo(0);
         ks.getRepository().addKieModule( builder.getKieModule() );
 
         final KieSession kieSession = ks.newKieContainer( ks.getRepository().getDefaultReleaseId() ).newKieSession( KSESSION_NAME );
-        assertNotNull( kieSession );
+        assertThat(kieSession).isNotNull();
 
         final KieBase kieBase = ks.newKieContainer( ks.getRepository().getDefaultReleaseId() ).getKieBase( KBASE_NAME );
-        assertNotNull( kieBase );
+        assertThat(kieBase).isNotNull();
     }
 
     @Test
@@ -257,7 +255,7 @@ public class KieBuilderTest {
 
         System.out.println( results.getMessages() );
 
-        assertEquals( 1, results.getMessages().size() );
+        assertThat(results.getMessages().size()).isEqualTo(1);
     }
 
     @Test
@@ -291,7 +289,7 @@ public class KieBuilderTest {
         final KieContainer kieContainer = ks.newKieContainer(km.getReleaseId());
         try {
             final Class<?> messageClass = kieContainer.getClassLoader().loadClass("org.drools.mvel.compiler.JavaSourceMessage");
-            assertNotNull(messageClass);
+            assertThat(messageClass).isNotNull();
         } catch (final ClassNotFoundException e) {
             throw new IllegalStateException("Loading the java class failed.", e);
         }
@@ -348,7 +346,7 @@ public class KieBuilderTest {
         final KieContainer kieContainer = ks.newKieContainer(km.getReleaseId());
         try {
             final Class<?> messageClass = kieContainer.getClassLoader().loadClass("org.drools.mvel.compiler.JavaSourceMessage");
-            assertNotNull(messageClass);
+            assertThat(messageClass).isNotNull();
         } catch (final ClassNotFoundException e) {
             throw new IllegalStateException("Loading the java class failed.", e);
         }
@@ -386,15 +384,15 @@ public class KieBuilderTest {
         for ( final org.kie.api.builder.Message m : builder.getResults().getMessages() ) {
             System.out.println( m );
         }
-        assertEquals( 0, builder.getResults().getMessages().size() );
+        assertThat(builder.getResults().getMessages().size()).isEqualTo(0);
 
         ks.getRepository().addKieModule( builder.getKieModule() );
 
         final KieSession kieSession = ks.newKieContainer( ks.getRepository().getDefaultReleaseId() ).newKieSession( KSESSION_NAME );
-        assertNotNull( kieSession );
+        assertThat(kieSession).isNotNull();
 
         final KieBase kieBase = ks.newKieContainer( ks.getRepository().getDefaultReleaseId() ).getKieBase( KBASE_NAME );
-        assertNotNull( kieBase );
+        assertThat(kieBase).isNotNull();
     }
 
     @Test
@@ -424,12 +422,12 @@ public class KieBuilderTest {
         final KieBuilder kb = KieUtil.getKieBuilderFromKieFileSystem(kieBaseTestConfiguration, kfs, false);
 
         final List<org.kie.api.builder.Message> messages = kb.getResults().getMessages( org.kie.api.builder.Message.Level.ERROR );
-        assertEquals( 4, messages.size() );
+        assertThat(messages.size()).isEqualTo(4);
 
-        assertTrue( messages.get(0).toString().contains( "kbase1" ) );
-        assertTrue( messages.get(1).toString().contains( "kbase1" ) );
-        assertTrue( messages.get(2).toString().contains( "kbase2" ) );
-        assertTrue( messages.get(3).toString().contains( "kbase2" ) );
+        assertThat(messages.get(0).toString().contains("kbase1")).isTrue();
+        assertThat(messages.get(1).toString().contains("kbase1")).isTrue();
+        assertThat(messages.get(2).toString().contains("kbase2")).isTrue();
+        assertThat(messages.get(3).toString().contains("kbase2")).isTrue();
     }
 
     @Test
@@ -483,18 +481,18 @@ public class KieBuilderTest {
         final KieFileSystem kfs = ks.newKieFileSystem().generateAndWritePomXML( releaseId ).writeKModuleXML( kmodule );
         final KieBuilder kieBuilder = KieUtil.getKieBuilderFromKieFileSystem(kieBaseTestConfiguration, kfs, false);
         final Results results = kieBuilder.getResults();
-        assertEquals( expectedErrors, results.getMessages( org.kie.api.builder.Message.Level.ERROR ).size() );
-        assertNotNull(((InternalKieBuilder) kieBuilder ).getKieModuleIgnoringErrors());
+        assertThat(results.getMessages(org.kie.api.builder.Message.Level.ERROR).size()).isEqualTo(expectedErrors);
+        assertThat(((InternalKieBuilder) kieBuilder ).getKieModuleIgnoringErrors()).isNotNull();
     }
 
     @Test
     public void testAddMissingResourceToPackageBuilder() throws Exception {
         final KnowledgeBuilder kbuilder = KnowledgeBuilderFactory.newKnowledgeBuilder();
 
-        Assertions.assertThatThrownBy(() -> kbuilder.add(ResourceFactory.newClassPathResource("some.rf"), ResourceType.DRL))
+        assertThatThrownBy(() -> kbuilder.add(ResourceFactory.newClassPathResource("some.rf"), ResourceType.DRL))
                 .isInstanceOf(RuntimeException.class);
 
-        Assertions.assertThatThrownBy(() -> kbuilder.add(ResourceFactory.newClassPathResource("some.rf"), ResourceType.DRF))
+        assertThatThrownBy(() -> kbuilder.add(ResourceFactory.newClassPathResource("some.bpmn"), ResourceType.BPMN2))
                 .isInstanceOf(RuntimeException.class);
     }
 
@@ -527,8 +525,8 @@ public class KieBuilderTest {
         KieContainer kieContainer = ks.newKieContainer( km.getReleaseId());
         
         KieSession kieSession = kieContainer.newKieSession();
-        assertEquals(1, kieSession.getChannels().size());
-        assertTrue(kieSession.getChannels().keySet().contains("testChannel"));
+        assertThat(kieSession.getChannels().size()).isEqualTo(1);
+        assertThat(kieSession.getChannels().keySet().contains("testChannel")).isTrue();
     }
     
     @Test
@@ -560,8 +558,8 @@ public class KieBuilderTest {
         KieContainer kieContainer = ks.newKieContainer( km.getReleaseId());
         
         StatelessKieSession statelessKieSession = kieContainer.newStatelessKieSession();
-        assertEquals(1, statelessKieSession.getChannels().size());
-        assertTrue(statelessKieSession.getChannels().keySet().contains("testChannel"));
+        assertThat(statelessKieSession.getChannels().size()).isEqualTo(1);
+        assertThat(statelessKieSession.getChannels().keySet().contains("testChannel")).isTrue();
     }
     
     public static class MockChannel implements Channel {

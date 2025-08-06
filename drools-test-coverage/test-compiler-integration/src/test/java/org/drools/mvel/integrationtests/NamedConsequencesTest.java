@@ -22,31 +22,26 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.assertj.core.api.Assertions;
 import org.drools.mvel.compiler.Cheese;
 import org.drools.mvel.compiler.Person;
 import org.drools.mvel.compiler.StockTick;
 import org.drools.testcoverage.common.util.KieBaseTestConfiguration;
 import org.drools.testcoverage.common.util.KieBaseUtil;
-import org.drools.testcoverage.common.util.KieSessionTestConfiguration;
 import org.drools.testcoverage.common.util.KieUtil;
 import org.drools.testcoverage.common.util.TestParametersUtil;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.kie.api.KieBase;
-import org.kie.api.KieServices;
 import org.kie.api.builder.KieBuilder;
-import org.kie.api.builder.KieModule;
 import org.kie.api.builder.Message.Level;
-import org.kie.api.builder.ReleaseId;
-import org.kie.api.runtime.KieContainer;
 import org.kie.api.runtime.KieSession;
 import org.kie.api.runtime.rule.FactHandle;
 
 import static java.util.Arrays.asList;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @RunWith(Parameterized.class)
 public class NamedConsequencesTest {
@@ -59,18 +54,16 @@ public class NamedConsequencesTest {
 
     @Parameterized.Parameters(name = "KieBase type={0}")
     public static Collection<Object[]> getParameters() {
-        // TODO: EM failed with testIfElseWithMvelAccessor, testInheritance, testMVELBreak, testMVELNoBreak, testMultipleIfAfterEval
-        // testMultipleIfElseInARow, testMvelInsertWithNamedConsequence, testNonCompilingIFAfterOR, testWrongConsequenceName. File JIRAs
-        return TestParametersUtil.getKieBaseCloudConfigurations(false);
+        return TestParametersUtil.getKieBaseCloudConfigurations(true);
     }
 
     @Test
     public void testNamedConsequences() {
         List<String> results = executeTestWithCondition("do[t1]");
 
-        assertEquals( 2, results.size() );
-        assertTrue( results.contains( "cheddar" ) );
-        assertTrue( results.contains( "stilton" ) );
+        assertThat(results.size()).isEqualTo(2);
+        assertThat(results.contains("cheddar")).isTrue();
+        assertThat(results.contains("stilton")).isTrue();
     }
 
     private List<String> executeTestWithCondition(String conditionElement) {
@@ -125,7 +118,7 @@ public class NamedConsequencesTest {
                 "end\n";
 
         KieBuilder kieBuilder = KieUtil.getKieBuilderFromDrls(kieBaseTestConfiguration, false, str);
-        assertTrue(kieBuilder.getResults().hasMessages(Level.ERROR));
+        assertThat(kieBuilder.getResults().hasMessages(Level.ERROR)).isTrue();
     }
 
     @Test
@@ -146,7 +139,7 @@ public class NamedConsequencesTest {
                 "end\n";
 
         KieBuilder kieBuilder = KieUtil.getKieBuilderFromDrls(kieBaseTestConfiguration, false, str);
-        assertTrue(kieBuilder.getResults().hasMessages(Level.ERROR));
+        assertThat(kieBuilder.getResults().hasMessages(Level.ERROR)).isTrue();
     }
 
     @Test
@@ -165,40 +158,40 @@ public class NamedConsequencesTest {
                 "end\n";
 
         KieBuilder kieBuilder = KieUtil.getKieBuilderFromDrls(kieBaseTestConfiguration, false, str);
-        assertTrue(kieBuilder.getResults().hasMessages(Level.ERROR));
+        assertThat(kieBuilder.getResults().hasMessages(Level.ERROR)).isTrue();
     }
 
     @Test
     public void testAllowedIfDo() {
         List<String> results = executeTestWithCondition("if ( price < 10 ) do[t1]");
 
-        assertEquals( 2, results.size() );
-        assertTrue( results.contains( "cheddar" ) );
-        assertTrue( results.contains( "stilton" ) );
+        assertThat(results.size()).isEqualTo(2);
+        assertThat(results.contains("cheddar")).isTrue();
+        assertThat(results.contains("stilton")).isTrue();
     }
 
     @Test
     public void testNotAllowedIfDo() {
         List<String> results = executeTestWithCondition("if ( price > 10 ) do[t1]");
 
-        assertEquals( 1, results.size() );
-        assertTrue( results.contains( "cheddar" ) );
+        assertThat(results.size()).isEqualTo(1);
+        assertThat(results.contains("cheddar")).isTrue();
     }
 
     @Test
     public void testAllowedIfBreak() {
         List<String> results = executeTestWithCondition("if ( price < 10 ) break[t1]");
 
-        assertEquals( 1, results.size() );
-        assertTrue( results.contains( "stilton" ) );
+        assertThat(results.size()).isEqualTo(1);
+        assertThat(results.contains("stilton")).isTrue();
     }
 
     @Test
     public void testNotAllowedIfBreak() {
         List<String> results = executeTestWithCondition("if ( price > 10 ) break[t1]");
 
-        assertEquals( 1, results.size() );
-        assertTrue( results.contains( "cheddar" ) );
+        assertThat(results.size()).isEqualTo(1);
+        assertThat(results.contains("cheddar")).isTrue();
     }
 
     @Test
@@ -220,11 +213,12 @@ public class NamedConsequencesTest {
 
         List<String> results = executeTestWithDRL(str);
 
-        assertEquals( 2, results.size() );
-        assertTrue( results.contains( "cheddar" ) );
-        assertTrue( results.contains( "stilton" ) );
+        assertThat(results.size()).isEqualTo(2);
+        assertThat(results.contains("cheddar")).isTrue();
+        assertThat(results.contains("stilton")).isTrue();
     }
 
+    @Ignore("Moved to EdgeCaseNonExecModelTest")
     @Test
     public void testNamedConsequencesInsideOR1() {
         String str = "import org.drools.mvel.compiler.Cheese;\n " +
@@ -243,11 +237,12 @@ public class NamedConsequencesTest {
 
         List<String> results = executeTestWithDRL(str);
 
-        assertEquals( 2, results.size() );
-        assertTrue( results.contains( "cheddar" ) );
-        assertTrue( results.contains( "stilton" ) );
+        assertThat(results.size()).isEqualTo(2);
+        assertThat(results.contains("cheddar")).isTrue();
+        assertThat(results.contains("stilton")).isTrue();
     }
 
+    @Ignore("Moved to EdgeCaseNonExecModelTest")
     @Test
     public void testNamedConsequencesInsideOR2() {
         String str = "import org.drools.mvel.compiler.Cheese;\n " +
@@ -266,8 +261,8 @@ public class NamedConsequencesTest {
 
         List<String> results = executeTestWithDRL(str);
 
-        assertEquals( 1, results.size() );
-        assertTrue( results.contains( "cheddar" ) );
+        assertThat(results.size()).isEqualTo(1);
+        assertThat(results.contains("cheddar")).isTrue();
     }
 
     @Test
@@ -287,7 +282,7 @@ public class NamedConsequencesTest {
                 "end\n";
 
         KieBuilder kieBuilder = KieUtil.getKieBuilderFromDrls(kieBaseTestConfiguration, false, str);
-        assertTrue(kieBuilder.getResults().hasMessages(Level.ERROR));
+        assertThat(kieBuilder.getResults().hasMessages(Level.ERROR)).isTrue();
     }
 
     @Test
@@ -307,7 +302,7 @@ public class NamedConsequencesTest {
                 "end\n";
 
         KieBuilder kieBuilder = KieUtil.getKieBuilderFromDrls(kieBaseTestConfiguration, false, str);
-        assertTrue(kieBuilder.getResults().hasMessages(Level.ERROR));
+        assertThat(kieBuilder.getResults().hasMessages(Level.ERROR)).isTrue();
     }
 
     @Test
@@ -328,7 +323,7 @@ public class NamedConsequencesTest {
                 "end\n";
 
         KieBuilder kieBuilder = KieUtil.getKieBuilderFromDrls(kieBaseTestConfiguration, false, str);
-        assertTrue(kieBuilder.getResults().hasMessages(Level.ERROR));
+        assertThat(kieBuilder.getResults().hasMessages(Level.ERROR)).isTrue();
     }
 
     @Test
@@ -350,9 +345,9 @@ public class NamedConsequencesTest {
 
         List<String> results = executeTestWithDRL(str);
 
-        assertEquals( 2, results.size() );
-        assertTrue( results.contains( "cheddar" ) );
-        assertTrue( results.contains( "STILTON" ) );
+        assertThat(results.size()).isEqualTo(2);
+        assertThat(results.contains("cheddar")).isTrue();
+        assertThat(results.contains("STILTON")).isTrue();
     }
 
     @Test
@@ -375,9 +370,9 @@ public class NamedConsequencesTest {
 
         List<String> results = executeTestWithDRL(str);
 
-        assertEquals( 2, results.size() );
-        assertTrue( results.contains( "cheddar" ) );
-        assertTrue( results.contains( "STILTON" ) );
+        assertThat(results.size()).isEqualTo(2);
+        assertThat(results.contains("cheddar")).isTrue();
+        assertThat(results.contains("STILTON")).isTrue();
     }
 
     @Test
@@ -400,9 +395,9 @@ public class NamedConsequencesTest {
 
         List<String> results = executeTestWithDRL(str);
 
-        assertEquals( 2, results.size() );
-        assertTrue( results.contains( "cheddar" ) );
-        assertTrue( results.contains( "STILTON" ) );
+        assertThat(results.size()).isEqualTo(2);
+        assertThat(results.contains("cheddar")).isTrue();
+        assertThat(results.contains("STILTON")).isTrue();
     }
 
     @Test
@@ -424,9 +419,9 @@ public class NamedConsequencesTest {
 
         List<String> results = executeTestWithDRL(str);
 
-        assertEquals( 2, results.size() );
-        assertTrue( results.contains( "cheddar" ) );
-        assertTrue( results.contains( "STILTON" ) );
+        assertThat(results.size()).isEqualTo(2);
+        assertThat(results.contains("cheddar")).isTrue();
+        assertThat(results.contains("STILTON")).isTrue();
     }
 
     @Test
@@ -448,8 +443,8 @@ public class NamedConsequencesTest {
 
         List<String> results = executeTestWithDRL(str);
 
-        assertEquals( 1, results.size() );
-        assertTrue( results.contains( "STILTON" ) );
+        assertThat(results.size()).isEqualTo(1);
+        assertThat(results.contains("STILTON")).isTrue();
     }
 
     @Test
@@ -473,8 +468,8 @@ public class NamedConsequencesTest {
 
         List<String> results = executeTestWithDRL(str);
 
-        assertEquals( 1, results.size() );
-        assertTrue( results.contains( "STILTON" ) );
+        assertThat(results.size()).isEqualTo(1);
+        assertThat(results.contains("STILTON")).isTrue();
     }
 
     @Test
@@ -494,8 +489,8 @@ public class NamedConsequencesTest {
 
         List<String> results = executeTestWithDRL(str);
 
-        assertEquals( 1, results.size() );
-        assertTrue( results.contains( "stilton" ) );
+        assertThat(results.size()).isEqualTo(1);
+        assertThat(results.contains("stilton")).isTrue();
     }
 
     @Test
@@ -516,7 +511,7 @@ public class NamedConsequencesTest {
                 "    if (results.size() > 10) throw new RuntimeException();\n" +
                 "end\n";
 
-        Assertions.assertThatThrownBy(() -> executeTestWithDRL(str))
+        assertThatThrownBy(() -> executeTestWithDRL(str))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessageContaining("Exception executing consequence for rule \"R1\"");
     }
@@ -538,8 +533,8 @@ public class NamedConsequencesTest {
 
         List<String> results = executeTestWithDRL(str);
 
-        assertEquals( 1, results.size() );
-        assertTrue( results.contains( "stilton" ) );
+        assertThat(results.size()).isEqualTo(1);
+        assertThat(results.contains("stilton")).isTrue();
     }
 
     @Test
@@ -564,8 +559,8 @@ public class NamedConsequencesTest {
 
         List<String> results = executeTestWithDRL(str);
 
-        assertEquals( 1, results.size() );
-        assertTrue( results.contains( "stilton" ) );
+        assertThat(results.size()).isEqualTo(1);
+        assertThat(results.contains("stilton")).isTrue();
     }
 
     @Test
@@ -587,8 +582,8 @@ public class NamedConsequencesTest {
 
         List<String> results = executeTestWithDRL(str);
 
-        assertEquals( 2, results.size() );
-        assertTrue( results.contains( "STILTON" ) );
+        assertThat(results.size()).isEqualTo(2);
+        assertThat(results.contains("STILTON")).isTrue();
     }
 
     @Test
@@ -611,7 +606,7 @@ public class NamedConsequencesTest {
                 "    if (results.size() > 10) throw new RuntimeException();\n" +
                 "end\n";
 
-        Assertions.assertThatThrownBy(() -> executeTestWithDRL(str))
+        assertThatThrownBy(() -> executeTestWithDRL(str))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessageContaining("Exception executing consequence for rule \"R1\"");
     }
@@ -644,8 +639,8 @@ public class NamedConsequencesTest {
 
         ksession.fireAllRules();
 
-        assertTrue(results.contains("stilton"));
-        assertTrue(results.contains("cheddar"));
+        assertThat(results.contains("stilton")).isTrue();
+        assertThat(results.contains("cheddar")).isTrue();
     }
 
     @Test
@@ -669,9 +664,9 @@ public class NamedConsequencesTest {
 
         List<String> results = executeTestWithDRL(str);
 
-        assertEquals( 2, results.size() );
-        assertTrue( results.contains( "cheddar" ) );
-        assertTrue( results.contains( "stilton" ) );
+        assertThat(results.size()).isEqualTo(2);
+        assertThat(results.contains("cheddar")).isTrue();
+        assertThat(results.contains("stilton")).isTrue();
     }
 
     @Test
@@ -724,10 +719,10 @@ public class NamedConsequencesTest {
         ksession.setGlobal("results", results);
         ksession.fireAllRules();
 
-        assertEquals(3, results.size());
-        assertTrue(results.contains("Found a Car"));
-        assertTrue(results.contains("Car is red"));
-        assertTrue(results.contains("Car is NOT cheap"));
+        assertThat(results.size()).isEqualTo(3);
+        assertThat(results.contains("Found a Car")).isTrue();
+        assertThat(results.contains("Car is red")).isTrue();
+        assertThat(results.contains("Car is NOT cheap")).isTrue();
     }
 
     @Test
@@ -767,7 +762,7 @@ public class NamedConsequencesTest {
         }
 
         ksession.fireAllRules();
-        assertEquals(asList("n1", "n2", "y3", "n4", "n5", "y6"), results);
+        assertThat(results).isEqualTo(asList("n1", "n2", "y3", "n4", "n5", "y6"));
     }
 
     public static class Fact {
@@ -823,8 +818,8 @@ public class NamedConsequencesTest {
         ksession.insert(new StockTick(3L, "ZZZ", 5, 2L));
         ksession.fireAllRules();
 
-        assertEquals(2, list.size());
-        assertTrue(list.containsAll(asList("t1:YYY", "t0:ZZZ")));
+        assertThat(list.size()).isEqualTo(2);
+        assertThat(list.containsAll(asList("t1:YYY", "t0:ZZZ"))).isTrue();
     }
 
     @Test(timeout = 10000L)
@@ -861,12 +856,12 @@ public class NamedConsequencesTest {
         ksession.insert(mark);
         ksession.fireAllRules();
 
-        assertEquals(35, mario.getAge());
-        assertEquals(30, mark.getAge());
+        assertThat(mario.getAge()).isEqualTo(35);
+        assertThat(mark.getAge()).isEqualTo(30);
 
-        assertEquals(2, list.size());
-        assertEquals("t1", list.get(0));
-        assertEquals("t0", list.get(1));
+        assertThat(list.size()).isEqualTo(2);
+        assertThat(list.get(0)).isEqualTo("t1");
+        assertThat(list.get(1)).isEqualTo("t0");
     }
 
     @Test
@@ -887,8 +882,8 @@ public class NamedConsequencesTest {
         List<String> results = executeTestWithDRL(str);
 
         System.out.println( results );
-        assertEquals( 1, results.size() );
-        assertTrue( results.contains( "STILTON" ) );
+        assertThat(results.size()).isEqualTo(1);
+        assertThat(results.contains("STILTON")).isTrue();
     }
 
     @Test
@@ -909,8 +904,8 @@ public class NamedConsequencesTest {
         List<String> results = executeTestWithDRL(str);
 
         System.out.println( results );
-        assertEquals( 1, results.size() );
-        assertTrue( results.contains( "cheddar" ) );
+        assertThat(results.size()).isEqualTo(1);
+        assertThat(results.contains("cheddar")).isTrue();
     }
 
     @Test
@@ -954,7 +949,7 @@ public class NamedConsequencesTest {
         kSession.insert(2);
         kSession.fireAllRules();
 
-        assertEquals(2, counter.get());
+        assertThat(counter.get()).isEqualTo(2);
     }
 
     @Test
@@ -983,8 +978,8 @@ public class NamedConsequencesTest {
         ksession.delete(fh);
         ksession.fireAllRules();
 
-        assertEquals( 1, list.size() );
-        assertEquals( "branch", list.get( 0 ) );
+        assertThat(list.size()).isEqualTo(1);
+        assertThat(list.get(0)).isEqualTo("branch");
     }
 
     @Test
@@ -1019,7 +1014,7 @@ public class NamedConsequencesTest {
 
         ksession.fireAllRules();
 
-        assertEquals( "ok", list.get(1) );
+        assertThat(list.get(1)).isEqualTo("ok");
     }
 
     @Test
@@ -1048,9 +1043,9 @@ public class NamedConsequencesTest {
 
         List<String> results = executeTestWithDRL(str);
 
-        assertEquals( 2, results.size() );
-        assertTrue( results.contains( "cheddar" ) );
-        assertTrue( results.contains( "stilton" ) );
+        assertThat(results.size()).isEqualTo(2);
+        assertThat(results.contains("cheddar")).isTrue();
+        assertThat(results.contains("stilton")).isTrue();
     }
 
     @Test
@@ -1069,7 +1064,7 @@ public class NamedConsequencesTest {
                 "end\n";
 
         KieBuilder kieBuilder = KieUtil.getKieBuilderFromDrls(kieBaseTestConfiguration, false, str);
-        assertTrue(kieBuilder.getResults().hasMessages(Level.ERROR));
+        assertThat(kieBuilder.getResults().hasMessages(Level.ERROR)).isTrue();
     }
 
     public static class ListHolder {

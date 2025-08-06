@@ -48,6 +48,8 @@ import static org.drools.impact.analysis.parser.impl.ParserUtil.getLiteralValue;
 import static org.drools.impact.analysis.parser.impl.ParserUtil.isLiteral;
 import static org.drools.impact.analysis.parser.impl.ParserUtil.literalToValue;
 import static org.drools.impact.analysis.parser.impl.ParserUtil.literalType;
+import static org.drools.impact.analysis.parser.impl.ParserUtil.objectCreationExprToValue;
+import static org.drools.impact.analysis.parser.impl.ParserUtil.stripEnclosedAndCast;
 
 public class RhsParser {
 
@@ -130,6 +132,14 @@ public class RhsParser {
                 .map( varDecl -> ( ObjectCreationExpr ) varDecl.getInitializer().get() )
                 .map( objCreat -> objCreat.getType().getNameAsString() )
                 .findFirst()
+                .orElseGet( () -> getClassNameFromDeclaration(consequenceExpr, actionArg) );
+    }
+
+    private String getClassNameFromDeclaration(MethodCallExpr consequenceExpr, Expression actionArg) {
+        return consequenceExpr.findAll( VariableDeclarator.class ).stream()
+                .filter( varDecl -> varDecl.getName().toString().equals( actionArg.toString() ))
+                .map( varDecl -> varDecl.getTypeAsString() )
+                .findFirst()
                 .orElseThrow( () -> new RuntimeException("Unknown variable: " + actionArg) );
     }
 
@@ -188,10 +198,13 @@ public class RhsParser {
                 Object value = null;
                 if (setterExpr != null) {
                     Expression arg = setterExpr.getArgument( 0 );
+                    arg = stripEnclosedAndCast(arg);
                     if (arg.isLiteralExpr()) {
-                        value = literalToValue( setterExpr.getArgument( 0 ).asLiteralExpr() );
+                        value = literalToValue( arg.asLiteralExpr() );
                     } else if (arg.isNameExpr()) {
                         value = ((ImpactAnalysisRuleContext)context).getBindVariableLiteralMap().get(arg.asNameExpr().getName().asString());
+                    } else if (arg.isObjectCreationExpr()) {
+                        value = objectCreationExprToValue((ObjectCreationExpr)arg, context);
                     }
                 }
 

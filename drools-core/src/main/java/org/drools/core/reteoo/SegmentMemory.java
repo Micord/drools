@@ -111,10 +111,6 @@ public class SegmentMemory extends LinkedList<SegmentMemory>
         return dirtyNodeMask;
     }
 
-    public void resetDirtyNodeMask() {
-        dirtyNodeMask = 0L;
-    }
-
     public void updateDirtyNodeMask(long mask) {
         dirtyNodeMask |= mask;
     }
@@ -166,7 +162,7 @@ public class SegmentMemory extends LinkedList<SegmentMemory>
             for (int i = 0, length = pathMemories.size(); i < length; i++) {
                 // do not use foreach, don't want Iterator object creation
                 PathMemory pmem = pathMemories.get(i);
-                pmem.linkNodeWithoutRuleNotify(segmentPosMaskBit);
+                pmem.linkSegmentWithoutRuleNotify(segmentPosMaskBit);
                 dataDrivePmemLinked |= ( pmem.isDataDriven() && pmem.isRuleLinked() );
             }
         }
@@ -260,6 +256,9 @@ public class SegmentMemory extends LinkedList<SegmentMemory>
 
     public void addPathMemory(PathMemory pathMemory) {
         pathMemories.add(pathMemory);
+        if (isSegmentLinked()) {
+            pathMemory.linkSegmentWithoutRuleNotify(segmentPosMaskBit);
+        }
         if (pathMemory.isDataDriven()) {
             if (dataDrivenPathMemories == null) {
                 dataDrivenPathMemories = new ArrayList<>();
@@ -336,10 +335,6 @@ public class SegmentMemory extends LinkedList<SegmentMemory>
 
     public TupleSets<LeftTuple> getStagedLeftTuples() {
         return stagedLeftTuples;
-    }
-
-    public void setStagedTuples(TupleSets<LeftTuple> stagedTuples) {
-        this.stagedLeftTuples = stagedTuples;
     }
 
     @Override
@@ -426,14 +421,14 @@ public class SegmentMemory extends LinkedList<SegmentMemory>
     }
 
     public static class Prototype {
-        private LeftTupleNode               rootNode;
-        private LeftTupleNode               tipNode;
-        private long                        linkedNodeMask;
-        private long                        allLinkedMaskTest;
-        private long                        segmentPosMaskBit;
-        private int                         pos;
-        private List<MemoryPrototype>       memories = new ArrayList<>();
-        private List<NetworkNode>           nodesInSegment;
+        private final LeftTupleNode rootNode;
+        private final LeftTupleNode tipNode;
+        private final long linkedNodeMask;
+        private final long allLinkedMaskTest;
+        private final long segmentPosMaskBit;
+        private final int pos;
+        private final List<MemoryPrototype> memories = new ArrayList<>();
+        private List<NetworkNode> nodesInSegment;
 
         private Prototype(SegmentMemory smem) {
             this.rootNode = smem.rootNode;

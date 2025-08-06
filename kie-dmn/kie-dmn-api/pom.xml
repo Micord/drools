@@ -7,7 +7,7 @@
   <parent>
     <groupId>org.kie</groupId>
     <artifactId>kie-dmn</artifactId>
-    <version>7.58.0.Final</version>
+    <version>7.74.1.Final-Micord.1</version>
   </parent>
 
   <artifactId>kie-dmn-api</artifactId>
@@ -18,7 +18,7 @@
   <properties>
     <java.module.name>org.kie.dmn.api</java.module.name>
   </properties>
-  
+
   <dependencies>
     <dependency>
       <groupId>org.kie</groupId>

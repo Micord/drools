@@ -21,13 +21,15 @@ import java.util.Arrays;
 import java.util.Collections;
 
 import org.junit.Test;
+import org.kie.pmml.api.enums.DATA_TYPE;
 import org.kie.pmml.api.enums.OP_TYPE;
 import org.kie.pmml.commons.model.ProcessingDTO;
 import org.kie.pmml.commons.model.expressions.KiePMMLApply;
 import org.kie.pmml.commons.model.expressions.KiePMMLConstant;
 import org.kie.pmml.commons.model.expressions.KiePMMLFieldRef;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.kie.pmml.commons.CommonTestingUtility.getProcessingDTO;
 
 public class KiePMMLDefineFunctionTest {
 
@@ -44,12 +46,12 @@ public class KiePMMLDefineFunctionTest {
         final KiePMMLParameterField parameterField2 =
                 KiePMMLParameterField.builder(PARAM_2, Collections.emptyList()).build();
         final KiePMMLDefineFunction defineFunction = new KiePMMLDefineFunction(CUSTOM_FUNCTION, Collections.emptyList(),
-                                                                               OP_TYPE.CONTINUOUS.getName(),
+                                                                               null,
+                                                                               OP_TYPE.CONTINUOUS,
                                                                                Arrays.asList(parameterField1,
                                                                                              parameterField2),
                                                                                null);
-        ProcessingDTO processingDTO = new ProcessingDTO(Collections.emptyList(), Collections.emptyList(),
-                                                        Collections.emptyList(), Collections.emptyList());
+        ProcessingDTO processingDTO = getProcessingDTO(Collections.emptyList());
         defineFunction.evaluate(processingDTO, null);
     }
 
@@ -61,12 +63,12 @@ public class KiePMMLDefineFunctionTest {
         ()).build();
         final KiePMMLDefineFunction defineFunction = new KiePMMLDefineFunction(CUSTOM_FUNCTION, Collections
         .emptyList(),
-                                                                               OP_TYPE.CONTINUOUS.getName(),
+                                                                               null,
+                                                                               OP_TYPE.CONTINUOUS,
                                                                                Arrays.asList(parameterField1,
                                                                                              parameterField2),
                                                                                null);
-        ProcessingDTO processingDTO = new ProcessingDTO(Collections.emptyList(), Collections.emptyList(),
-                                                        Collections.emptyList(), Collections.emptyList());
+        ProcessingDTO processingDTO = getProcessingDTO(Collections.emptyList());
         defineFunction.evaluate(processingDTO, Collections.emptyList());
     }
 
@@ -75,15 +77,15 @@ public class KiePMMLDefineFunctionTest {
         // <DefineFunction name="CUSTOM_FUNCTION" optype="continuous" dataType="double">
         //     <Constant>100.0</Constant>
         // </DefineFunction>
-        final KiePMMLConstant kiePMMLConstant1 = new KiePMMLConstant(PARAM_1, Collections.emptyList(), value1);
+        final KiePMMLConstant kiePMMLConstant1 = new KiePMMLConstant(PARAM_1, Collections.emptyList(), value1, null);
         final KiePMMLDefineFunction defineFunction = new KiePMMLDefineFunction(CUSTOM_FUNCTION, Collections.emptyList(),
-                                                                               OP_TYPE.CONTINUOUS.getName(),
+                                                                               null,
+                                                                               OP_TYPE.CONTINUOUS,
                                                                                Collections.emptyList(),
                                                                                kiePMMLConstant1);
-        ProcessingDTO processingDTO = new ProcessingDTO(Collections.emptyList(), Collections.emptyList(),
-                                                        Collections.emptyList(), Collections.emptyList());
+        ProcessingDTO processingDTO = getProcessingDTO(Collections.emptyList());
         Object retrieved = defineFunction.evaluate(processingDTO, Collections.emptyList());
-        assertEquals(value1, retrieved);
+        assertThat(retrieved).isEqualTo(value1);
     }
 
     @Test
@@ -94,13 +96,13 @@ public class KiePMMLDefineFunctionTest {
         // </DefineFunction>
         final KiePMMLFieldRef kiePMMLFieldRef = new KiePMMLFieldRef(PARAM_1, Collections.emptyList(), null);
         final KiePMMLDefineFunction defineFunction = new KiePMMLDefineFunction(CUSTOM_FUNCTION, Collections.emptyList(),
-                                                                               OP_TYPE.CONTINUOUS.getName(),
+                                                                               DATA_TYPE.DOUBLE,
+                                                                               OP_TYPE.CONTINUOUS,
                                                                                Collections.singletonList(KiePMMLParameterField.builder(PARAM_1, Collections.emptyList()).build()),
                                                                                kiePMMLFieldRef);
-        ProcessingDTO processingDTO = new ProcessingDTO(Collections.emptyList(), Collections.emptyList(),
-                                                        Collections.emptyList(), new ArrayList<>());
+        ProcessingDTO processingDTO = getProcessingDTO(new ArrayList<>());
         Object retrieved = defineFunction.evaluate(processingDTO, Collections.singletonList(value1));
-        assertEquals(value1, retrieved);
+        assertThat(retrieved).isEqualTo(value1);
     }
 
     @Test
@@ -123,14 +125,15 @@ public class KiePMMLDefineFunctionTest {
         final KiePMMLParameterField parameterField2 =
                 KiePMMLParameterField.builder(PARAM_2, Collections.emptyList()).build();
         final KiePMMLDefineFunction defineFunction = new KiePMMLDefineFunction(CUSTOM_FUNCTION, Collections.emptyList(),
-                                                                               OP_TYPE.CONTINUOUS.getName(),
+                                                                               DATA_TYPE.DOUBLE,
+                                                                               OP_TYPE.CONTINUOUS,
                                                                                Arrays.asList(parameterField1,
                                                                                              parameterField2),
                                                                                kiePMMLApply);
-        ProcessingDTO processingDTO = new ProcessingDTO(Collections.emptyList(), Collections.emptyList(),
-                                                        Collections.emptyList(), new ArrayList<>());
+        ProcessingDTO processingDTO = getProcessingDTO(new ArrayList<>());
         Object retrieved = defineFunction.evaluate(processingDTO, Arrays.asList(value1, value2));
         Object expected = value1 / value2;
-        assertEquals(expected, retrieved);
+        assertThat(retrieved).isEqualTo(expected);
     }
+
 }

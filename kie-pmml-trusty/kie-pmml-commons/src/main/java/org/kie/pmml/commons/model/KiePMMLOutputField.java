@@ -21,20 +21,29 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.StringJoiner;
 
+import org.kie.pmml.api.enums.DATA_TYPE;
+import org.kie.pmml.api.enums.OP_TYPE;
 import org.kie.pmml.api.enums.RESULT_FEATURE;
 import org.kie.pmml.commons.model.abstracts.AbstractKiePMMLComponent;
 import org.kie.pmml.commons.model.expressions.KiePMMLExpression;
 import org.kie.pmml.commons.model.tuples.KiePMMLNameValue;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import static org.kie.pmml.commons.utils.KiePMMLModelUtils.commonEvaluate;
 
 /**
  * @see <a href=http://dmg.org/pmml/v4-4/Output.html#xsdElement_OutputField>OutputField</a>
  */
 public class KiePMMLOutputField extends AbstractKiePMMLComponent {
 
+    private static final Logger logger = LoggerFactory.getLogger(KiePMMLOutputField.class);
     private static final long serialVersionUID = 2408750585433339543L;
     private RESULT_FEATURE resultFeature = RESULT_FEATURE.PREDICTED_VALUE;
     private String targetField = null;
     private Integer rank;
+    private DATA_TYPE dataType;
+    private OP_TYPE opType;
     private Object value;
     private KiePMMLExpression kiePMMLExpression;
 
@@ -49,7 +58,8 @@ public class KiePMMLOutputField extends AbstractKiePMMLComponent {
     static Optional<Object> getValueFromKiePMMLNameValuesByVariableName(final String variableName,
                                                                         final List<KiePMMLNameValue> kiePMMLNameValues) {
         return kiePMMLNameValues.stream()
-                .filter(kiePMMLNameValue -> kiePMMLNameValue.getName().equals(variableName))
+                .filter(kiePMMLNameValue -> kiePMMLNameValue.getValue() != null &&
+                        kiePMMLNameValue.getName().equals(variableName))
                 .map(KiePMMLNameValue::getValue)
                 .findFirst();
     }
@@ -79,22 +89,46 @@ public class KiePMMLOutputField extends AbstractKiePMMLComponent {
         return kiePMMLExpression;
     }
 
+    public DATA_TYPE getDataType() {
+        return dataType;
+    }
+
+    public OP_TYPE getOpType() {
+        return opType;
+    }
+
     public Object evaluate(final ProcessingDTO processingDTO) {
         switch (resultFeature) {
             case PREDICTED_VALUE:
                 return evaluatePredictedValue(processingDTO);
+            case PROBABILITY:
+                return evaluateProbabilityValue(processingDTO);
             case REASON_CODE:
                 return evaluateReasonCodeValue(processingDTO);
             case TRANSFORMED_VALUE:
                 return evaluateTransformedValue(processingDTO);
+            case PREDICTED_DISPLAY_VALUE:
+                return processingDTO.getPredictedDisplayValue();
+            case ENTITY_ID:
+            case CLUSTER_ID:
+                return processingDTO.getEntityId();
+            case AFFINITY:
+            case ENTITY_AFFINITY:
+            case CLUSTER_AFFINITY:
+                return processingDTO.getAffinity();
             default:
+                logger.warn("OutputField with feature \"{}\" is currently not implemented and will be ignored.", resultFeature.getName());
                 return null;
         }
     }
 
     public Object evaluatePredictedValue(final ProcessingDTO processingDTO) {
-        return getValueFromKiePMMLNameValuesByVariableName(targetField, processingDTO.getKiePMMLNameValues())
-                .orElse(null);
+        return commonEvaluate(getValueFromKiePMMLNameValuesByVariableName(targetField, processingDTO.getKiePMMLNameValues())
+                                      .orElse(null), dataType);
+    }
+
+    public Object evaluateProbabilityValue(final ProcessingDTO processingDTO) {
+        return processingDTO.getProbabilityMap() != null ? processingDTO.getProbabilityMap().get(value) : null;
     }
 
     public Object evaluateReasonCodeValue(final ProcessingDTO processingDTO) {
@@ -105,14 +139,15 @@ public class KiePMMLOutputField extends AbstractKiePMMLComponent {
             if (index < orderedReasonCodes.size()) {
                 resultCode = orderedReasonCodes.get(index);
             }
-           return resultCode;
+            return commonEvaluate(resultCode, dataType);
         } else {
             return null;
         }
     }
 
     public Object evaluateTransformedValue(final ProcessingDTO processingDTO) {
-        return kiePMMLExpression != null ? kiePMMLExpression.evaluate(processingDTO) : null;
+        Object toReturn = kiePMMLExpression != null ? kiePMMLExpression.evaluate(processingDTO) : null;
+        return commonEvaluate(toReturn, dataType);
     }
 
     @Override
@@ -174,6 +209,20 @@ public class KiePMMLOutputField extends AbstractKiePMMLComponent {
 
         public Builder withValue(Object value) {
             toBuild.value = value;
+            return this;
+        }
+
+        public Builder withDataType(DATA_TYPE dataType) {
+            if (dataType != null) {
+                toBuild.dataType = dataType;
+            }
+            return this;
+        }
+
+        public Builder withOpType(OP_TYPE opType) {
+            if (opType != null) {
+                toBuild.opType = opType;
+            }
             return this;
         }
 

@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import org.assertj.core.api.Assertions;
 import org.drools.core.impl.InternalKnowledgeBase;
 import org.drools.testcoverage.common.model.Cheese;
 import org.drools.testcoverage.common.model.Cheesery;
@@ -42,8 +41,7 @@ import org.kie.api.runtime.KieSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(Parameterized.class)
 public class ImportsTest {
@@ -176,8 +174,8 @@ public class ImportsTest {
             "end \n";
 
         final KieBuilder kieBuilder = KieUtil.getKieBuilderFromDrls(kieBaseTestConfiguration, false, drl);
-        Assertions.assertThat(kieBuilder.getResults().getMessages()).isNotEmpty();
-        Assertions.assertThat(kieBuilder.getResults().getMessages()).extracting(Message::getText).doesNotContain("");
+        assertThat(kieBuilder.getResults().getMessages()).isNotEmpty();
+        assertThat(kieBuilder.getResults().getMessages()).extracting(Message::getText).doesNotContain("");
     }
 
     @Test
@@ -193,8 +191,8 @@ public class ImportsTest {
                 "end";
 
         final KieBuilder kieBuilder = KieUtil.getKieBuilderFromDrls(kieBaseTestConfiguration, false, drl);
-        Assertions.assertThat(kieBuilder.getResults().getMessages()).isNotEmpty();
-        Assertions.assertThat(kieBuilder.getResults().getMessages()).extracting(Message::getText).doesNotContain("");
+        assertThat(kieBuilder.getResults().getMessages()).isNotEmpty();
+        assertThat(kieBuilder.getResults().getMessages()).extracting(Message::getText).doesNotContain("");
     }
 
     @Test
@@ -219,8 +217,8 @@ public class ImportsTest {
             final Cheese c = new Cheese( "Gorgonzola" );
             ksession.insert( c );
 
-            assertEquals( 1, ksession.fireAllRules() );
-            assertSame( c, p.getCheese() );
+            assertThat(ksession.fireAllRules()).isEqualTo(1);
+            assertThat(p.getCheese()).isSameAs(c);
         } finally {
             ksession.dispose();
         }
@@ -270,10 +268,10 @@ public class ImportsTest {
 
             session.fireAllRules();
 
-            assertEquals(2, list.size());
+            assertThat(list.size()).isEqualTo(2);
 
-            assertEquals(cheesery1, list.get(0));
-            assertEquals(cheesery2, list.get(1));
+            assertThat(list.get(0)).isEqualTo(cheesery1);
+            assertThat(list.get(1)).isEqualTo(cheesery2);
         } finally {
             session.dispose();
         }
@@ -403,13 +401,13 @@ public class ImportsTest {
 
             list = (List) session.getGlobal("list");
 
-            assertEquals(4, fired);
-            assertEquals(4, list.size());
+            assertThat(fired).isEqualTo(4);
+            assertThat(list.size()).isEqualTo(4);
 
-            assertEquals("rule1", list.get(0));
-            assertEquals("rule2", list.get(1));
-            assertEquals("rule3", list.get(2));
-            assertEquals("rule4", list.get(3));
+            assertThat(list.get(0)).isEqualTo("rule1");
+            assertThat(list.get(1)).isEqualTo("rule2");
+            assertThat(list.get(2)).isEqualTo("rule3");
+            assertThat(list.get(3)).isEqualTo("rule4");
         } finally {
             session.dispose();
         }

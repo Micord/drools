@@ -351,6 +351,11 @@ public class NamedEntryPoint
                     throw new IllegalArgumentException("Invalid Entry Point. You updated the FactHandle on entry point '" + handle.getEntryPointId() + "' instead of '" + getEntryPointId() + "'");
                 }
 
+                if(handle.isExpired() && handle instanceof EventFactHandle){
+                    //let an expired fact potentially (re)enters the objectStore, but make sure that it will be clear at the end of the inference cycle
+                    ((EventFactHandle)handle).setPendingRemoveFromStore(true);
+                }
+
                 final ObjectTypeConf typeConf = changedObject ?
                         getObjectTypeConfigurationRegistry().getOrCreateObjectTypeConf(this.entryPoint, object) :
                         getObjectTypeConfigurationRegistry().getObjectTypeConf(object);
@@ -464,6 +469,10 @@ public class NamedEntryPoint
                 // the handle might have been disconnected, so reconnect if it has
                 if (handle.isDisconnected()) {
                     handle = this.objectStore.reconnect(handle);
+                }
+                if (handle == null) {
+                    log.warn("The factHandle doesn't exist so cannot be deleted. " + factHandle.toExternalForm());
+                    return;
                 }
 
                 if (!handle.getEntryPointId().equals( entryPoint )) {
@@ -608,7 +617,7 @@ public class NamedEntryPoint
         Object object = ((InternalFactHandle) handle).getObject();
         try {
             if ( dynamicFacts != null && removeFromSet ) {
-                dynamicFacts.remove( object );
+                dynamicFacts.remove( handle );
             }
 
             if ( object != null ) {

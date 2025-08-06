@@ -69,7 +69,6 @@ import org.kie.internal.ruleunit.RuleUnitDescription;
 import org.kie.internal.ruleunit.RuleUnitVariable;
 
 import static com.github.javaparser.StaticJavaParser.parseExpression;
-import static java.util.stream.Collectors.toList;
 import static org.drools.core.impl.StatefulKnowledgeSessionImpl.DEFAULT_RULE_UNIT;
 import static org.drools.modelcompiler.builder.PackageModel.DATE_TIME_FORMATTER_FIELD;
 import static org.drools.modelcompiler.builder.PackageModel.DOMAIN_CLASSESS_METADATA_FILE_NAME;
@@ -77,6 +76,7 @@ import static org.drools.modelcompiler.builder.PackageModel.DOMAIN_CLASS_METADAT
 import static org.drools.modelcompiler.builder.generator.DrlxParseUtil.classToReferenceType;
 import static org.drools.modelcompiler.builder.generator.DrlxParseUtil.generateLambdaWithoutParameters;
 import static org.drools.modelcompiler.builder.generator.DrlxParseUtil.toClassOrInterfaceType;
+import static org.drools.modelcompiler.builder.generator.DrlxParseUtil.toStringLiteral;
 import static org.drools.modelcompiler.builder.generator.DslMethodNames.ATTRIBUTE_CALL;
 import static org.drools.modelcompiler.builder.generator.DslMethodNames.BUILD_CALL;
 import static org.drools.modelcompiler.builder.generator.DslMethodNames.DECLARATION_OF_CALL;
@@ -87,6 +87,7 @@ import static org.drools.modelcompiler.builder.generator.DslMethodNames.SUPPLY_C
 import static org.drools.modelcompiler.builder.generator.DslMethodNames.UNIT_CALL;
 import static org.drools.modelcompiler.builder.generator.DslMethodNames.UNIT_DATA_CALL;
 import static org.drools.modelcompiler.builder.generator.DslMethodNames.WINDOW_CALL;
+import static org.drools.modelcompiler.builder.generator.DslMethodNames.createDslTopLevelMethod;
 import static org.drools.modelcompiler.util.ClassUtil.asJavaSourceName;
 import static org.drools.modelcompiler.util.StringUtil.toId;
 import static org.drools.modelcompiler.util.TimerUtil.validateTimer;
@@ -132,7 +133,6 @@ public class ModelGenerator {
 
     public static void generateModel(KnowledgeBuilderImpl kbuilder, InternalKnowledgePackage pkg, PackageDescr packageDescr, PackageModel packageModel) {
         TypeResolver typeResolver = pkg.getTypeResolver();
-        initPackageModel( kbuilder, pkg, typeResolver, packageDescr, packageModel );
 
         List<RuleDescr> ruleDescrs = packageDescr.getRules();
         if (ruleDescrs.isEmpty()) {
@@ -180,21 +180,10 @@ public class ModelGenerator {
         }
     }
 
-    public static void initPackageModel( KnowledgeBuilderImpl kbuilder, InternalKnowledgePackage pkg, TypeResolver typeResolver, PackageDescr packageDescr, PackageModel packageModel ) {
-        packageModel.addImports( pkg.getImports().keySet());
-        packageModel.addStaticImports( pkg.getStaticImports());
-        packageModel.addEntryPoints( packageDescr.getEntryPointDeclarations());
-        packageModel.addGlobals( pkg );
-        packageModel.setAccumulateFunctions( pkg.getAccumulateFunctions());
-        packageModel.setInternalKnowledgePackage( pkg );
-        new WindowReferenceGenerator( packageModel, typeResolver ).addWindowReferences( kbuilder, packageDescr.getWindowDeclarations());
-        packageModel.addAllFunctions( packageDescr.getFunctions().stream().map(FunctionGenerator::toFunction).collect(toList()));
-    }
-
     private static void processRule(PackageDescr packageDescr, RuleContext context) {
         PackageModel packageModel = context.getPackageModel();
         RuleDescr ruleDescr = context.getRuleDescr();
-        context.addGlobalDeclarations(packageModel.getGlobals());
+        context.addGlobalDeclarations();
         context.setDialectFromAttributes(ruleDescr.getAttributes().values());
 
         for(Entry<String, Object> kv : ruleDescr.getNamedConsequences().entrySet()) {
@@ -220,11 +209,11 @@ public class ModelGenerator {
 
         VariableDeclarationExpr ruleVar = new VariableDeclarationExpr(toClassOrInterfaceType( Rule.class ), "rule");
 
-        MethodCallExpr ruleCall = new MethodCallExpr(null, RULE_CALL);
+        MethodCallExpr ruleCall = createDslTopLevelMethod(RULE_CALL);
         if (!ruleDescr.getNamespace().isEmpty()) {
-            ruleCall.addArgument( new StringLiteralExpr( ruleDescr.getNamespace() ) );
+            ruleCall.addArgument( toStringLiteral( ruleDescr.getNamespace() ) );
         }
-        ruleCall.addArgument( new StringLiteralExpr( ruleDescr.getName() ) );
+        ruleCall.addArgument( toStringLiteral( ruleDescr.getName() ) );
 
         MethodCallExpr buildCallScope = ruleUnitDescr != null ?
                 new MethodCallExpr(ruleCall, UNIT_CALL).addArgument( new ClassExpr( toClassOrInterfaceType(ruleUnitDescr.getCanonicalName()) ) ) :
@@ -307,11 +296,11 @@ public class ModelGenerator {
                 case "activation-group":
                 case "ruleflow-group":
                 case "duration":
-                    attributeCall.addArgument( new StringLiteralExpr( value ) );
+                    attributeCall.addArgument( toStringLiteral( value ) );
                     break;
                 case "timer":
                     if (validateTimer(value)) {
-                        attributeCall.addArgument( new StringLiteralExpr( value ) );
+                        attributeCall.addArgument( toStringLiteral( value ) );
                     } else {
                         context.addCompilationError( new InvalidExpressionErrorResult(value) );
                     }
@@ -352,7 +341,7 @@ public class ModelGenerator {
             }
 
             Expression lambda = generateLambdaWithoutParameters(expressionTyperContext.getUsedDeclarations(), expr, true, Optional.empty());
-            MethodCallExpr supplyCall = new MethodCallExpr(null, SUPPLY_CALL);
+            MethodCallExpr supplyCall = createDslTopLevelMethod(SUPPLY_CALL);
             expressionTyperContext.getUsedDeclarations().stream()
                     .map(context::getVarExpr)
                     .forEach(supplyCall::addArgument);
@@ -373,7 +362,7 @@ public class ModelGenerator {
         List<MethodCallExpr> ruleMetaAttributes = new ArrayList<>();
         for (String metaAttr : ruleDescr.getAnnotationNames()) {
             MethodCallExpr metaAttributeCall = new MethodCallExpr(METADATA_CALL);
-            metaAttributeCall.addArgument(new StringLiteralExpr(metaAttr));
+            metaAttributeCall.addArgument(toStringLiteral(metaAttr));
             AnnotationDescr ad = ruleDescr.getAnnotation( metaAttr );
             String adFqn = ad.getFullyQualifiedName();
             if ("Propagation".equals(metaAttr)) { // legacy case, as explained in the javadoc annotation above, ref. DROOLS-5685
@@ -389,7 +378,7 @@ public class ModelGenerator {
                 }
                 if ( annotationDefinition.getValues().size() == 1 && annotationDefinition.getValues().containsKey( AnnotationDescr.VALUE ) ) {
                     Object annValue = annotationDefinition.getPropertyValue(AnnotationDescr.VALUE);
-                    metaAttributeCall.addArgument(new StringLiteralExpr(annValue.toString()));
+                    metaAttributeCall.addArgument(toStringLiteral(annValue.toString()));
                 } else {
                     Map<String, Object> map = new HashMap<>( annotationDefinition.getValues().size() );
                     for ( String key : annotationDefinition.getValues().keySet() ) {
@@ -463,10 +452,10 @@ public class ModelGenerator {
         varType.setTypeArguments(declType);
         VariableDeclarationExpr var_ = new VariableDeclarationExpr(varType, context.getVar(unitVar.getName()), Modifier.finalModifier());
 
-        MethodCallExpr unitDataCall = new MethodCallExpr(null, UNIT_DATA_CALL);
+        MethodCallExpr unitDataCall = createDslTopLevelMethod(UNIT_DATA_CALL);
 
         unitDataCall.addArgument(new ClassExpr( declType ));
-        unitDataCall.addArgument(new StringLiteralExpr(unitVar.getName()));
+        unitDataCall.addArgument(toStringLiteral(unitVar.getName()));
 
         AssignExpr var_assign = new AssignExpr(var_, unitDataCall, AssignExpr.Operator.ASSIGN);
         ruleBlock.addStatement(var_assign);
@@ -492,7 +481,7 @@ public class ModelGenerator {
         varType.setTypeArguments(declType);
         VariableDeclarationExpr var_ = new VariableDeclarationExpr(varType, context.getVar(declaration.getBindingId()), Modifier.finalModifier());
 
-        MethodCallExpr declarationOfCall = new MethodCallExpr(null, DECLARATION_OF_CALL);
+        MethodCallExpr declarationOfCall = createDslTopLevelMethod(DECLARATION_OF_CALL);
 
         declarationOfCall.addArgument(new ClassExpr( declaration.getBoxedType() ));
 
@@ -501,17 +490,17 @@ public class ModelGenerator {
             declarationOfCall.addArgument( DOMAIN_CLASSESS_METADATA_FILE_NAME + context.getPackageModel().getPackageUUID() + "." + domainClassSourceName + DOMAIN_CLASS_METADATA_INSTANCE );
         }
 
-        declarationOfCall.addArgument(new StringLiteralExpr(declaration.getVariableName().orElse(declaration.getBindingId())));
+        declarationOfCall.addArgument(toStringLiteral(declaration.getVariableName().orElse(declaration.getBindingId())));
 
         declaration.getDeclarationSource().ifPresent(declarationOfCall::addArgument);
 
         declaration.getEntryPoint().ifPresent( ep -> {
-            MethodCallExpr entryPointCall = new MethodCallExpr(null, ENTRY_POINT_CALL);
-            entryPointCall.addArgument( new StringLiteralExpr(ep ) );
+            MethodCallExpr entryPointCall = createDslTopLevelMethod(ENTRY_POINT_CALL);
+            entryPointCall.addArgument( toStringLiteral(ep ) );
             declarationOfCall.addArgument( entryPointCall );
         } );
         for ( BehaviorDescr behaviorDescr : declaration.getBehaviors() ) {
-            MethodCallExpr windowCall = new MethodCallExpr(null, WINDOW_CALL);
+            MethodCallExpr windowCall = createDslTopLevelMethod(WINDOW_CALL);
             if ( Behavior.BehaviorType.TIME_WINDOW.matches(behaviorDescr.getSubType() ) ) {
                 windowCall.addArgument( "org.drools.model.Window.Type.TIME" );
                 windowCall.addArgument( "" + TimeUtils.parseTimeString(behaviorDescr.getParameters().get(0 ) ) );

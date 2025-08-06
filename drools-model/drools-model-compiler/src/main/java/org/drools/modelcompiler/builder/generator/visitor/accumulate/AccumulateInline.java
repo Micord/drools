@@ -70,6 +70,7 @@ import static org.drools.modelcompiler.builder.generator.DrlxParseUtil.rescopeNa
 import static org.drools.modelcompiler.builder.generator.DrlxParseUtil.toClassOrInterfaceType;
 import static org.drools.modelcompiler.builder.generator.DslMethodNames.ACC_FUNCTION_CALL;
 import static org.drools.modelcompiler.builder.generator.DslMethodNames.BIND_AS_CALL;
+import static org.drools.modelcompiler.builder.generator.DslMethodNames.createDslTopLevelMethod;
 import static org.drools.modelcompiler.builder.generator.visitor.accumulate.AccumulateVisitor.collectNamesInBlock;
 
 public class AccumulateInline {
@@ -171,7 +172,7 @@ public class AccumulateInline {
         if ( sourceDescr instanceof FromDescr ) {
             DeclarativeInvokerDescr invokerDescr = (( FromDescr ) sourceDescr).getDataSource();
             String mvelBlock = addCurlyBracesToBlock( addSemicolon( invokerDescr.getText() ) );
-            CompiledBlockResult fromCodeCompilationResult = mvelCompiler.compileStatement(mvelBlock );
+            CompiledBlockResult fromCodeCompilationResult = compileMvelStatement(mvelBlock);
             BlockStmt fromBlock = fromCodeCompilationResult.statementResults();
             for (Statement stmt : fromBlock.getStatements()) {
                 stmt.findAll(NameExpr.class).stream().map(Node::toString).filter(context::hasDeclaration).forEach(usedExternalDeclarations::add);
@@ -182,7 +183,7 @@ public class AccumulateInline {
     private void parseInitBlock() {
         MethodDeclaration initMethod = getMethodFromTemplateClass("init");
         String mvelBlock = addCurlyBracesToBlock(addSemicolon(accumulateDescr.getInitCode()));
-        CompiledBlockResult initCodeCompilationResult = mvelCompiler.compileStatement(mvelBlock);
+        CompiledBlockResult initCodeCompilationResult = compileMvelStatement(mvelBlock);
         BlockStmt initBlock = initCodeCompilationResult.statementResults();
 
         for (Statement stmt : initBlock.getStatements()) {
@@ -226,7 +227,7 @@ public class AccumulateInline {
             throw new MissingSemicolonInlineAccumulateException( "action" );
         }
 
-        CompiledBlockResult actionBlockCompilationResult = mvelCompiler.compileStatement(addCurlyBracesToBlock(actionCode));
+        CompiledBlockResult actionBlockCompilationResult = compileMvelStatement(addCurlyBracesToBlock(actionCode));
 
         BlockStmt actionBlock = actionBlockCompilationResult.statementResults();
 
@@ -251,7 +252,7 @@ public class AccumulateInline {
 
     private void parseReverseBlock(Set<String> externalDeclarations, Collection<String> allNamesInActionBlock) {
         String reverseCode = accumulateDescr.getReverseCode();
-        CompiledBlockResult reverseBlockCompilationResult = mvelCompiler.compileStatement(addCurlyBracesToBlock(reverseCode));
+        CompiledBlockResult reverseBlockCompilationResult = compileMvelStatement(addCurlyBracesToBlock(reverseCode));
 
         BlockStmt reverseBlock = reverseBlockCompilationResult.statementResults();
 
@@ -294,6 +295,12 @@ public class AccumulateInline {
         }
     }
 
+    private CompiledBlockResult compileMvelStatement(String actionCode) {
+        CompiledBlockResult result = mvelCompiler.compileStatement(actionCode);
+        DrlxParseUtil.transformDrlNameExprToNameExpr(result.statementResults());
+        return result;
+    }
+
     private void parseResultMethod() {
         // <result expression>: this is a semantic expression in the selected dialect that is executed after all source objects are iterated.
         MethodDeclaration resultMethod = getMethodFromTemplateClass("getResult");
@@ -318,7 +325,7 @@ public class AccumulateInline {
     private void addAccumulateClassInitializationToMethod(MethodCallExpr accumulateDSL, String identifier) {
         this.packageModel.addGeneratedPOJO(accumulateInlineClass);
 
-        final MethodCallExpr functionDSL = new MethodCallExpr(null, ACC_FUNCTION_CALL);
+        final MethodCallExpr functionDSL = createDslTopLevelMethod(ACC_FUNCTION_CALL);
         functionDSL.addArgument(new MethodReferenceExpr(new NameExpr(accumulateInlineClassName), new NodeList<>(), "new"));
         functionDSL.addArgument(context.getVarExpr(identifier));
 

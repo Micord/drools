@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import org.kie.dmn.api.feel.runtime.events.FEELEvent;
 import org.kie.dmn.api.feel.runtime.events.FEELEvent.Severity;
@@ -297,7 +298,8 @@ public class DecisionTableImpl implements DecisionTable {
     }
 
     private List<Object> evaluateResults(EvaluationContext ctx, FEEL feel, Object[] params, List<DTDecisionRule> matchingDecisionRules) {
-        List<Object> results = matchingDecisionRules.stream().map( dr -> hitToOutput( ctx, feel, dr ) ).collect( Collectors.toList());
+    	Stream<Object> s = matchingDecisionRules.stream().map( dr -> hitToOutput( ctx, feel, dr ) );
+        List<Object> results = hitPolicy == HitPolicy.FIRST ? s.limit(1).collect(Collectors.toList()) : s.collect(Collectors.toList()); // as hitToOutput might return nulls, use .limit(1) instead of .findFirst()
         return results;
     }
 

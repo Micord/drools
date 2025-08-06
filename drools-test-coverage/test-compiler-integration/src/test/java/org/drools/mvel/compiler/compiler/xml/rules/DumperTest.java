@@ -15,7 +15,6 @@
 
 package org.drools.mvel.compiler.compiler.xml.rules;
 
-import org.assertj.core.api.Assertions;
 import org.drools.compiler.compiler.DrlParser;
 import org.drools.compiler.compiler.DroolsParserException;
 import org.drools.compiler.lang.api.DescrFactory;
@@ -24,8 +23,7 @@ import org.drools.mvel.DrlDumper;
 import org.junit.Test;
 import org.kie.internal.builder.conf.LanguageLevelOption;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Test the dump/convert format utilities.
@@ -127,7 +125,7 @@ public class DumperTest {
         DumperTestHelper.DrlFile( "test_TraitDeclaration.drl" );
 
         String out = DumperTestHelper.dump( "test_TraitDeclaration.drl" );
-        assertTrue( out.contains( "declare trait Foo" ) );
+        assertThat(out.contains("declare trait Foo")).isTrue();
     }
 
 
@@ -136,17 +134,17 @@ public class DumperTest {
         DumperTestHelper.DrlFile( "test_EnumDeclaration.drl" );
 
         String out = DumperTestHelper.dump( "test_EnumDeclaration.drl" );
-        assertTrue( out.contains( "declare enum Planets" ) );
-        assertTrue( out.contains( "MERCURY" ) );
-        assertTrue( out.contains( "7.1492e7" ) );
+        assertThat(out.contains("declare enum Planets")).isTrue();
+        assertThat(out.contains("MERCURY")).isTrue();
+        assertThat(out.contains("7.1492e7")).isTrue();
     }
 
     @Test
     public void testRoundTripAccumulate() throws Exception {
         String out = DumperTestHelper.dump( "test_Accumulate.drl" );
-        assertTrue( out.contains( "$sum : count( $s1 )" ) );
-        assertFalse( out.contains("null : count( $s2 )") );
-        assertTrue( out.contains("count( $s2 )") );
+        assertThat(out.contains("$sum : count( $s1 )")).isTrue();
+        assertThat(out.contains("null : count( $s2 )")).isFalse();
+        assertThat(out.contains("count( $s2 )")).isTrue();
     }
 
     private void checkRoundtrip( String drl ) throws DroolsParserException {
@@ -154,7 +152,7 @@ public class DumperTest {
         final PackageDescr pkgOriginal = parser.parse( false, drl );
         final DrlDumper dumper = new DrlDumper();
         String out = dumper.dump( pkgOriginal );
-        Assertions.assertThat( drl ).isEqualToIgnoringWhitespace( out );
+        assertThat( drl ).isEqualToIgnoringWhitespace( out );
     }
 
     @Test
@@ -262,6 +260,6 @@ public class DumperTest {
 
         String drl = new DrlDumper().dump(packageDescr);
 
-        Assertions.assertThat( drl ).isEqualToIgnoringWhitespace( expectedDrl );
+        assertThat( drl ).isEqualToIgnoringWhitespace( expectedDrl );
     }
 }

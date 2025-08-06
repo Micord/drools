@@ -66,16 +66,21 @@ import org.kie.pmml.pmml_4_2.model.mining.SimpleSetSegmentPredicate;
 import org.mvel2.templates.CompiledTemplate;
 import org.mvel2.templates.TemplateRegistry;
 import org.mvel2.templates.TemplateRuntime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
  * This implementation is deprecated and will be removed in future releases.
  *
- * @see <a href="https://github.com/kiegroup/drools/blob/master/kie-pmml-trusty/kie-pmml-api/src/main/java/org/kie/pmml/api/runtime/PMMLRuntime.java">PMML Trusty runtime</a>
- * @see <a href="https://github.com/kiegroup/drools/blob/master/kie-pmml-trusty/kie-pmml-api/src/main/java/org/kie/pmml/api/PMMLRuntimeFactory.java">PMML Trusty runtime factory</a>
+ * @see <a href="https://github.com/kiegroup/drools/blob/main/kie-pmml-trusty/kie-pmml-api/src/main/java/org/kie/pmml/api/runtime/PMMLRuntime.java">PMML Trusty runtime</a>
+ * @see <a href="https://github.com/kiegroup/drools/blob/main/kie-pmml-trusty/kie-pmml-api/src/main/java/org/kie/pmml/api/PMMLRuntimeFactory.java">PMML Trusty runtime factory</a>
  */
 @Deprecated
 public class PMML4Helper {
+
+
+    private static final Logger LOG = LoggerFactory.getLogger(PMML4Helper.class);
 
 
     private static final String innerFieldPrefix = "__$Inner";
@@ -293,10 +298,10 @@ public class PMML4Helper {
             obj = in.readObject();
         }
         catch(IOException e) {
-            e.printStackTrace();
+            LOG.error("Exception", e);
         }
         catch(ClassNotFoundException cnfe) {
-            cnfe.printStackTrace();
+            LOG.error("Exception", cnfe);
         }
         return obj;
     }

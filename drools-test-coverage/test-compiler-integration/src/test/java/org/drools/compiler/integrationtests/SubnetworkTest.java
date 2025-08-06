@@ -16,12 +16,6 @@
 
 package org.drools.compiler.integrationtests;
 
-import java.awt.Dimension;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
-
 import org.drools.testcoverage.common.util.KieBaseTestConfiguration;
 import org.drools.testcoverage.common.util.KieBaseUtil;
 import org.drools.testcoverage.common.util.TestParametersUtil;
@@ -35,7 +29,14 @@ import org.kie.api.runtime.rule.Agenda;
 import org.kie.api.runtime.rule.FactHandle;
 import org.kie.api.runtime.rule.QueryResults;
 
-import static org.junit.Assert.assertEquals;
+import java.awt.Dimension;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(Parameterized.class)
 public class SubnetworkTest {
@@ -144,8 +145,8 @@ public class SubnetworkTest {
 
             kieSession.fireAllRules();
 
-            assertEquals(1, list.size());
-            assertEquals(4, list.get(0).intValue());
+            assertThat(list.size()).isEqualTo(1);
+            assertThat(list.get(0).intValue()).isEqualTo(4);
         } finally {
             kieSession.dispose();
         }
@@ -179,7 +180,7 @@ public class SubnetworkTest {
             kieSession.update(fh2, new Dimension(100, 100));
             kieSession.fireAllRules();
 
-            assertEquals(1, list.size());
+            assertThat(list.size()).isEqualTo(1);
         } finally {
             kieSession.dispose();
         }
@@ -209,13 +210,13 @@ public class SubnetworkTest {
             FactHandle fh1 = kieSession.insert(new Dimension(100, 100));
             FactHandle fh2 = kieSession.insert(new Dimension(100, 200));
             kieSession.fireAllRules();
-            assertEquals(0, list.size());
+            assertThat(list.size()).isEqualTo(0);
             list.clear();;
 
             kieSession.update(fh2, new Dimension(100, 100));
             kieSession.delete(fhg);
             kieSession.fireAllRules();
-            assertEquals(0, list.size());
+            assertThat(list.size()).isEqualTo(0);
 
 
         } finally {
@@ -245,25 +246,25 @@ public class SubnetworkTest {
             kieSession.fireAllRules();
 
             QueryResults results = kieSession.getQueryResults("q1", "go");
-            assertEquals(0, results.size() );
+            assertThat(results.size()).isEqualTo(0);
 
             kieSession.update(fh2, new Dimension(100, 100));
             kieSession.fireAllRules();
 
             results = kieSession.getQueryResults("q1", "go");
-            assertEquals(1, results.size() );
+            assertThat(results.size()).isEqualTo(1);
 
             kieSession.update(fh1, new Dimension(100, 200));
             kieSession.fireAllRules();
 
             results = kieSession.getQueryResults("q1", "go");
-            assertEquals(0, results.size() );
+            assertThat(results.size()).isEqualTo(0);
 
             kieSession.update(fh1, new Dimension(100, 100));
             kieSession.fireAllRules();
 
             results = kieSession.getQueryResults("q1", "go");
-            assertEquals(1, results.size() );
+            assertThat(results.size()).isEqualTo(1);
 
         } finally {
             kieSession.dispose();
@@ -329,9 +330,9 @@ public class SubnetworkTest {
 
             kieSession.fireAllRules();
 
-            assertEquals(2, list.size());
-            assertEquals("R2", list.get(0));
-            assertEquals("R1", list.get(1));
+            assertThat(list.size()).isEqualTo(2);
+            assertThat(list.get(0)).isEqualTo("R2");
+            assertThat(list.get(1)).isEqualTo("R1");
         } finally {
             kieSession.dispose();
         }
@@ -402,9 +403,9 @@ public class SubnetworkTest {
 
             kieSession.fireAllRules();
 
-            assertEquals(2, list.size());
-            assertEquals("R2", list.get(0));
-            assertEquals("R1", list.get(1));
+            assertThat(list.size()).isEqualTo(2);
+            assertThat(list.get(0)).isEqualTo("R2");
+            assertThat(list.get(1)).isEqualTo("R1");
         } finally {
             kieSession.dispose();
         }
@@ -454,6 +455,58 @@ public class SubnetworkTest {
 
         public void setId(final int id) {
             this.id = id;
+        }
+    }
+
+    @Test
+    public void subnetworkSharingWith2SinksAndRightTupleDelete_shouldNotThrowNPE() {
+        // DROOLS-7420
+        testFromCollectInSubnetwork(true);
+    }
+
+    @Test
+    public void subnetworkNoSharingWith2SinksAndRightTupleDelete_shouldNotThrowNPE() {
+        // DROOLS-7420
+        testFromCollectInSubnetwork(false);
+    }
+
+    private void testFromCollectInSubnetwork(boolean nodeSharing) {
+        String accConstraint = nodeSharing ? "" : "size > 0";
+        final String drl =
+                "import " + List.class.getCanonicalName() + ";\n" +
+                "global java.util.List ints;\n" +
+                "global java.util.List list;\n" +
+                "rule R1\n" +
+                "when\n" +
+                "  not String()\n" +
+                "  List() from collect (Integer() from ints)\n" +
+                "  Boolean() // always doesn't match\n" +
+                "then\n" +
+                "  list.add(\"R1\");\n" +
+                "end\n" +
+                "\n" +
+                "rule R2\n" +
+                "when\n" +
+                "  not String()\n" +
+                "  List(" + accConstraint + ") from collect (Integer() from ints)\n" +
+                " then\n" +
+                "  list.add(\"R2\");\n" +
+                "  insert(new String());\n" +
+                "end";
+
+        final KieBase kbase = KieBaseUtil.getKieBaseFromKieModuleFromDrl("subnetwork-test", kieBaseTestConfiguration, drl);
+        final KieSession kieSession = kbase.newKieSession();
+
+        try {
+            final List<String> list = new ArrayList<>();
+            kieSession.setGlobal("list", list);
+            kieSession.setGlobal("ints", asList(1,2));
+
+            kieSession.fireAllRules();
+
+            assertThat(list).containsExactly("R2");
+        } finally {
+            kieSession.dispose();
         }
     }
 }

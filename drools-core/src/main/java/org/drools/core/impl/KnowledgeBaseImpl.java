@@ -98,6 +98,7 @@ import org.kie.api.definition.type.FactType;
 import org.kie.api.definition.type.Role;
 import org.kie.api.event.kiebase.KieBaseEventListener;
 import org.kie.api.internal.io.ResourceTypePackage;
+import org.kie.api.internal.utils.KieService;
 import org.kie.api.internal.utils.ServiceRegistry;
 import org.kie.api.internal.weaver.KieWeavers;
 import org.kie.api.io.Resource;
@@ -162,7 +163,7 @@ public class KnowledgeBaseImpl
     /** The root Rete-OO for this <code>RuleBase</code>. */
     private transient Rete rete;
     private ReteooBuilder reteooBuilder;
-    private transient Map<Integer, SegmentMemory.Prototype> segmentProtos = new ConcurrentHashMap<>();
+    private final transient Map<Integer, SegmentMemory.Prototype> segmentProtos = new ConcurrentHashMap<>();
 
     private KieComponentFactory kieComponentFactory;
 
@@ -173,8 +174,8 @@ public class KnowledgeBaseImpl
 
     private transient Queue<Runnable> kbaseModificationsQueue = new ConcurrentLinkedQueue<>();
 
-    private transient AtomicInteger sessionDeactivationsCounter = new AtomicInteger();
-    private transient AtomicBoolean flushingUpdates = new AtomicBoolean( false );
+    private final transient AtomicInteger sessionDeactivationsCounter = new AtomicInteger();
+    private final transient AtomicBoolean flushingUpdates = new AtomicBoolean( false );
 
     private transient InternalKieContainer kieContainer;
 
@@ -182,7 +183,7 @@ public class KnowledgeBaseImpl
     private String containerId;
     private AtomicBoolean mbeanRegistered = new AtomicBoolean(false);
 
-    private RuleUnitDescriptionRegistry ruleUnitDescriptionRegistry = new RuleUnitDescriptionRegistry();
+    private final RuleUnitDescriptionRegistry ruleUnitDescriptionRegistry = new RuleUnitDescriptionRegistry();
 
     private SessionConfiguration sessionConfiguration;
 
@@ -289,7 +290,7 @@ public class KnowledgeBaseImpl
             }
             this.eventSupport.fireBeforePackageRemoved( pkg );
 
-            internalRemoveRules( ( (Collection<RuleImpl>) (Object) pkg.getRules() ) );
+            internalRemoveRules( pkg.getRules() );
 
             // getting the list of referenced globals
             final Set<String> referencedGlobals = new HashSet<>();
@@ -923,11 +924,7 @@ public class KnowledgeBaseImpl
             }
 
             // add the rules to the RuleBase
-            for ( Rule r : newPkg.getRules() ) {
-                RuleImpl rule = (RuleImpl)r;
-                checkMultithreadedEvaluation( rule );
-                internalAddRule( rule );
-            }
+            internalAddRules( newPkg.getRules() );
 
             // add the flows to the RuleBase
             if ( newPkg.getRuleFlows() != null ) {
@@ -1129,21 +1126,18 @@ public class KnowledgeBaseImpl
                                                       "Unable to merge @duration attribute for type declaration of class:",
                                                       existingDecl.getDurationAttribute(),
                                                       newDecl.getDurationAttribute(),
-                                                      true,
                                                       false ) );
 
         existingDecl.setDynamic( mergeLeft( existingDecl.getTypeName(),
                                             "Unable to merge @propertyChangeSupport  (a.k.a. dynamic) attribute for type declaration of class:",
                                             existingDecl.isDynamic(),
                                             newDecl.isDynamic(),
-                                            true,
                                             false ) );
 
         existingDecl.setPropertyReactive( mergeLeft(existingDecl.getTypeName(),
                                                     "Unable to merge @propertyReactive attribute for type declaration of class:",
                                                     existingDecl.isPropertyReactive(),
                                                     newDecl.isPropertyReactive(),
-                                                    true,
                                                     false) );
 
         if ( newDecl.getExpirationPolicy() == Policy.TIME_HARD ) {
@@ -1166,7 +1160,6 @@ public class KnowledgeBaseImpl
                                               "Unable to merge @novel attribute for type declaration of class:",
                                               existingDecl.isNovel(),
                                               newDecl.isNovel(),
-                                              true,
                                               false ) );
         }
 
@@ -1175,7 +1168,6 @@ public class KnowledgeBaseImpl
                                                  "Unable to merge resource attribute for type declaration of class:",
                                                  existingDecl.getResource(),
                                                  newDecl.getResource(),
-                                                 true,
                                                  true ) );
         }
 
@@ -1185,21 +1177,18 @@ public class KnowledgeBaseImpl
                                          && newDecl.getRole() != Role.Type.FACT
                                          ? existingDecl.getRole() : null,
                                          newDecl.getRole(),
-                                         true,
                                          false ) );
 
         existingDecl.setTimestampAttribute( mergeLeft( existingDecl.getTypeName(),
                                                        "Unable to merge @timestamp attribute for type declaration of class:",
                                                        existingDecl.getTimestampAttribute(),
                                                        newDecl.getTimestampAttribute(),
-                                                       true,
                                                        false ) );
 
         existingDecl.setTypesafe( mergeLeft(existingDecl.getTypeName(),
                                             "Unable to merge @typesafe attribute for type declaration of class:",
                                             existingDecl.isTypesafe(),
                                             newDecl.isTypesafe(),
-                                            true,
                                             false ) );
     }
 
@@ -1207,7 +1196,6 @@ public class KnowledgeBaseImpl
                              String errorMsg,
                              T leftVal,
                              T rightVal,
-                             boolean errorOnDiff,
                              boolean override ) {
         T newValue = leftVal;
         if ( ! areNullSafeEquals( leftVal, rightVal ) ) {
@@ -1217,11 +1205,7 @@ public class KnowledgeBaseImpl
                 if ( override ) {
                     newValue = rightVal;
                 } else {
-                    if ( errorOnDiff ) {
-                        throw new RuntimeException( errorMsg + " '" + typeClass + "'" );
-                    } else {
-                        // do nothing, just use the left value
-                    }
+                    throw new RuntimeException( errorMsg + " '" + typeClass + "'" );
                 }
             }
         }
@@ -1322,6 +1306,9 @@ public class KnowledgeBaseImpl
 
         if ( ! newPkg.getResourceTypePackages().isEmpty() ) {
             KieWeavers weavers = ServiceRegistry.getService(KieWeavers.class);
+            if (weavers == null) {
+                throw new IllegalStateException("Unable to find KieWeavers implementation");
+            }
             for ( ResourceTypePackage rtkKpg : newPkg.getResourceTypePackages().values() ) {
                 weavers.merge( this, pkg, rtkKpg );
             }
@@ -1517,29 +1504,34 @@ public class KnowledgeBaseImpl
         return this.classTypeDeclaration.values();
     }
 
-    public void addRules( Collection<RuleImpl> rules ) throws InvalidPatternException {
-        enqueueModification( () -> {
-            for (RuleImpl rule : rules) {
-                internalAddRule( rule );
-            }
-        });
+    @Override
+    public void beforeIncrementalUpdate(KieBaseUpdate kieBaseUpdate) {
     }
 
-    private void internalAddRule( RuleImpl rule ) {
-        this.hasMultipleAgendaGroups |= !rule.isMainAgendaGroup();
-        this.eventSupport.fireBeforeRuleAdded( rule );
-        this.reteooBuilder.addRule(rule);
-        this.eventSupport.fireAfterRuleAdded( rule );
+    @Override
+    public void afterIncrementalUpdate(KieBaseUpdate kieBaseUpdate) {
     }
 
-    public void removeQuery( final String packageName,
-                             final String ruleName ) {
-        removeRule(packageName,
-                   ruleName);
+    public void addRules(Collection<RuleImpl> rules ) throws InvalidPatternException {
+        enqueueModification( () -> internalAddRules( rules ) );
     }
 
-    public void removeRule( final String packageName,
-                            final String ruleName ) {
+    private void internalAddRules( Collection<? extends Rule> rules ) {
+        for (Rule r : rules) {
+            RuleImpl rule = (RuleImpl) r;
+            checkMultithreadedEvaluation( rule );
+            this.hasMultipleAgendaGroups |= !rule.isMainAgendaGroup();
+            this.eventSupport.fireBeforeRuleAdded( rule );
+            this.reteooBuilder.addRule(rule);
+            this.eventSupport.fireAfterRuleAdded( rule );
+        }
+    }
+
+    public void removeQuery( final String packageName, final String ruleName ) {
+        removeRule(packageName, ruleName);
+    }
+
+    public void removeRule( final String packageName, final String ruleName ) {
         enqueueModification( () -> {
             final InternalKnowledgePackage pkg = pkgs.get( packageName );
             if (pkg == null) {
@@ -1568,13 +1560,13 @@ public class KnowledgeBaseImpl
         enqueueModification( () -> internalRemoveRules( rules ) );
     }
 
-    private void internalRemoveRules(Collection<RuleImpl> rules) {
-        for (RuleImpl rule : rules) {
-            this.eventSupport.fireBeforeRuleRemoved( rule );
+    private void internalRemoveRules(Collection<? extends Rule> rules) {
+        for (Rule rule : rules) {
+            this.eventSupport.fireBeforeRuleRemoved( (RuleImpl) rule );
         }
         this.reteooBuilder.removeRules(rules);
-        for (RuleImpl rule : rules) {
-            this.eventSupport.fireAfterRuleRemoved( rule );
+        for (Rule rule : rules) {
+            this.eventSupport.fireAfterRuleRemoved( (RuleImpl) rule );
         }
     }
 

@@ -37,6 +37,9 @@ public class ExpressionTyperContext {
     private boolean registerPropertyReactivity = true;
 
     private Optional<Expression> inlineCastExpression = Optional.empty();
+    private List<Expression> nullSafeExpressions = new ArrayList<>();
+
+    private Set<String> variablesFromDifferentPattern = new HashSet<>();
 
     public void addUsedDeclarations(String name) {
         usedDeclarations.add(name);
@@ -84,11 +87,27 @@ public class ExpressionTyperContext {
         this.inlineCastExpression = inlineCastExpression;
     }
 
+    public List<Expression> getNullSafeExpressions() {
+        return nullSafeExpressions;
+    }
+
+    public void addNullSafeExpression(int index, Expression nullSafeExpression) {
+        nullSafeExpressions.add(index, nullSafeExpression);
+    }
+
     public Expression getOriginalExpression() {
         return originalExpression;
     }
 
     public void setOriginalExpression(Expression originalExpression) {
         this.originalExpression = originalExpression;
+    }
+
+    public Set<String> getVariablesFromDifferentPattern() {
+        return variablesFromDifferentPattern;
+    }
+
+    public void addVariableFromDifferentPattern(String variable) {
+        variablesFromDifferentPattern.add(variable);
     }
 }

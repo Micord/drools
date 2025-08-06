@@ -14,12 +14,15 @@
 
 package org.drools.modelcompiler;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.drools.modelcompiler.domain.Address;
 import org.drools.modelcompiler.domain.Person;
 import org.junit.Test;
 import org.kie.api.runtime.KieSession;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class HalfBinaryTest extends BaseModelTest {
 
@@ -40,7 +43,7 @@ public class HalfBinaryTest extends BaseModelTest {
         ksession.insert( 3 );
         ksession.insert( 4 );
         ksession.insert( 6 );
-        assertEquals( 2, ksession.fireAllRules() );
+        assertThat(ksession.fireAllRules()).isEqualTo(2);
     }
 
     @Test
@@ -57,7 +60,7 @@ public class HalfBinaryTest extends BaseModelTest {
         ksession.insert( 3 );
         ksession.insert( 4 );
         ksession.insert( 6 );
-        assertEquals( 2, ksession.fireAllRules() );
+        assertThat(ksession.fireAllRules()).isEqualTo(2);
     }
 
     @Test
@@ -74,7 +77,7 @@ public class HalfBinaryTest extends BaseModelTest {
         ksession.insert( 3 );
         ksession.insert( 4 );
         ksession.insert( 6 );
-        assertEquals( 1, ksession.fireAllRules() );
+        assertThat(ksession.fireAllRules()).isEqualTo(1);
     }
 
     @Test
@@ -91,7 +94,7 @@ public class HalfBinaryTest extends BaseModelTest {
         ksession.insert( 3 );
         ksession.insert( 4 );
         ksession.insert( 6 );
-        assertEquals( 2, ksession.fireAllRules() );
+        assertThat(ksession.fireAllRules()).isEqualTo(2);
     }
 
     @Test
@@ -109,7 +112,7 @@ public class HalfBinaryTest extends BaseModelTest {
         ksession.insert( "D" );
         ksession.insert( "H" );
         ksession.insert( "S" );
-        assertEquals( 2, ksession.fireAllRules() );
+        assertThat(ksession.fireAllRules()).isEqualTo(2);
     }
 
     @Test
@@ -127,7 +130,7 @@ public class HalfBinaryTest extends BaseModelTest {
         ksession.insert( "D" );
         ksession.insert( "H" );
         ksession.insert( "S" );
-        assertEquals( 2, ksession.fireAllRules() );
+        assertThat(ksession.fireAllRules()).isEqualTo(2);
     }
 
     @Test
@@ -145,7 +148,7 @@ public class HalfBinaryTest extends BaseModelTest {
         ksession.insert( "D" );
         ksession.insert( "Q" );
         ksession.insert( "S" );
-        assertEquals( 2, ksession.fireAllRules() );
+        assertThat(ksession.fireAllRules()).isEqualTo(2);
     }
 
     @Test
@@ -164,7 +167,7 @@ public class HalfBinaryTest extends BaseModelTest {
         ksession.insert( new Person("D") );
         ksession.insert( new Person("Q") );
         ksession.insert( new Person("S") );
-        assertEquals( 2, ksession.fireAllRules() );
+        assertThat(ksession.fireAllRules()).isEqualTo(2);
     }
 
     @Test
@@ -192,7 +195,7 @@ public class HalfBinaryTest extends BaseModelTest {
         ksession.insert( d );
         ksession.insert( q );
         ksession.insert( s );
-        assertEquals( 2, ksession.fireAllRules() );
+        assertThat(ksession.fireAllRules()).isEqualTo(2);
     }
 
     @Test
@@ -223,6 +226,54 @@ public class HalfBinaryTest extends BaseModelTest {
         ksession.insert( d );
         ksession.insert( q );
         ksession.insert( s );
-        assertEquals( 2, ksession.fireAllRules() );
+        assertThat(ksession.fireAllRules()).isEqualTo(2);
+    }
+
+    @Test
+    public void testHalfBinaryOrAndAmpersand() {
+        final String drl =
+                "import " + Person.class.getCanonicalName() + ";\n" +
+                           "global java.util.List result;\n" +
+                           "rule R1 when\n" +
+                           "    $p : Person(age < 15 || > 20 && < 30)\n" +
+                           "then\n" +
+                           "    result.add($p.getName());\n" +
+                           "end\n";
+
+        KieSession ksession = getKieSession(drl);
+        List<String> result = new ArrayList<>();
+        ksession.setGlobal("result", result);
+
+        ksession.insert(new Person("A", 12));
+        ksession.insert(new Person("B", 18));
+        ksession.insert(new Person("C", 25));
+        ksession.insert(new Person("D", 40));
+
+        ksession.fireAllRules();
+        assertThat(result).containsExactlyInAnyOrder("A", "C");
+    }
+
+    @Test
+    public void testNestedHalfBinaryOrAndAmpersand() {
+        final String drl =
+                "import " + Person.class.getCanonicalName() + ";\n" +
+                           "global java.util.List result;\n" +
+                           "rule R1 when\n" +
+                           "    $p : Person(name != \"X\" && (age < 15 || > 20 && < 30))\n" +
+                           "then\n" +
+                           "    result.add($p.getName());\n" +
+                           "end\n";
+
+        KieSession ksession = getKieSession(drl);
+        List<String> result = new ArrayList<>();
+        ksession.setGlobal("result", result);
+
+        ksession.insert(new Person("A", 12));
+        ksession.insert(new Person("B", 18));
+        ksession.insert(new Person("C", 25));
+        ksession.insert(new Person("D", 40));
+
+        ksession.fireAllRules();
+        assertThat(result).containsExactlyInAnyOrder("A", "C");
     }
 }

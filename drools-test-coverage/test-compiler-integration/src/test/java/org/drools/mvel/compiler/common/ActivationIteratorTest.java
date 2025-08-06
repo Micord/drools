@@ -40,8 +40,8 @@ import org.kie.api.runtime.KieSessionConfiguration;
 import org.kie.internal.runtime.conf.ForceEagerActivationFilter;
 import org.kie.internal.runtime.conf.ForceEagerActivationOption;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 @RunWith(Parameterized.class)
 public class ActivationIteratorTest {
@@ -54,8 +54,7 @@ public class ActivationIteratorTest {
 
     @Parameterized.Parameters(name = "KieBase type={0}")
     public static Collection<Object[]> getParameters() {
-     // TODO: EM failed with testFilteredEagerEvaluation, testLianPlusEvalnWithSharingWithMixedDormantAndActive, testSingleJoinNodePlusEvalnWithSharingWithMixedDormantAndActive. File JIRAs
-        return TestParametersUtil.getKieBaseCloudConfigurations(false);
+        return TestParametersUtil.getKieBaseCloudConfigurations(true);
     }
 
     @Test
@@ -710,7 +709,7 @@ public class ActivationIteratorTest {
 
         ksession.insert("test");
 
-        assertEquals(2, list.size());
+        assertThat(list.size()).isEqualTo(2);
     }
 
     @Test(timeout=10000)
@@ -751,6 +750,6 @@ public class ActivationIteratorTest {
         ksession.insert("test");
         ((InternalWorkingMemory) ksession).flushPropagations();
 
-        assertEquals(1, list.size());
+        assertThat(list.size()).isEqualTo(1);
     }
 }

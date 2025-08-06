@@ -35,9 +35,7 @@ import org.kie.api.runtime.KieSession;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -70,13 +68,11 @@ public class RuleChainingTest {
                 "    dialect \"mvel\"\n" +
                 "    when\n" +
                 "    then\n" +
-                "        with( s0 = new Some() ) {\n" +
-                "            field = 0\n" +
-                "        }\n" +
+                "        Some s0 = new Some();\n" +
+                "        s0.field = 0;\n" +
                 "        insertLogical(s0);\n" +
-                "        with( s1 = new Some() ) {\n" +
-                "            field = 1\n" +
-                "        }\n" +
+                "        Some s1 = new Some();\n" +
+                "        s1.field = 1;\n" +
                 "        insertLogical(s1);\n" +
                 "end\n" +
                 "\n" +
@@ -110,15 +106,15 @@ public class RuleChainingTest {
             ksession.addEventListener(ael);
 
             final int fired = ksession.fireAllRules();
-            assertEquals(3, fired);
+            assertThat(fired).isEqualTo(3);
 
             // capture the arguments and check that the rules fired in the proper sequence
             final ArgumentCaptor<AfterMatchFiredEvent> actvs = ArgumentCaptor.forClass(AfterMatchFiredEvent.class);
             verify(ael, times(3)).afterMatchFired(actvs.capture());
             final List<AfterMatchFiredEvent> values = actvs.getAllValues();
-            assertThat(values.get(0).getMatch().getRule().getName(), is("init"));
-            assertThat(values.get(1).getMatch().getRule().getName(), is("r1"));
-            assertThat(values.get(2).getMatch().getRule().getName(), is("r2"));
+            assertThat(values.get(0).getMatch().getRule().getName()).isEqualTo("init");
+            assertThat(values.get(1).getMatch().getRule().getName()).isEqualTo("r1");
+            assertThat(values.get(2).getMatch().getRule().getName()).isEqualTo("r2");
 
             verify(ael, never()).matchCancelled(any(org.kie.api.event.rule.MatchCancelledEvent.class));
             verify(wml, times(2)).objectInserted(any(ObjectInsertedEvent.class));

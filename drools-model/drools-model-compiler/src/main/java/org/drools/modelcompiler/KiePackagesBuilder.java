@@ -28,6 +28,7 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.drools.compiler.builder.impl.KnowledgeBuilderConfigurationImpl;
@@ -153,6 +154,7 @@ import static java.util.stream.Collectors.toList;
 
 import static org.drools.compiler.rule.builder.RuleBuilder.buildTimer;
 import static org.drools.core.rule.GroupElement.AND;
+import static org.drools.core.rule.GroupElement.OR;
 import static org.drools.core.rule.Pattern.getReadAcessor;
 import static org.drools.model.DSL.declarationOf;
 import static org.drools.model.DSL.entryPoint;
@@ -423,12 +425,12 @@ public class KiePackagesBuilder {
 
     private boolean ruleHasFirstLevelOr(RuleImpl rule) {
         GroupElement lhs = rule.getLhs();
-        if (lhs.getType() == GroupElement.Type.OR) {
+        if (lhs.getType() == OR) {
             return true;
         }
         if (lhs.getType() == GroupElement.Type.AND) {
             for (RuleConditionElement child : lhs.getChildren()) {
-                if ( child instanceof GroupElement && (( GroupElement ) child).getType() == GroupElement.Type.OR ) {
+                if ( child instanceof GroupElement && (( GroupElement ) child).getType() == OR ) {
                     return true;
                 }
             }
@@ -605,11 +607,33 @@ public class KiePackagesBuilder {
         if (sourcePattern != null) {
             bindings.addAll( sourcePattern.getBindings() );
             bindings.add( new SelfPatternBiding<>( sourcePattern.getPatternVariable() ) );
+        } else {
+            // No pattern is associated. It likely uses inner bindings
+            addInnerBindings(bindings, accumulatePattern.getAccumulateFunctions(), accumulatePattern.getCondition());
         }
 
         pattern.setSource(buildAccumulate( ctx, accumulatePattern, source, pattern, usedVariableName, bindings ));
 
         return existingPattern ? null : pattern;
+    }
+
+    private void addInnerBindings(Collection<Binding> bindings, AccumulateFunction[] accumulateFunctions, Condition condition) {
+        List<org.drools.model.Declaration> functionArgList = Arrays.stream(accumulateFunctions)
+                                          .map(function -> function.getSource())
+                                          .filter(org.drools.model.Declaration.class::isInstance)
+                                          .map(org.drools.model.Declaration.class::cast)
+                                          .collect(Collectors.toList());
+        if (condition instanceof CompositePatterns) {
+            CompositePatterns compositePatterns = (CompositePatterns) condition;
+            for (Condition c : compositePatterns.getSubConditions()) {
+                Variable<?>[] boundVariables = c.getBoundVariables();
+                Arrays.stream(boundVariables)
+                      .filter(org.drools.model.Declaration.class::isInstance)
+                      .map(org.drools.model.Declaration.class::cast)
+                      .filter(decl -> functionArgList.contains(decl))
+                      .forEach(decl -> bindings.add(new SelfPatternBiding<>((org.drools.model.Declaration)decl)));
+            }
+        }
     }
 
     private Constraint getForallSelfJoin(Condition condition) {
@@ -690,11 +714,17 @@ public class KiePackagesBuilder {
     }
 
     private RuleConditionElement addSubConditions( RuleContext ctx, GroupElement ge, List<Condition> subconditions ) {
+        if (ge.getType() == OR) {
+            ctx.startOrCondition();
+        }
         for (int i = 0; i < subconditions.size(); i++) {
             RuleConditionElement element = conditionToElement( ctx, ge, subconditions.get(i) );
             if (element != null) {
                 ge.addChild( element );
             }
+        }
+        if (ge.getType() == OR) {
+            ctx.endOrCondition();
         }
         if (ge.getType() == AND && ge.getChildren().size() == 1) {
             return ge.getChildren().get(0);
@@ -1133,7 +1163,11 @@ public class KiePackagesBuilder {
     private Optional<org.drools.core.spi.Constraint> createConstraint( RuleContext ctx, Pattern pattern, Constraint constraint ) {
         if (constraint.getType() == Constraint.Type.SINGLE) {
             SingleConstraint singleConstraint = (SingleConstraint) constraint;
-            return singleConstraint.getVariables().length > 0 ? Optional.of( createSingleConstraint( ctx, pattern, singleConstraint ) ) : Optional.empty();
+            if (singleConstraint.getVariables().length > 0 || singleConstraint.equals(SingleConstraint.FALSE)) {
+                return Optional.of(createSingleConstraint(ctx, pattern, singleConstraint));
+            } else {
+                return Optional.empty(); // SingleConstraint.TRUE is used for non-constraint
+            }
         } else {
             List<AbstractConstraint> constraints = constraint.getChildren().stream().map( child -> createConstraint( ctx, pattern, child ) )
                     .filter( Optional::isPresent ).map( Optional::get ).map( AbstractConstraint.class::cast ).collect( toList() );
@@ -1194,7 +1228,7 @@ public class KiePackagesBuilder {
             if (patternClass.getPackage() != null && !patternClass.isPrimitive() &&
                 (!name.startsWith( "java.lang" ) || packages.containsKey( patternClass.getPackage().getName() ))) {
                 KnowledgePackageImpl pkg = (KnowledgePackageImpl) packages.computeIfAbsent( patternClass.getPackage().getName(), this::createKiePackage );
-                TypeDeclaration typeDeclaration = pkg.getTypeDeclaration( patternClass );
+                TypeDeclaration typeDeclaration = pkg.getExactTypeDeclaration( patternClass );
                 if ( typeDeclaration == null ) {
                     typeDeclaration = createTypeDeclaration( patternClass, getPropertySpecificOption() );
                     pkg.addTypeDeclaration( typeDeclaration );

@@ -116,7 +116,15 @@ public class IndexUtil {
         }
 
         ConstraintType constraintType = ((IndexableConstraint)constraint).getConstraintType();
+        if (isBigDecimalEqualityConstraint((IndexableConstraint)constraint)) {
+            return false;
+        }
         return constraintType.isIndexableForNode(nodeType, (IndexableConstraint)constraint, config);
+    }
+
+    public static boolean isBigDecimalEqualityConstraint(IndexableConstraint indexableConstraint) {
+        // Note : BigDecimal is not indexable for equality, because new BigDecimal("10").equals(new BigDecimal("10.00")) returns false
+        return indexableConstraint.getConstraintType() == ConstraintType.EQUAL && indexableConstraint.getFieldExtractor() != null && indexableConstraint.getFieldExtractor().getValueType() == ValueType.BIG_DECIMAL_TYPE;
     }
 
     public static boolean[] isIndexableForNode(IndexPrecedenceOption indexPrecedenceOption, short nodeType, int keyDepth, BetaNodeFieldConstraint[] constraints, RuleBaseConfiguration config) {
@@ -189,8 +197,8 @@ public class IndexUtil {
         indexable[0] = true;
     }
 
-    private static boolean isEqualIndexable(BetaNodeFieldConstraint constraint) {
-        return constraint instanceof IndexableConstraint && ((IndexableConstraint)constraint).getConstraintType() == ConstraintType.EQUAL;
+    static boolean isEqualIndexable(BetaNodeFieldConstraint constraint) {
+        return constraint instanceof IndexableConstraint && ((IndexableConstraint)constraint).getConstraintType() == ConstraintType.EQUAL && !isBigDecimalEqualityConstraint((IndexableConstraint)constraint);
     }
 
     private static void swap(BetaNodeFieldConstraint[] constraints, int p1, int p2) {
@@ -341,7 +349,7 @@ public class IndexUtil {
         }
 
         private static TupleMemory createRightMemory(RuleBaseConfiguration config, IndexSpec indexSpec) {
-            if ( !config.isIndexRightBetaMemory() || !indexSpec.constraintType.isIndexable() ) {
+            if ( !config.isIndexRightBetaMemory() || !indexSpec.constraintType.isIndexable() || indexSpec.indexes.length == 0 ) {
                 return new TupleList();
             }
 
@@ -360,7 +368,7 @@ public class IndexUtil {
             if (config.isSequential()) {
                 return null;
             }
-            if ( !config.isIndexLeftBetaMemory() || !indexSpec.constraintType.isIndexable() ) {
+            if ( !config.isIndexLeftBetaMemory() || !indexSpec.constraintType.isIndexable() || indexSpec.indexes.length == 0 ) {
                 return new TupleList();
             }
 
@@ -400,11 +408,13 @@ public class IndexUtil {
 
                 if (constraintType == ConstraintType.EQUAL) {
                     List<FieldIndex> indexList = new ArrayList<>();
-                    indexList.add(((IndexableConstraint)constraints[firstIndexableConstraint]).getFieldIndex());
+                    if (isEqualIndexable(constraints[firstIndexableConstraint])) {
+                        indexList.add(((IndexableConstraint)constraints[firstIndexableConstraint]).getFieldIndex());
+                    }
 
                     // look for other EQUAL constraint to eventually add them to the index
                     for (int i = firstIndexableConstraint+1; i < constraints.length && indexList.size() < keyDepth; i++) {
-                        if ( ConstraintType.getType(constraints[i]) == ConstraintType.EQUAL && ! ((IndexableConstraint) constraints[i]).isUnification() ) {
+                        if ( isEqualIndexable(constraints[i]) && ! ((IndexableConstraint) constraints[i]).isUnification() ) {
                             indexList.add(((IndexableConstraint)constraints[i]).getFieldIndex());
                         }
                     }

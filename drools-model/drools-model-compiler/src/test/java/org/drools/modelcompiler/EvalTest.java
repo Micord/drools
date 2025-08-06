@@ -18,16 +18,14 @@ package org.drools.modelcompiler;
 
 import java.util.Collection;
 
-import org.assertj.core.api.Assertions;
 import org.drools.modelcompiler.domain.CalcFact;
 import org.drools.modelcompiler.domain.Overloaded;
 import org.drools.modelcompiler.domain.Person;
 import org.drools.modelcompiler.domain.Result;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.kie.api.runtime.KieSession;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class EvalTest extends BaseModelTest {
 
@@ -55,8 +53,8 @@ public class EvalTest extends BaseModelTest {
         ksession.fireAllRules();
 
         Collection<Result> results = getObjectsIntoList( ksession, Result.class );
-        assertEquals( 1, results.size() );
-        assertEquals( "Mario", results.iterator().next().getValue() );
+        assertThat(results.size()).isEqualTo(1);
+        assertThat(results.iterator().next().getValue()).isEqualTo("Mario");
     }
 
     @Test
@@ -79,8 +77,8 @@ public class EvalTest extends BaseModelTest {
         ksession.fireAllRules();
 
         Collection<Result> results = getObjectsIntoList( ksession, Result.class );
-        assertEquals( 1, results.size() );
-        assertEquals( "Edson", results.iterator().next().getValue() );
+        assertThat(results.size()).isEqualTo(1);
+        assertThat(results.iterator().next().getValue()).isEqualTo("Edson");
     }
 
     @Test
@@ -92,7 +90,7 @@ public class EvalTest extends BaseModelTest {
                 "end";
 
         KieSession ksession = getKieSession( str );
-        assertEquals( 1, ksession.fireAllRules() );
+        assertThat(ksession.fireAllRules()).isEqualTo(1);
     }
 
     @Test
@@ -104,7 +102,7 @@ public class EvalTest extends BaseModelTest {
                 "end";
 
         KieSession ksession = getKieSession( str );
-        assertEquals( 0, ksession.fireAllRules() );
+        assertThat(ksession.fireAllRules()).isEqualTo(0);
     }
 
     @Test
@@ -116,7 +114,7 @@ public class EvalTest extends BaseModelTest {
                 "end";
 
         KieSession ksession = getKieSession( str );
-        assertEquals( 1, ksession.fireAllRules() );
+        assertThat(ksession.fireAllRules()).isEqualTo(1);
     }
 
     @Test
@@ -128,7 +126,7 @@ public class EvalTest extends BaseModelTest {
                         "end";
 
         KieSession ksession = getKieSession( str );
-        assertEquals( 1, ksession.fireAllRules() );
+        assertThat(ksession.fireAllRules()).isEqualTo(1);
     }
 
     @Test
@@ -154,8 +152,8 @@ public class EvalTest extends BaseModelTest {
         ksession.fireAllRules();
 
         Collection<Result> results = getObjectsIntoList( ksession, Result.class );
-        assertEquals( 1, results.size() );
-        assertEquals( "Hello Mario!", results.iterator().next().getValue() );
+        assertThat(results.size()).isEqualTo(1);
+        assertThat(results.iterator().next().getValue()).isEqualTo("Hello Mario!");
     }
 
     @Test
@@ -181,8 +179,8 @@ public class EvalTest extends BaseModelTest {
         ksession.fireAllRules();
 
         Collection<Result> results = getObjectsIntoList( ksession, Result.class );
-        assertEquals( 1, results.size() );
-        assertEquals( "Mario", results.iterator().next().getValue() );
+        assertThat(results.size()).isEqualTo(1);
+        assertThat(results.iterator().next().getValue()).isEqualTo("Mario");
     }
 
     @Test
@@ -206,8 +204,8 @@ public class EvalTest extends BaseModelTest {
         ksession.fireAllRules();
 
         Collection<Result> results = getObjectsIntoList( ksession, Result.class );
-        assertEquals( 1, results.size() );
-        assertEquals( "Mario", results.iterator().next().getValue() );
+        assertThat(results.size()).isEqualTo(1);
+        assertThat(results.iterator().next().getValue()).isEqualTo("Mario");
     }
 
     @Test
@@ -231,9 +229,8 @@ public class EvalTest extends BaseModelTest {
         ksession.fireAllRules();
 
         Collection<Result> results = getObjectsIntoList( ksession, Result.class );
-        assertEquals( 1, results.size() );
-        assertEquals( "Mario", results.iterator().next().getValue() );
-    }
+        assertThat(results.size()).isEqualTo(1);
+        assertThat(results.iterator().next().getValue()).isEqualTo("Mario");    }
 
     @Test
     public void testEvalWithDeclaration() {
@@ -255,8 +252,8 @@ public class EvalTest extends BaseModelTest {
         ksession.fireAllRules();
 
         Collection<Result> results = getObjectsIntoList( ksession, Result.class );
-        assertEquals( 1, results.size() );
-        assertEquals( "Mario", results.iterator().next().getValue() );
+        assertThat(results.size()).isEqualTo(1);
+        assertThat(results.iterator().next().getValue()).isEqualTo("Mario");
     }
 
     @Test
@@ -280,8 +277,8 @@ public class EvalTest extends BaseModelTest {
         ksession.fireAllRules();
 
         Collection<Result> results = getObjectsIntoList( ksession, Result.class );
-        assertEquals( 1, results.size() );
-        assertEquals( "Mario", results.iterator().next().getValue() );
+        assertThat(results.size()).isEqualTo(1);
+        assertThat(results.iterator().next().getValue()).isEqualTo("Mario");
     }
 
     @Test
@@ -303,8 +300,8 @@ public class EvalTest extends BaseModelTest {
         ksession.fireAllRules();
 
         Collection<Result> results = getObjectsIntoList(ksession, Result.class);
-        assertEquals(1, results.size());
-        assertEquals("Mario", results.iterator().next().getValue());
+        assertThat(results.size()).isEqualTo(1);
+        assertThat(results.iterator().next().getValue()).isEqualTo("Mario");
     }
 
     @Test
@@ -324,7 +321,7 @@ public class EvalTest extends BaseModelTest {
         ksession.fireAllRules();
 
         Collection<String> results = getObjectsIntoList(ksession, String.class);
-        assertEquals(1, results.size());
+        assertThat(results.size()).isEqualTo(1);
     }
 
     @Test
@@ -344,7 +341,7 @@ public class EvalTest extends BaseModelTest {
         ksession.fireAllRules();
 
         Collection<String> results = getObjectsIntoList(ksession, String.class);
-        assertEquals(1, results.size());
+        assertThat(results.size()).isEqualTo(1);
     }
 
 
@@ -367,7 +364,7 @@ public class EvalTest extends BaseModelTest {
         ksession.fireAllRules();
 
         Collection<String> results = getObjectsIntoList(ksession, String.class);
-        assertEquals(1, results.size());
+        assertThat(results.size()).isEqualTo(1);
     }
 
     @Test
@@ -388,10 +385,10 @@ public class EvalTest extends BaseModelTest {
         ksession.insert(2);
         ksession.insert(3);
 
-        assertEquals( 1, ksession.fireAllRules() );
+        assertThat(ksession.fireAllRules()).isEqualTo(1);
 
         Collection<Result> results = getObjectsIntoList(ksession, Result.class);
-        assertEquals(results.iterator().next().getValue().toString(), "match");
+        assertThat(results.iterator().next().getValue().toString()).isEqualTo("match");
     }
 
     @Test
@@ -412,11 +409,10 @@ public class EvalTest extends BaseModelTest {
         ksession.insert(2);
         ksession.insert(3);
 
-        assertEquals( 1, ksession.fireAllRules() );
+        assertThat(ksession.fireAllRules()).isEqualTo(1);
 
         Collection<Result> results = getObjectsIntoList(ksession, Result.class);
-        assertEquals(results.iterator().next().getValue().toString(), "match");
-
+        assertThat(results.iterator().next().getValue().toString()).isEqualTo("match");
     }
 
     @Test
@@ -436,7 +432,7 @@ public class EvalTest extends BaseModelTest {
 
         Person first = new Person("First", 10);
         ksession.insert(first);
-        Assertions.assertThat(ksession.fireAllRules()).isEqualTo(1);
+        assertThat(ksession.fireAllRules()).isEqualTo(1);
     }
 
     public static class GlobalFunctions {
@@ -461,6 +457,20 @@ public class EvalTest extends BaseModelTest {
         // (1.0 / (1.0 * 10) * 10) is 1. So this rule should not fire
 
         int fired = ksession.fireAllRules();
-        assertEquals(0, fired);
+        assertThat(fired).isEqualTo(0);
+    }
+
+    @Test
+    public void testParseIntStringConcatenation() throws Exception {
+        String str =
+                "rule R when\n" +
+                     "  $s : String()\n" +
+                     "  eval(Integer.parseInt('1' + $s) > 3)\n" +
+                     "then\n" +
+                     "end\n";
+
+        KieSession ksession = getKieSession(str);
+        ksession.insert("5");
+        assertThat(ksession.fireAllRules()).isEqualTo(1);
     }
 }

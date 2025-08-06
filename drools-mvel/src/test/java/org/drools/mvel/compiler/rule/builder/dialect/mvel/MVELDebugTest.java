@@ -23,9 +23,8 @@ import org.drools.core.definitions.InternalKnowledgePackage;
 import org.drools.mvel.expr.MVELConsequence;
 import org.junit.Test;
 import org.kie.internal.builder.conf.LanguageLevelOption;
-import org.mvel2.compiler.CompiledExpression;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class MVELDebugTest {
 
@@ -40,11 +39,9 @@ public class MVELDebugTest {
         builder.addPackage(packageDescr);
         InternalKnowledgePackage pkg = builder.getPackage("com.sample");
         MVELConsequence consequence = (MVELConsequence) pkg.getRule("myRule").getConsequence();
-        String sourceName = ((CompiledExpression) consequence.getCompExpr()).getSourceName();
-        System.out.println(sourceName);
         String ruleName = ruleDescr.getNamespace() + "." + ruleDescr.getClassName();
         System.out.println(ruleName);
-        assertEquals(sourceName, ruleName);
+        assertThat(ruleName).isEqualTo("com.sample.Rule_myRule");
     }
 
 }

@@ -29,6 +29,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -73,6 +74,8 @@ import static org.drools.modelcompiler.builder.generator.QueryGenerator.toQueryA
 import static org.kie.internal.ruleunit.RuleUnitUtil.isLegacyRuleUnit;
 
 public class RuleContext {
+
+    private static final String SCOPE_SUFFIX = "_sCoPe";
 
     private final KnowledgeBuilderImpl kbuilder;
     private final PackageModel packageModel;
@@ -119,6 +122,7 @@ public class RuleContext {
 
     private int legacyAccumulateCounter = 0;
 
+    private Optional<PatternDescr> currentPatternDescr = empty();
     private Optional<BaseDescr> currentConstraintDescr = empty();
 
     private boolean hasCompilationError;
@@ -222,6 +226,15 @@ public class RuleContext {
         }
     }
 
+    public void addCompilationWarning( KnowledgeBuilderResult warn ) {
+        if ( warn instanceof BaseKnowledgeBuilderResultImpl ) {
+            (( BaseKnowledgeBuilderResultImpl ) warn).setResource( ruleDescr.getResource() );
+        }
+        synchronized (kbuilder) {
+            kbuilder.addBuilderResult(warn);
+        }
+    }
+
     public boolean hasCompilationError() {
         return hasCompilationError;
     }
@@ -265,6 +278,7 @@ public class RuleContext {
         String declId = getDeclarationKey( id );
         scopedDeclarations.remove( declId );
         this.allDeclarations.remove( declId );
+        definedVars.remove(id);
     }
 
     public boolean hasDeclaration(String id) {
@@ -287,8 +301,19 @@ public class RuleContext {
         return dec == null ? empty() : ofNullable( dec.getBindingExpr() );
     }
 
-    public void addGlobalDeclarations(Map<String, Class<?>> globals) {
-        for(Map.Entry<String, Class<?>> ks : globals.entrySet()) {
+    public void addGlobalDeclarations() {
+        Map<String, Class<?>> globals = packageModel.getGlobals();
+
+        // also takes globals defined in different packages imported with a wildcard
+        packageModel.getImports().stream()
+                .filter( imp -> imp.endsWith(".*") )
+                .map( imp -> imp.substring(0, imp.length()-2) )
+                .map( imp -> kbuilder.getPackageRegistry(imp) )
+                .filter( Objects::nonNull )
+                .map( pkgRegistry -> pkgRegistry.getPackage().getGlobals() )
+                .forEach( globals::putAll );
+        
+        for (Map.Entry<String, Class<?>> ks : globals.entrySet()) {
             definedVars.put(ks.getKey(), ks.getKey());
             addDeclaration(new DeclarationSpec(ks.getKey(), ks.getValue(), true));
         }
@@ -356,7 +381,17 @@ public class RuleContext {
         }
         this.scopedDeclarations.put(d.getBindingId(), d);
         this.allDeclarations.put(d.getBindingId(), d);
-        definedVars.put(bindingId, bindingId);
+        String var = stripIfScoped(bindingId);
+        definedVars.put(var, bindingId);
+    }
+
+    private String stripIfScoped(String bindingId) {
+        if (bindingId.endsWith(SCOPE_SUFFIX)) {
+            String stripSuffix = bindingId.substring(0, bindingId.lastIndexOf(SCOPE_SUFFIX));
+            return stripSuffix.substring(0, stripSuffix.lastIndexOf("_")); // strip counter
+        } else {
+            return bindingId;
+        }
     }
 
     public void addOOPathDeclaration(DeclarationSpec d) {
@@ -579,7 +614,7 @@ public class RuleContext {
     }
 
     public String getOutOfScopeVar( String x ) {
-        return x == null ? null : x + scopesStack.getLast().id;
+        return x == null || idGenerator.isGenerated( x ) ? x : x + scopesStack.getLast().id;
     }
 
     public Expression getVarExpr(String x) {
@@ -606,7 +641,7 @@ public class RuleContext {
         if ( idGenerator.isGenerated( x ) || ruleUnitVars.containsKey( x ) ) {
             return DrlxParseUtil.toVar( x );
         }
-        String var = x.endsWith( "sCoPe" ) ? x : definedVars.get(x);
+        String var = x.endsWith( SCOPE_SUFFIX ) ? x : definedVars.get(x);
         return DrlxParseUtil.toVar(var != null ? var : x + currentScope.id);
     }
 
@@ -634,7 +669,7 @@ public class RuleContext {
         }
 
         private Scope( ConditionalElementDescr scopeElement ) {
-            this( "_" + scopeCounter++ + "_sCoPe", scopeElement );
+            this( "_" + scopeCounter++ + SCOPE_SUFFIX, scopeElement );
         }
 
         private Scope( String id, ConditionalElementDescr scopeElement ) {
@@ -703,6 +738,18 @@ public class RuleContext {
 
     public void resetCurrentConstraintDescr() {
         this.currentConstraintDescr = empty();
+    }
+
+    public Optional<PatternDescr> getCurrentPatternDescr() {
+        return currentPatternDescr;
+    }
+
+    public void setCurrentPatternDescr(Optional<PatternDescr> currentPatternDescr) {
+        this.currentPatternDescr = currentPatternDescr;
+    }
+
+    public void resetCurrentPatternDescr() {
+        this.currentPatternDescr = empty();
     }
 
     public void setParentDescr( AndDescr parentDescr ) {

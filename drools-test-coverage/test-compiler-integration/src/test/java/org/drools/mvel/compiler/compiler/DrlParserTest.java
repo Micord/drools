@@ -19,7 +19,6 @@ import java.io.StringReader;
 import java.util.Collection;
 import java.util.List;
 
-import org.assertj.core.api.Assertions;
 import org.drools.compiler.compiler.DrlParser;
 import org.drools.compiler.lang.Expander;
 import org.drools.compiler.lang.descr.PackageDescr;
@@ -38,8 +37,7 @@ import org.kie.api.builder.KieBuilder;
 import org.kie.api.builder.Message;
 import org.kie.internal.builder.conf.LanguageLevelOption;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(Parameterized.class)
 public class DrlParserTest {
@@ -54,8 +52,7 @@ public class DrlParserTest {
 
     @Parameterized.Parameters(name = "KieBase type={0}")
     public static Collection<Object[]> getParameters() {
-     // TODO: EM failed with testIfAfterPattern. File JIRAs
-        return TestParametersUtil.getKieBaseCloudConfigurations(false);
+        return TestParametersUtil.getKieBaseCloudConfigurations(true);
     }
 
     @Test
@@ -65,7 +62,7 @@ public class DrlParserTest {
         
         DrlParser parser = new DrlParser(LanguageLevelOption.DRL5);
         String result = parser.getExpandedDRL( drl, new StringReader(dsl));
-        Assertions.assertThat("rule 'foo' " + NL + " when " + NL + " Something() " + NL + " then " + NL + " another(); " + NL + "end")
+        assertThat("rule 'foo' " + NL + " when " + NL + " Something() " + NL + " then " + NL + " another(); " + NL + "end")
                   .isEqualToIgnoringWhitespace(result);
     }
     
@@ -89,7 +86,7 @@ public class DrlParserTest {
 
         DrlParser parser = new DrlParser(LanguageLevelOption.DRL5);
         String result = parser.getExpandedDRL( drl, resolver);
-        Assertions.assertThat("rule 'foo' " + NL + " when " + NL + " Something() " + NL + " then " + NL + " another(); " + NL + "end")
+        assertThat("rule 'foo' " + NL + " when " + NL + " Something() " + NL + " then " + NL + " another(); " + NL + "end")
                   .isEqualToIgnoringWhitespace(result);
     }
     
@@ -107,11 +104,10 @@ public class DrlParserTest {
         DrlParser parser = new DrlParser(LanguageLevelOption.DRL5);
         PackageDescr pkgDescr = parser.parse( null, drl );
         TypeDeclarationDescr bean1Type = pkgDescr.getTypeDeclarations().get( 0 );
-        assertNull( bean1Type.getSuperTypeName() );
+        assertThat(bean1Type.getSuperTypeName()).isNull();
 
         TypeDeclarationDescr bean2Type = pkgDescr.getTypeDeclarations().get( 1 );
-        assertEquals( "Bean1",
-                      bean2Type.getSuperTypeName() );
+        assertThat(bean2Type.getSuperTypeName()).isEqualTo("Bean1");
     }
     
     @Test
@@ -270,8 +266,6 @@ public class DrlParserTest {
     private void createKBuilderAddDrlAndAssertHasNoErrors(String drl) {
         KieBuilder kieBuilder = KieUtil.getKieBuilderFromDrls(kieBaseTestConfiguration, false, drl);
         List<Message> errors = kieBuilder.getResults().getMessages(Message.Level.ERROR);
-        assertEquals("Expected no build errors, but got: " + errors.toString(),
-                     0,
-                     errors.size());
+        assertThat(errors.size()).as("Expected no build errors, but got: " + errors.toString()).isEqualTo(0);
     }
 }

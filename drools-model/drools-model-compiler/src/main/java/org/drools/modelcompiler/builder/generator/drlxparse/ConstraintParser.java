@@ -21,14 +21,17 @@ import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.expr.BinaryExpr;
+import com.github.javaparser.ast.expr.BinaryExpr.Operator;
 import com.github.javaparser.ast.expr.CastExpr;
 import com.github.javaparser.ast.expr.EnclosedExpr;
 import com.github.javaparser.ast.expr.Expression;
@@ -37,7 +40,6 @@ import com.github.javaparser.ast.expr.LiteralExpr;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.expr.NameExpr;
 import com.github.javaparser.ast.expr.NullLiteralExpr;
-import com.github.javaparser.ast.expr.ObjectCreationExpr;
 import com.github.javaparser.ast.expr.SimpleName;
 import com.github.javaparser.ast.expr.StringLiteralExpr;
 import com.github.javaparser.ast.expr.ThisExpr;
@@ -48,6 +50,7 @@ import org.drools.core.util.DateUtils;
 import org.drools.model.Index;
 import org.drools.modelcompiler.builder.PackageModel;
 import org.drools.modelcompiler.builder.errors.ParseExpressionErrorResult;
+import org.drools.modelcompiler.builder.errors.VariableUsedInBindingError;
 import org.drools.modelcompiler.builder.generator.DeclarationSpec;
 import org.drools.modelcompiler.builder.generator.DrlxParseUtil;
 import org.drools.modelcompiler.builder.generator.ModelGenerator;
@@ -65,8 +68,11 @@ import org.drools.mvel.parser.ast.expr.HalfBinaryExpr;
 import org.drools.mvel.parser.ast.expr.HalfPointFreeExpr;
 import org.drools.mvel.parser.ast.expr.OOPathExpr;
 import org.drools.mvel.parser.ast.expr.PointFreeExpr;
+import org.drools.mvel.parser.printer.PrintUtil;
 import org.drools.mvelcompiler.CompiledExpressionResult;
 import org.drools.mvelcompiler.ConstraintCompiler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static com.github.javaparser.ast.expr.BinaryExpr.Operator.AND;
 import static com.github.javaparser.ast.expr.BinaryExpr.Operator.DIVIDE;
@@ -82,25 +88,58 @@ import static com.github.javaparser.ast.expr.BinaryExpr.Operator.OR;
 import static com.github.javaparser.ast.expr.BinaryExpr.Operator.PLUS;
 import static com.github.javaparser.ast.expr.BinaryExpr.Operator.REMAINDER;
 import static java.util.Arrays.asList;
+import static java.util.Optional.of;
 import static org.drools.core.util.StringUtils.lcFirstForBean;
+import static org.drools.modelcompiler.builder.generator.ConstraintUtil.GREATER_OR_EQUAL_PREFIX;
+import static org.drools.modelcompiler.builder.generator.ConstraintUtil.GREATER_THAN_PREFIX;
+import static org.drools.modelcompiler.builder.generator.ConstraintUtil.LESS_OR_EQUAL_PREFIX;
+import static org.drools.modelcompiler.builder.generator.ConstraintUtil.LESS_THAN_PREFIX;
 import static org.drools.modelcompiler.builder.generator.DrlxParseUtil.THIS_PLACEHOLDER;
 import static org.drools.modelcompiler.builder.generator.DrlxParseUtil.createConstraintCompiler;
 import static org.drools.modelcompiler.builder.generator.DrlxParseUtil.getLiteralExpressionType;
 import static org.drools.modelcompiler.builder.generator.DrlxParseUtil.isBooleanBoxedUnboxed;
 import static org.drools.modelcompiler.builder.generator.DrlxParseUtil.stripEnclosedExpr;
-import static org.drools.modelcompiler.builder.generator.DrlxParseUtil.toClassOrInterfaceType;
+import static org.drools.modelcompiler.builder.generator.DslMethodNames.NOT_CALL;
+import static org.drools.modelcompiler.builder.generator.DslMethodNames.createDslTopLevelMethod;
+import static org.drools.modelcompiler.builder.generator.drlxparse.MultipleDrlxParseSuccess.createMultipleDrlxParseSuccess;
 import static org.drools.modelcompiler.builder.generator.drlxparse.SpecialComparisonCase.specialComparisonFactory;
 import static org.drools.modelcompiler.builder.generator.expressiontyper.FlattenScope.transformFullyQualifiedInlineCastExpr;
-import static org.drools.mvel.parser.printer.PrintUtil.printConstraint;
+import static org.drools.mvel.parser.printer.PrintUtil.printNode;
+import static org.drools.mvel.parser.utils.AstUtils.isLogicalOperator;
 
+/**
+ * Parses the MVEL String Constraint and compiles it to a Java Expression
+ * There are two kinds of ConstraintParser
+ *
+ * ConstraintParser#defaultConstraintParser
+ * ConstraintParser#withoutVariableValidation
+ *
+ * There are some cases (such as from, eval) in which variables are allowed in the constraint
+ *
+ */
 public class ConstraintParser {
 
-    private RuleContext context;
-    private PackageModel packageModel;
+    private static final Logger LOG = LoggerFactory.getLogger(ConstraintParser.class);
 
-    public ConstraintParser(RuleContext context, PackageModel packageModel) {
+    private static final List<Operator> ARITHMETIC_OPERATORS = asList(PLUS, MINUS, MULTIPLY, DIVIDE, REMAINDER);
+    private final RuleContext context;
+    private final PackageModel packageModel;
+    private final boolean skipVariableValidation;
+
+    private ConstraintParser(RuleContext context,
+                             PackageModel packageModel,
+                             boolean skipVariableValidation) {
         this.context = context;
         this.packageModel = packageModel;
+        this.skipVariableValidation = skipVariableValidation;
+    }
+
+    public static ConstraintParser defaultConstraintParser(RuleContext context, PackageModel packageModel) {
+        return new ConstraintParser(context, packageModel, false);
+    }
+
+    public static ConstraintParser withoutVariableValidationConstraintParser(RuleContext context, PackageModel packageModel) {
+        return new ConstraintParser(context, packageModel, true);
     }
 
     public DrlxParseResult drlxParse(Class<?> patternType, String bindingId, String expression) {
@@ -112,11 +151,12 @@ public class ConstraintParser {
     }
 
     public DrlxParseResult drlxParse(Class<?> patternType, String bindingId, ConstraintExpression constraint, boolean isPositional) {
-        DrlxExpression drlx = DrlxParseUtil.parseExpression( constraint.getExpression() );
+        String constraintExpressionString = constraint.getExpression();
+        DrlxExpression drlx = DrlxParseUtil.parseExpression(constraintExpressionString);
         boolean hasBind = drlx.getBind() != null;
         DrlxParseResult drlxParseResult =
-                getDrlxParseResult(patternType, bindingId, constraint, drlx.getExpr(), hasBind, isPositional )
-                .setOriginalDrlConstraint(constraint.getExpression());
+                compileStart(patternType, bindingId, constraint, drlx.getExpr(), hasBind, isPositional )
+                .setOriginalDrlConstraint(constraintExpressionString);
 
         drlxParseResult.accept(result -> {
             if (hasBind) {
@@ -133,14 +173,35 @@ public class ConstraintParser {
             }
         });
 
+        logWarnIfNoReactOnCausedByVariableFromDifferentPattern(drlxParseResult);
+
         return drlxParseResult;
     }
 
-    private void addDeclaration(DrlxExpression drlx, SingleDrlxParseSuccess singleResult, String bindId) {
-        DeclarationSpec decl = context.addDeclaration( bindId, singleResult.getLeftExprRawClass() );
-        if (drlx.getExpr() instanceof NameExpr) {
-            decl.setBoundVariable( drlx.getExpr().toString() );
+    private void logWarnIfNoReactOnCausedByVariableFromDifferentPattern(DrlxParseResult drlxParseResult) {
+        if (drlxParseResult instanceof DrlxParseFail) {
+            return;
         }
+        if (drlxParseResult instanceof MultipleDrlxParseSuccess) {
+            Arrays.asList(((MultipleDrlxParseSuccess) drlxParseResult).getResults()).forEach(this::logWarnIfNoReactOnCausedByVariableFromDifferentPattern);
+            return;
+        }
+        SingleDrlxParseSuccess result = (SingleDrlxParseSuccess) drlxParseResult;
+        if (context.getCurrentConstraintDescr().isPresent() && !result.getVariablesFromDifferentPattern().isEmpty() && result.getReactOnProperties().isEmpty()) {
+            LOG.warn("{} is not relevant to this pattern, so it causes class reactivity. " +
+                     "Consider placing this constraint in the original pattern if possible : {}",
+                     result.getVariablesFromDifferentPattern(), result.getOriginalDrlConstraint());
+        }
+    }
+
+    private void addDeclaration(DrlxExpression drlx, SingleDrlxParseSuccess singleResult, String bindId) {
+        DeclarationSpec decl = context.addDeclaration( bindId, singleResult.getLeftExprTypeBeforeCoercion() );
+        if (drlx.getExpr() instanceof NameExpr) {
+            decl.setBoundVariable( PrintUtil.printNode(drlx.getExpr()) );
+        } else if (drlx.getExpr() instanceof BinaryExpr) {
+            decl.setBoundVariable(PrintUtil.printNode(drlx.getExpr().asBinaryExpr().getLeft()));
+        }
+        decl.setBelongingPatternDescr(context.getCurrentPatternDescr());
         singleResult.setExprBinding( bindId );
         Type exprType = singleResult.getExprType();
         if (isBooleanBoxedUnboxed(exprType)) {
@@ -148,7 +209,41 @@ public class ConstraintParser {
         }
     }
 
-    private DrlxParseResult getDrlxParseResult(Class<?> patternType, String bindingId, ConstraintExpression constraint, Expression drlxExpr, boolean hasBind, boolean isPositional ) {
+    /*
+        This is the entry point for Constraint Transformation from a parsed MVEL constraint
+        to a Java Expression
+     */
+    private DrlxParseResult compileStart(Class<?> patternType,
+                                         String bindingId,
+                                         ConstraintExpression constraint,
+                                         Expression drlxExpr,
+                                         boolean hasBind,
+                                         boolean isPositional) {
+
+        Optional<DrlxParseFail> variableUsedInBindingFailure = validateVariable(drlxExpr, hasBind);
+        if (variableUsedInBindingFailure.isPresent()) {
+            return variableUsedInBindingFailure.get();
+        }
+
+        return compileToJavaRecursive(patternType, bindingId, constraint, drlxExpr, hasBind, isPositional);
+    }
+
+    private Optional<DrlxParseFail> validateVariable(Expression drlxExpr, boolean hasBind) {
+        if (!skipVariableValidation && drlxExpr instanceof MethodCallExpr && hasBind) {
+            return drlxExpr.findAll(NameExpr.class, ne -> context.hasDeclaration(PrintUtil.printNode(ne)))
+                    .stream()
+                    .map(n -> new DrlxParseFail(new VariableUsedInBindingError(PrintUtil.printNode(n), PrintUtil.printNode(drlxExpr))))
+                    .findFirst();
+        }
+        return Optional.empty();
+    }
+
+    private DrlxParseResult compileToJavaRecursive(Class<?> patternType,
+                                                   String bindingId,
+                                                   ConstraintExpression constraint,
+                                                   Expression drlxExpr,
+                                                   boolean hasBind,
+                                                   boolean isPositional ) {
         boolean isEnclosed = false;
         SimpleName bind = null;
 
@@ -168,6 +263,13 @@ public class ConstraintParser {
 
         if (drlxExpr instanceof MethodCallExpr && !(( MethodCallExpr ) drlxExpr).getScope().isPresent() && (( MethodCallExpr ) drlxExpr).getNameAsString().equals( "eval" )) {
             drlxExpr = (( MethodCallExpr ) drlxExpr).getArgument( 0 );
+        }
+
+        if (drlxExpr instanceof MethodCallExpr) {
+            Optional<DrlxParseFail> optFail = convertBigDecimalArithmetic((MethodCallExpr) drlxExpr, patternType, bindingId, isPositional);
+            if (optFail.isPresent()) {
+                return optFail.get();
+            }
         }
 
         if ( drlxExpr instanceof BinaryExpr ) {
@@ -208,8 +310,13 @@ public class ConstraintParser {
             return parseOOPathExpr( (OOPathExpr) drlxExpr, patternType, bindingId, drlxExpr, hasBind, expression);
         }
 
-        if (drlxExpr instanceof LiteralExpr ) {
+        if (drlxExpr instanceof LiteralExpr) {
             Class<?> literalExpressionType = getLiteralExpressionType(((LiteralExpr) drlxExpr));
+            if (drlxExpr instanceof BigIntegerLiteralExpr) {
+                drlxExpr = ((BigIntegerLiteralExpr) drlxExpr).convertToObjectCreationExpr();
+            } else if (drlxExpr instanceof BigDecimalLiteralExpr) {
+                drlxExpr = ((BigDecimalLiteralExpr) drlxExpr).convertToObjectCreationExpr();
+            }
             return new SingleDrlxParseSuccess(patternType, bindingId, drlxExpr, literalExpressionType)
                     .setIsPredicate(isBooleanBoxedUnboxed(literalExpressionType));
         }
@@ -234,8 +341,10 @@ public class ConstraintParser {
 
             return new SingleDrlxParseSuccess(patternType, bindingId, combo, exprType)
                     .setReactOnProperties( expressionTyperContext.getReactOnProperties() )
+                    .setVariablesFromDifferentPattern(expressionTyperContext.getVariablesFromDifferentPattern())
                     .setUsedDeclarations( expressionTyperContext.getUsedDeclarations() )
                     .setImplicitCastExpression( expressionTyperContext.getInlineCastExpression() )
+                    .setNullSafeExpressions(expressionTyperContext.getNullSafeExpressions())
                     .setIsPredicate(isPredicate);
         } else {
             final ExpressionTyperContext expressionTyperContext = new ExpressionTyperContext();
@@ -304,11 +413,11 @@ public class ConstraintParser {
             NodeList<Expression> arguments = methodCallExpr.getArguments();
             List<String> usedDeclarations = new ArrayList<>();
             for (Expression arg : arguments) {
-                String argString = printConstraint(arg);
+                String argString = printNode(arg);
                 if (arg instanceof DrlNameExpr && !argString.equals(THIS_PLACEHOLDER)) {
                     usedDeclarations.add(argString);
                 } else if (arg instanceof CastExpr ) {
-                    String s = printConstraint(((CastExpr) arg).getExpression());
+                    String s = printNode(((CastExpr) arg).getExpression());
                     usedDeclarations.add(s);
                 } else if (arg instanceof MethodCallExpr) {
                     TypedExpressionResult typedExpressionResult = new ExpressionTyper(context, null, bindingId, isPositional).toTypedExpression(arg);
@@ -359,7 +468,7 @@ public class ConstraintParser {
         } else if (context.hasDeclaration( expression )) {
             Optional<DeclarationSpec> declarationSpec = context.getDeclarationById(expression);
             if (declarationSpec.isPresent()) {
-                return new SingleDrlxParseSuccess(patternType, bindingId, context.getVarExpr(printConstraint(drlxExpr)), declarationSpec.get().getDeclarationClass() ).setIsPredicate(true);
+                return new SingleDrlxParseSuccess(patternType, bindingId, context.getVarExpr(printNode(drlxExpr)), declarationSpec.get().getDeclarationClass() ).setIsPredicate(true);
             } else {
                 throw new IllegalArgumentException("Cannot find declaration specification by specified expression " + expression + "!");
             }
@@ -436,7 +545,7 @@ public class ConstraintParser {
         }
         TypedExpression typedExpression = opt.get();
 
-        SingleDrlxParseSuccess innerResult = (SingleDrlxParseSuccess) getDrlxParseResult(patternType, bindingId, constraint, unaryExpr.getExpression(), hasBind, isPositional);
+        SingleDrlxParseSuccess innerResult = (SingleDrlxParseSuccess) compileToJavaRecursive(patternType, bindingId, constraint, unaryExpr.getExpression(), hasBind, isPositional);
 
         Expression innerExpression;
         if (unaryExpr.getExpression() instanceof EnclosedExpr && !(innerResult.getExpr() instanceof EnclosedExpr)) {
@@ -445,25 +554,44 @@ public class ConstraintParser {
             innerExpression = innerResult.getExpr();
         }
 
-        return new SingleDrlxParseSuccess(patternType, bindingId, new UnaryExpr(innerExpression, unaryExpr.getOperator()), typedExpression.getType())
-                .setDecodeConstraintType(Index.ConstraintType.UNKNOWN).setUsedDeclarations(typedExpressionResult.getUsedDeclarations())
-                .setReactOnProperties(typedExpressionResult.getReactOnProperties())
-                .setLeft(new TypedExpression(innerResult.getExpr(), innerResult.getExprType()))
-                .setIsPredicate(innerResult.isPredicate());
+        if (isTemporalMethodCallExpr(innerExpression) && unaryExpr.getOperator() == UnaryExpr.Operator.LOGICAL_COMPLEMENT) {
+            Expression inner = stripEnclosedExpr(innerExpression);
+            MethodCallExpr negatedTemporalExpr = createDslTopLevelMethod(NOT_CALL).addArgument(inner.asMethodCallExpr());
+            return new SingleDrlxParseSuccess(patternType, bindingId, negatedTemporalExpr, typedExpression.getType())
+                    .setDecodeConstraintType(Index.ConstraintType.UNKNOWN).setUsedDeclarations(typedExpressionResult.getUsedDeclarations())
+                    .setReactOnProperties(typedExpressionResult.getReactOnProperties())
+                    .setLeft(innerResult.getLeft())
+                    .setRight(innerResult.getRight())
+                    .setStatic(innerResult.isStatic())
+                    .setTemporal(innerResult.isTemporal())
+                    .setIsPredicate(innerResult.isPredicate());
+        } else {
+            return new SingleDrlxParseSuccess(patternType, bindingId, new UnaryExpr(innerExpression, unaryExpr.getOperator()), typedExpression.getType())
+                    .setDecodeConstraintType(Index.ConstraintType.UNKNOWN).setUsedDeclarations(typedExpressionResult.getUsedDeclarations())
+                    .setReactOnProperties(typedExpressionResult.getReactOnProperties())
+                    .setLeft(new TypedExpression(innerResult.getExpr(), innerResult.getExprType()))
+                    .setIsPredicate(innerResult.isPredicate());
+        }
+    }
+
+    private boolean isTemporalMethodCallExpr(Expression expression) {
+        Expression inner = stripEnclosedExpr(expression);
+        return inner.isMethodCallExpr() && ModelGenerator.temporalOperators.contains(inner.asMethodCallExpr().getNameAsString());
     }
 
     private DrlxParseResult parseBinaryExpr(BinaryExpr binaryExpr, Class<?> patternType, String bindingId, ConstraintExpression constraint, Expression drlxExpr,
                                             boolean hasBind, boolean isPositional, boolean isEnclosed) {
         BinaryExpr.Operator operator = binaryExpr.getOperator();
+        boolean isOrBinary = operator == BinaryExpr.Operator.OR;
 
         if ( isLogicalOperator( operator ) && isCombinable( binaryExpr ) ) {
-            DrlxParseResult leftResult = getDrlxParseResult(patternType, bindingId, constraint, binaryExpr.getLeft(), hasBind, isPositional );
+            DrlxParseResult leftResult = compileToJavaRecursive(patternType, bindingId, constraint, binaryExpr.getLeft(), hasBind, isPositional );
             Expression rightExpr = binaryExpr.getRight() instanceof HalfPointFreeExpr ?
                     completeHalfExpr( (( PointFreeExpr ) binaryExpr.getLeft()).getLeft(), ( HalfPointFreeExpr ) binaryExpr.getRight()) :
                     binaryExpr.getRight();
-            DrlxParseResult rightResult = getDrlxParseResult(patternType, bindingId, constraint, rightExpr, hasBind, isPositional );
+            DrlxParseResult rightResult = compileToJavaRecursive(patternType, bindingId, constraint, rightExpr, hasBind, isPositional );
             return isMultipleResult(leftResult, operator, rightResult) ?
-                    new MultipleDrlxParseSuccess( operator, ( DrlxParseSuccess ) leftResult, ( DrlxParseSuccess ) rightResult ) :
+                    createMultipleDrlxParseSuccess( operator, ( DrlxParseSuccess ) leftResult, ( DrlxParseSuccess ) rightResult ) :
                     leftResult.combineWith( rightResult, operator );
         }
 
@@ -479,9 +607,11 @@ public class ConstraintParser {
         TypedExpression left = optLeft.get();
         List<String> usedDeclarationsOnLeft = hasBind ? new ArrayList<>( expressionTyperContext.getUsedDeclarations() ) : null;
 
-        List<Expression> leftPrefixExpresssions = new ArrayList<>();
-        if (isLogicalOperator(operator)) {
-            leftPrefixExpresssions.addAll(expressionTyperContext.getPrefixExpresssions());
+        List<Expression> leftPrefixExpressions = new ArrayList<>();
+        if (isOrBinary) {
+            leftPrefixExpressions.addAll(expressionTyperContext.getNullSafeExpressions());
+            expressionTyperContext.getNullSafeExpressions().clear();
+            leftPrefixExpressions.addAll(expressionTyperContext.getPrefixExpresssions());
             expressionTyperContext.getPrefixExpresssions().clear();
         }
 
@@ -498,7 +628,9 @@ public class ConstraintParser {
                 return new DrlxParseFail( new ParseExpressionErrorResult( drlxExpr ) );
             }
             right = optRight.get();
-            if (isLogicalOperator(operator)) {
+            if (isOrBinary) {
+                rightPrefixExpresssions.addAll(expressionTyperContext.getNullSafeExpressions());
+                expressionTyperContext.getNullSafeExpressions().clear();
                 rightPrefixExpresssions.addAll(expressionTyperContext.getPrefixExpresssions());
                 expressionTyperContext.getPrefixExpresssions().clear();
             }
@@ -518,14 +650,14 @@ public class ConstraintParser {
 
         Expression combo;
 
-        boolean arithmeticExpr = asList(PLUS, MINUS, MULTIPLY, DIVIDE, REMAINDER).contains(operator);
-        boolean isBetaConstraint = right.getExpression() != null && hasNonGlobalDeclaration( expressionTyperContext );
+        boolean arithmeticExpr = ARITHMETIC_OPERATORS.contains(operator);
+        boolean isBetaConstraint = right.getExpression() != null && hasDeclarationFromOtherPattern( expressionTyperContext );
         boolean requiresSplit = operator == BinaryExpr.Operator.AND && binaryExpr.getRight() instanceof HalfBinaryExpr && !isBetaConstraint;
 
         if (equalityExpr) {
             combo = getEqualityExpression( left, right, operator ).expression;
         } else if (arithmeticExpr && (left.isBigDecimal())) {
-            ConstraintCompiler constraintCompiler = createConstraintCompiler(this.context, Optional.of(patternType));
+            ConstraintCompiler constraintCompiler = createConstraintCompiler(this.context, of(patternType));
             CompiledExpressionResult compiledExpressionResult = constraintCompiler.compileExpression(binaryExpr);
 
             combo = compiledExpressionResult.getExpression();
@@ -540,13 +672,14 @@ public class ConstraintParser {
             right = requiresSplit ? right : specialComparisonResult.coercedRight;
         }
 
-        if (isLogicalOperator(operator)) {
-            combo = combineExpressions( leftPrefixExpresssions, rightPrefixExpresssions, combo );
+        if (isOrBinary) {
+            combo = combineExpressions( leftPrefixExpressions, rightPrefixExpresssions, combo ); // NullSafeExpressions are combined here because the order is complex
         } else {
-            combo = combineExpressions( leftTypedExpressionResult, combo );
+            combo = combineExpressions( leftTypedExpressionResult, combo ); // NullSafeExpressions will be added later by PatternDSL.addNullSafeExpr() which will be separated AlphaNodes
         }
 
-        if (isEnclosed) {
+        boolean isPredicate = isPredicateBooleanExpression(binaryExpr);
+        if (isEnclosed && !isPredicate) {
             combo = new EnclosedExpr( combo );
         }
 
@@ -561,16 +694,19 @@ public class ConstraintParser {
                 .setUsedDeclarationsOnLeft( usedDeclarationsOnLeft )
                 .setUnification( constraint.isUnification() )
                 .setReactOnProperties( expressionTyperContext.getReactOnProperties() )
+                .setVariablesFromDifferentPattern(expressionTyperContext.getVariablesFromDifferentPattern())
                 .setLeft( left )
                 .setRight( right )
                 .setBetaConstraint(isBetaConstraint)
                 .setRequiresSplit( requiresSplit )
-                .setIsPredicate(isPredicateBooleanExpression(binaryExpr));
+                .setIsPredicate(isPredicate)
+                .setImplicitCastExpression(leftTypedExpressionResult.getInlineCastExpression())
+                .setNullSafeExpressions(leftTypedExpressionResult.getNullSafeExpressions()); // This would be empty if NullSafeExpressions were combined earlier
     }
 
     private boolean isMultipleResult(DrlxParseResult leftResult, BinaryExpr.Operator operator, DrlxParseResult rightResult) {
         return leftResult.isSuccess() && rightResult.isSuccess() && (
-                (operator == AND && (((DrlxParseSuccess) leftResult).getExprBinding() != null || ((DrlxParseSuccess) rightResult).getExprBinding() != null)) ||
+                (isLogicalOperator(operator) && (((DrlxParseSuccess) leftResult).getExprBinding() != null || ((DrlxParseSuccess) rightResult).getExprBinding() != null)) ||
                 ((DrlxParseSuccess) leftResult).isTemporal() || ((DrlxParseSuccess) rightResult).isTemporal()
         );
     }
@@ -590,10 +726,19 @@ public class ConstraintParser {
         return coerced.getCoercedRight();
     }
 
-    private boolean hasNonGlobalDeclaration( ExpressionTyperContext expressionTyperContext ) {
-        return expressionTyperContext.getUsedDeclarations().stream()
-                .map( context::getDeclarationById )
-                .anyMatch( optDecl -> optDecl.isPresent() && !optDecl.get().isGlobal() );
+    private boolean hasDeclarationFromOtherPattern(ExpressionTyperContext expressionTyperContext) {
+        return expressionTyperContext.getUsedDeclarations()
+                                     .stream()
+                                     .map(context::getDeclarationById)
+                                     .anyMatch(optDecl -> {
+                                         if (optDecl.isPresent()) {
+                                             DeclarationSpec decl = optDecl.get();
+                                             if (!decl.isGlobal() && decl.getBelongingPatternDescr() != context.getCurrentPatternDescr()) {
+                                                 return true;
+                                             }
+                                         }
+                                         return false;
+                                     });
     }
 
     private boolean isForallSelfJoinConstraint( TypedExpression left, TypedExpression right, Index.ConstraintType constraintType ) {
@@ -604,10 +749,6 @@ public class ConstraintParser {
 
     private boolean isCombinable( BinaryExpr binaryExpr ) {
         return !(binaryExpr.getRight() instanceof HalfBinaryExpr) && ( !(binaryExpr.getRight() instanceof HalfPointFreeExpr) || binaryExpr.getLeft() instanceof PointFreeExpr );
-    }
-
-    private static boolean isLogicalOperator( BinaryExpr.Operator operator ) {
-        return operator == BinaryExpr.Operator.AND || operator == BinaryExpr.Operator.OR;
     }
 
     private static PointFreeExpr completeHalfExpr(Expression left, HalfPointFreeExpr halfRight) {
@@ -624,7 +765,7 @@ public class ConstraintParser {
         if (expr instanceof FieldAccessExpr ) {
             return getExpressionSymbol( (( FieldAccessExpr ) expr).getScope() );
         }
-        return printConstraint(expr);
+        return printNode(expr);
     }
 
     private SpecialComparisonResult getEqualityExpression(TypedExpression left, TypedExpression right, BinaryExpr.Operator operator ) {
@@ -658,16 +799,12 @@ public class ConstraintParser {
         return new SpecialComparisonResult(expression, left, right);
     }
 
-    private static Boolean isString( TypedExpression right ) {
+    private static boolean isString(TypedExpression right) {
         return right.getBoxedType().map( String.class::isAssignableFrom ).orElse( false );
     }
 
-    static Boolean isNumber(TypedExpression left) {
+    static boolean isNumber(TypedExpression left) {
         return left.getBoxedType().map(ConstraintParser::isNumericType).orElse( false );
-    }
-
-    static Boolean isObject(TypedExpression te) {
-        return te.getRawClass().equals(Object.class);
     }
 
     private SpecialComparisonResult handleSpecialComparisonCases(ExpressionTyper expressionTyper, BinaryExpr.Operator operator, TypedExpression left, TypedExpression right) {
@@ -721,10 +858,10 @@ public class ConstraintParser {
         switch (operator.asString()) {
             case "==" : return "equals";
             case "!=" : return "notEquals";
-            case "<" : return "lessThan";
-            case "<=" : return "lessOrEqual";
-            case ">" : return "greaterThan";
-            case ">=" : return "greaterOrEqual";
+            case "<" : return LESS_THAN_PREFIX;
+            case "<=" : return LESS_OR_EQUAL_PREFIX;
+            case ">" : return GREATER_THAN_PREFIX;
+            case ">=" : return GREATER_OR_EQUAL_PREFIX;
         }
         throw new RuntimeException( "unknown operator: " + operator );
     }
@@ -748,13 +885,13 @@ public class ConstraintParser {
     private SpecialComparisonResult compareBigDecimal(BinaryExpr.Operator operator, TypedExpression left, TypedExpression right) {
         String methodName = "org.drools.modelcompiler.util.EvaluationUtil." + operatorToName(operator);
         MethodCallExpr compareMethod = new MethodCallExpr( null, methodName );
-        compareMethod.addArgument( toBigDecimalExpression( left ) );
-        compareMethod.addArgument( toBigDecimalExpression( right ) );
+        compareMethod.addArgument( toBigDecimalExpression( left, context ) );
+        compareMethod.addArgument( toBigDecimalExpression( right, context ) );
         return new SpecialComparisonResult(compareMethod, left, right);
     }
 
     // TODO luca this logic should be moved in Constraint compiler?
-    private Expression toBigDecimalExpression( TypedExpression typedExpression) {
+    public static Expression toBigDecimalExpression( TypedExpression typedExpression, RuleContext context) {
         MethodCallExpr toBigDecimalMethod = new MethodCallExpr( null, "org.drools.modelcompiler.util.EvaluationUtil.toBigDecimal" );
         Expression arg = typedExpression.getExpression();
 
@@ -762,7 +899,7 @@ public class ConstraintParser {
 
         ConstraintCompiler constraintCompiler = createConstraintCompiler(context, originalPatternType);
 
-        CompiledExpressionResult compiledBlockResult = constraintCompiler.compileExpression(arg.toString());
+        CompiledExpressionResult compiledBlockResult = constraintCompiler.compileExpression(PrintUtil.printNode(arg));
 
         arg = compiledBlockResult.getExpression();
 
@@ -770,9 +907,9 @@ public class ConstraintParser {
             arg = arg.asEnclosedExpr().getInner();
         }
         if (arg instanceof BigIntegerLiteralExpr) {
-            arg = new ObjectCreationExpr(null, toClassOrInterfaceType(BigInteger.class), NodeList.nodeList( new StringLiteralExpr(((BigIntegerLiteralExpr) arg).asBigInteger().toString()) ));
+            arg = ((BigIntegerLiteralExpr) arg).convertToObjectCreationExpr();
         } else if (arg instanceof BigDecimalLiteralExpr ) {
-            arg = new ObjectCreationExpr(null, toClassOrInterfaceType(BigDecimal.class), NodeList.nodeList( new StringLiteralExpr(((BigDecimalLiteralExpr) arg).asBigDecimal().toString()) ));
+            arg = ((BigDecimalLiteralExpr) arg).convertToObjectCreationExpr();
         }
         toBigDecimalMethod.addArgument( arg );
         return toBigDecimalMethod;
@@ -799,5 +936,37 @@ public class ConstraintParser {
             }
         }
         return res;
+    }
+
+    private Optional<DrlxParseFail> convertBigDecimalArithmetic(MethodCallExpr methodCallExpr, Class<?> patternType, String bindingId, boolean isPositional) {
+        List<BinaryExpr> binaryExprList = methodCallExpr.findAll(BinaryExpr.class);
+        for (BinaryExpr binaryExpr : binaryExprList) {
+            Operator operator = binaryExpr.getOperator();
+            boolean arithmeticExpr = ARITHMETIC_OPERATORS.contains(operator);
+            if (arithmeticExpr) {
+                final ExpressionTyperContext expressionTyperContext = new ExpressionTyperContext();
+                final ExpressionTyper expressionTyper = new ExpressionTyper(context, patternType, bindingId, isPositional, expressionTyperContext);
+                TypedExpressionResult leftTypedExpressionResult = expressionTyper.toTypedExpression(binaryExpr.getLeft());
+                Optional<TypedExpression> optLeft = leftTypedExpressionResult.getTypedExpression();
+                if (!optLeft.isPresent()) {
+                    return Optional.of(new DrlxParseFail());
+                }
+
+                TypedExpression left = optLeft.get();
+                if (left.isBigDecimal()) {
+                    ConstraintCompiler constraintCompiler = createConstraintCompiler(this.context, of(patternType));
+                    CompiledExpressionResult compiledExpressionResult = constraintCompiler.compileExpression(binaryExpr);
+
+                    Expression convertedExpr = compiledExpressionResult.getExpression();
+                    Optional<Node> optParentNode = binaryExpr.getParentNode();
+                    if (!optParentNode.isPresent()) {
+                        return Optional.of(new DrlxParseFail());
+                    }
+                    Node parentNode = optParentNode.get();
+                    parentNode.replace(binaryExpr, convertedExpr);
+                }
+            }
+        }
+        return Optional.empty();
     }
 }

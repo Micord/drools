@@ -14,6 +14,7 @@
  */
 
 package org.drools.compiler.integrationtests;
+
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.io.Serializable;
@@ -28,7 +29,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.assertj.core.api.Assertions;
 import org.drools.compiler.integrationtests.incrementalcompilation.TestUtil;
 import org.drools.compiler.kproject.ReleaseIdImpl;
 import org.drools.core.SessionConfiguration;
@@ -57,21 +57,19 @@ import org.kie.api.event.rule.AfterMatchFiredEvent;
 import org.kie.api.event.rule.AgendaEventListener;
 import org.kie.api.runtime.KieContainer;
 import org.kie.api.runtime.KieSession;
+import org.kie.api.runtime.KieSessionConfiguration;
 import org.kie.api.runtime.rule.AccumulateFunction;
 import org.kie.api.runtime.rule.FactHandle;
 import org.kie.api.runtime.rule.Match;
 import org.kie.api.runtime.rule.QueryResults;
 import org.kie.api.runtime.rule.Variable;
+import org.kie.internal.runtime.conf.ForceEagerActivationOption;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
 import static java.util.Arrays.asList;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.within;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
@@ -138,7 +136,7 @@ public class AccumulateTest {
             // ---------------- 1st scenario
             wm.fireAllRules();
             // no fire, as per rule constraints
-            assertEquals(0, results.size());
+            assertThat(results.size()).isEqualTo(0);
 
             // ---------------- 2nd scenario
             final int index = 1;
@@ -147,8 +145,8 @@ public class AccumulateTest {
             wm.fireAllRules();
 
             // 1 fire
-            assertEquals(1, results.size());
-            assertEquals(24, ((Cheesery) results.get(results.size() - 1)).getTotalAmount());
+            assertThat(results.size()).isEqualTo(1);
+            assertThat(((Cheesery) results.get(results.size() - 1)).getTotalAmount()).isEqualTo(24);
 
             // ---------------- 3rd scenario
             bob.setLikes("brie");
@@ -156,15 +154,15 @@ public class AccumulateTest {
             wm.fireAllRules();
 
             // 2 fires
-            assertEquals(2, results.size());
-            assertEquals(31, ((Cheesery) results.get(results.size() - 1)).getTotalAmount());
+            assertThat(results.size()).isEqualTo(2);
+            assertThat(((Cheesery) results.get(results.size() - 1)).getTotalAmount()).isEqualTo(31);
 
             // ---------------- 4th scenario
             wm.delete(cheeseHandles[3]);
             wm.fireAllRules();
 
             // should not have fired as per constraint
-            assertEquals(2, results.size());
+            assertThat(results.size()).isEqualTo(2);
         } finally {
             wm.dispose();
         }
@@ -196,14 +194,13 @@ public class AccumulateTest {
 
             System.out.println(results);
 
-            assertEquals(5,
-                         results.size());
+            assertThat(results.size()).isEqualTo(5);
 
-            assertEquals(165, results.get(0));
-            assertEquals(10, results.get(1));
-            assertEquals(150, results.get(2));
-            assertEquals(10, results.get(3));
-            assertEquals(210, results.get(4));
+            assertThat(results.get(0)).isEqualTo(165);
+            assertThat(results.get(1)).isEqualTo(10);
+            assertThat(results.get(2)).isEqualTo(150);
+            assertThat(results.get(3)).isEqualTo(10);
+            assertThat(results.get(4)).isEqualTo(210);
         } finally {
             wm.dispose();
         }
@@ -258,8 +255,7 @@ public class AccumulateTest {
             // ---------------- 1st scenario
             wm.fireAllRules();
             // no fire, as per rule constraints
-            assertEquals(0,
-                         results.size());
+            assertThat(results.size()).isEqualTo(0);
 
             // ---------------- 2nd scenario
             final int index = 1;
@@ -269,10 +265,8 @@ public class AccumulateTest {
             wm.fireAllRules();
 
             // 1 fire
-            assertEquals(1,
-                         results.size());
-            assertEquals(24,
-                         ((Cheesery) results.get(results.size() - 1)).getTotalAmount());
+            assertThat(results.size()).isEqualTo(1);
+            assertThat(((Cheesery) results.get(results.size() - 1)).getTotalAmount()).isEqualTo(24);
 
             // ---------------- 3rd scenario
             bob.setLikes("brie");
@@ -281,18 +275,15 @@ public class AccumulateTest {
             wm.fireAllRules();
 
             // 2 fires
-            assertEquals(2,
-                         results.size());
-            assertEquals(31,
-                         ((Cheesery) results.get(results.size() - 1)).getTotalAmount());
+            assertThat(results.size()).isEqualTo(2);
+            assertThat(((Cheesery) results.get(results.size() - 1)).getTotalAmount()).isEqualTo(31);
 
             // ---------------- 4th scenario
             wm.delete(cheeseHandles[3]);
             wm.fireAllRules();
 
             // should not have fired as per constraint
-            assertEquals(2,
-                         results.size());
+            assertThat(results.size()).isEqualTo(2);
         } finally {
             wm.dispose();
         }
@@ -351,8 +342,7 @@ public class AccumulateTest {
             // ---------------- 1st scenario
             wm.fireAllRules();
             // no fire, as per rule constraints
-            assertEquals(0,
-                         results.size());
+            assertThat(results.size()).isEqualTo(0);
 
             // ---------------- 2nd scenario
             final int index = 1;
@@ -362,10 +352,8 @@ public class AccumulateTest {
             wm.fireAllRules();
 
             // 1 fire
-            assertEquals(1,
-                         results.size());
-            assertEquals(24,
-                         ((Cheesery) results.get(results.size() - 1)).getTotalAmount());
+            assertThat(results.size()).isEqualTo(1);
+            assertThat(((Cheesery) results.get(results.size() - 1)).getTotalAmount()).isEqualTo(24);
 
             // ---------------- 3rd scenario
             bob.setLikes("brie");
@@ -377,18 +365,15 @@ public class AccumulateTest {
             wm.fireAllRules();
 
             // 2 fires
-            assertEquals(2,
-                         results.size());
-            assertEquals(36,
-                         ((Cheesery) results.get(results.size() - 1)).getTotalAmount());
+            assertThat(results.size()).isEqualTo(2);
+            assertThat(((Cheesery) results.get(results.size() - 1)).getTotalAmount()).isEqualTo(36);
 
             // ---------------- 4th scenario
             wm.delete(cheeseHandles[3]);
             wm.fireAllRules();
 
             // should not have fired as per constraint
-            assertEquals(2,
-                         results.size());
+            assertThat(results.size()).isEqualTo(2);
         } finally {
             wm.dispose();
         }
@@ -446,8 +431,7 @@ public class AccumulateTest {
             // ---------------- 1st scenario
             wm.fireAllRules();
             // no fire, as per rule constraints
-            assertEquals(0,
-                         results.size());
+            assertThat(results.size()).isEqualTo(0);
 
             // ---------------- 2nd scenario
             final int index = 1;
@@ -457,10 +441,8 @@ public class AccumulateTest {
             wm.fireAllRules();
 
             // 1 fire
-            assertEquals(1,
-                         results.size());
-            assertEquals(24,
-                         ((Number) results.get(results.size() - 1)).intValue());
+            assertThat(results.size()).isEqualTo(1);
+            assertThat(((Number) results.get(results.size() - 1)).intValue()).isEqualTo(24);
 
             // ---------------- 3rd scenario
             bob.setLikes("brie");
@@ -472,18 +454,15 @@ public class AccumulateTest {
             wm.fireAllRules();
 
             // 2 fires
-            assertEquals(2,
-                         results.size());
-            assertEquals(36,
-                         ((Number) results.get(results.size() - 1)).intValue());
+            assertThat(results.size()).isEqualTo(2);
+            assertThat(((Number) results.get(results.size() - 1)).intValue()).isEqualTo(36);
 
             // ---------------- 4th scenario
             wm.delete(cheeseHandles[3]);
             wm.fireAllRules();
 
             // should not have fired as per constraint
-            assertEquals(2,
-                         results.size());
+            assertThat(results.size()).isEqualTo(2);
         } finally {
             wm.dispose();
         }
@@ -524,12 +503,12 @@ public class AccumulateTest {
             // alice = 31, bob = 17, doug = 17
             // !alice = 34, !bob = 31, !doug = 31
             wm.fireAllRules();
-            assertEquals(31, ((Number) results.get(results.size() - 1)).intValue());
+            assertThat(((Number) results.get(results.size() - 1)).intValue()).isEqualTo(31);
 
             // delete stilton=2 ==> bob = 15, doug = 15, !alice = 30
             wm.delete(cheeseHandles[1]);
             wm.fireAllRules();
-            assertEquals(30, ((Number) results.get(results.size() - 1)).intValue());
+            assertThat(((Number) results.get(results.size() - 1)).intValue()).isEqualTo(30);
         } finally {
             wm.dispose();
         }
@@ -588,8 +567,7 @@ public class AccumulateTest {
             // ---------------- 1st scenario
             wm.fireAllRules();
             // no fire, as per rule constraints
-            assertEquals(0,
-                         results.size());
+            assertThat(results.size()).isEqualTo(0);
 
             // ---------------- 2nd scenario
             final int index = 1;
@@ -599,10 +577,8 @@ public class AccumulateTest {
             wm.fireAllRules();
 
             // 1 fire
-            assertEquals(1,
-                         results.size());
-            assertEquals(24,
-                         ((Cheesery) results.get(results.size() - 1)).getTotalAmount());
+            assertThat(results.size()).isEqualTo(1);
+            assertThat(((Cheesery) results.get(results.size() - 1)).getTotalAmount()).isEqualTo(24);
 
             // ---------------- 3rd scenario
             bob.setLikes("brie");
@@ -611,18 +587,15 @@ public class AccumulateTest {
             wm.fireAllRules();
 
             // 2 fires
-            assertEquals(2,
-                         results.size());
-            assertEquals(31,
-                         ((Cheesery) results.get(results.size() - 1)).getTotalAmount());
+            assertThat(results.size()).isEqualTo(2);
+            assertThat(((Cheesery) results.get(results.size() - 1)).getTotalAmount()).isEqualTo(31);
 
             // ---------------- 4th scenario
             wm.delete(cheeseHandles[3]);
             wm.fireAllRules();
 
             // should not have fired as per constraint
-            assertEquals(2,
-                         results.size());
+            assertThat(results.size()).isEqualTo(2);
         } finally {
             wm.dispose();
         }
@@ -681,8 +654,7 @@ public class AccumulateTest {
             // ---------------- 1st scenario
             wm.fireAllRules();
             // no fire, as per rule constraints
-            assertEquals(0,
-                         results.size());
+            assertThat(results.size()).isEqualTo(0);
 
             // ---------------- 2nd scenario
             final int index = 1;
@@ -692,10 +664,8 @@ public class AccumulateTest {
             wm.fireAllRules();
 
             // 1 fire
-            assertEquals(1,
-                         results.size());
-            assertEquals(24,
-                         ((Number) results.get(results.size() - 1)).intValue());
+            assertThat(results.size()).isEqualTo(1);
+            assertThat(((Number) results.get(results.size() - 1)).intValue()).isEqualTo(24);
 
             // ---------------- 3rd scenario
             bob.setLikes("brie");
@@ -704,18 +674,15 @@ public class AccumulateTest {
             wm.fireAllRules();
 
             // 2 fires
-            assertEquals(2,
-                         results.size());
-            assertEquals(31,
-                         ((Number) results.get(results.size() - 1)).intValue());
+            assertThat(results.size()).isEqualTo(2);
+            assertThat(((Number) results.get(results.size() - 1)).intValue()).isEqualTo(31);
 
             // ---------------- 4th scenario
             wm.delete(cheeseHandles[3]);
             wm.fireAllRules();
 
             // should not have fired as per constraint
-            assertEquals(2,
-                         results.size());
+            assertThat(results.size()).isEqualTo(2);
         } finally {
             wm.dispose();
         }
@@ -781,10 +748,8 @@ public class AccumulateTest {
             // ---------------- 1st scenario
             wm.fireAllRules();
             // one fire, as per rule constraints
-            assertEquals(1,
-                         results.size());
-            assertEquals(3,
-                         ((List) results.get(results.size() - 1)).size());
+            assertThat(results.size()).isEqualTo(1);
+            assertThat(((List) results.get(results.size() - 1)).size()).isEqualTo(3);
 
             // ---------------- 2nd scenario
             final int index = 1;
@@ -794,8 +759,7 @@ public class AccumulateTest {
             wm.fireAllRules();
 
             // no fire
-            assertEquals(1,
-                         results.size());
+            assertThat(results.size()).isEqualTo(1);
             System.out.println(results);
 
             // ---------------- 3rd scenario
@@ -805,10 +769,8 @@ public class AccumulateTest {
             wm.fireAllRules();
 
             // 2 fires
-            assertEquals(2,
-                         results.size());
-            assertEquals(3,
-                         ((List) results.get(results.size() - 1)).size());
+            assertThat(results.size()).isEqualTo(2);
+            assertThat(((List) results.get(results.size() - 1)).size()).isEqualTo(3);
 
             // ---------------- 4th scenario
             cheesery.getCheeses().remove(cheese[3]);
@@ -817,8 +779,7 @@ public class AccumulateTest {
             wm.fireAllRules();
 
             // should not have fired as per constraint
-            assertEquals(2,
-                         results.size());
+            assertThat(results.size()).isEqualTo(2);
         } finally {
             wm.dispose();
         }
@@ -858,7 +819,7 @@ public class AccumulateTest {
 
             wm.fireAllRules();
 
-            assertEquals(15, results.get(0));
+            assertThat(results.get(0)).isEqualTo(15);
         } finally {
             wm.dispose();
         }
@@ -1029,12 +990,9 @@ public class AccumulateTest {
             Mockito.verify(ael).afterMatchFired(cap.capture());
 
             Match activation = cap.getValue().getMatch();
-            assertThat(((Number) activation.getDeclarationValue("$sum")).intValue(),
-                       is(18));
-            assertThat(((Number) activation.getDeclarationValue("$min")).intValue(),
-                       is(3));
-            assertThat(((Number) activation.getDeclarationValue("$avg")).intValue(),
-                       is(6));
+            assertThat(((Number) activation.getDeclarationValue("$sum")).intValue()).isEqualTo(18);
+            assertThat(((Number) activation.getDeclarationValue("$min")).intValue()).isEqualTo(3);
+            assertThat(((Number) activation.getDeclarationValue("$avg")).intValue()).isEqualTo(6);
 
             Mockito.reset(ael);
             // ---------------- 2nd scenario
@@ -1056,12 +1014,9 @@ public class AccumulateTest {
             Mockito.verify(ael).afterMatchFired(cap.capture());
 
             activation = cap.getValue().getMatch();
-            assertThat(((Number) activation.getDeclarationValue("$sum")).intValue(),
-                       is(20));
-            assertThat(((Number) activation.getDeclarationValue("$min")).intValue(),
-                       is(3));
-            assertThat(((Number) activation.getDeclarationValue("$avg")).intValue(),
-                       is(10));
+            assertThat(((Number) activation.getDeclarationValue("$sum")).intValue()).isEqualTo(20);
+            assertThat(((Number) activation.getDeclarationValue("$min")).intValue()).isEqualTo(3);
+            assertThat(((Number) activation.getDeclarationValue("$avg")).intValue()).isEqualTo(10);
         } finally {
             ksession.dispose();
         }
@@ -1126,10 +1081,8 @@ public class AccumulateTest {
 
             // ---------------- 1st scenario
             session.fireAllRules();
-            assertEquals(1,
-                         data.results.size());
-            assertEquals(27,
-                         ((Number) data.results.get(data.results.size() - 1)).intValue());
+            assertThat(data.results.size()).isEqualTo(1);
+            assertThat(((Number) data.results.get(data.results.size() - 1)).intValue()).isEqualTo(27);
 
             updateReferences(session,
                              data);
@@ -1140,12 +1093,10 @@ public class AccumulateTest {
             session.update(data.cheeseHandles[index],
                            data.cheese[index]);
             final int count = session.fireAllRules();
-            assertEquals(1, count);
+            assertThat(count).isEqualTo(1);
 
-            assertEquals(2,
-                         data.results.size());
-            assertEquals(20,
-                         ((Number) data.results.get(data.results.size() - 1)).intValue());
+            assertThat(data.results.size()).isEqualTo(2);
+            assertThat(((Number) data.results.get(data.results.size() - 1)).intValue()).isEqualTo(20);
 
             // ---------------- 3rd scenario
             data.bob.setLikes("brie");
@@ -1153,18 +1104,15 @@ public class AccumulateTest {
                            data.bob);
             session.fireAllRules();
 
-            assertEquals(3,
-                         data.results.size());
-            assertEquals(15,
-                         ((Number) data.results.get(data.results.size() - 1)).intValue());
+            assertThat(data.results.size()).isEqualTo(3);
+            assertThat(((Number) data.results.get(data.results.size() - 1)).intValue()).isEqualTo(15);
 
             // ---------------- 4th scenario
             session.delete(data.cheeseHandles[3]);
             session.fireAllRules();
 
             // should not have fired as per constraint
-            assertEquals(3,
-                         data.results.size());
+            assertThat(data.results.size()).isEqualTo(3);
         } finally {
             session.dispose();
         }
@@ -1178,7 +1126,7 @@ public class AccumulateTest {
                 final Cheese c = (Cheese) next;
                 data.cheese[c.getOldPrice()] = c;
                 data.cheeseHandles[c.getOldPrice()] = session.getFactHandle(c);
-                assertNotNull(data.cheeseHandles[c.getOldPrice()]);
+                assertThat(data.cheeseHandles[c.getOldPrice()]).isNotNull();
             } else if (next instanceof Person) {
                 data.bob = (Person) next;
                 data.bobHandle = session.getFactHandle(data.bob);
@@ -1216,10 +1164,8 @@ public class AccumulateTest {
             // ---------------- 1st scenario
             wm.fireAllRules();
             // no fire, as per rule constraints
-            assertEquals(1,
-                         results.size());
-            assertEquals(3,
-                         ((Number) results.get(results.size() - 1)).intValue());
+            assertThat(results.size()).isEqualTo(1);
+            assertThat(((Number) results.get(results.size() - 1)).intValue()).isEqualTo(3);
 
             // ---------------- 2nd scenario
             final int index = 1;
@@ -1229,10 +1175,8 @@ public class AccumulateTest {
             wm.fireAllRules();
 
             // 1 fire
-            assertEquals(2,
-                         results.size());
-            assertEquals(3,
-                         ((Number) results.get(results.size() - 1)).intValue());
+            assertThat(results.size()).isEqualTo(2);
+            assertThat(((Number) results.get(results.size() - 1)).intValue()).isEqualTo(3);
 
             // ---------------- 3rd scenario
             bob.setLikes("brie");
@@ -1241,18 +1185,15 @@ public class AccumulateTest {
             wm.fireAllRules();
 
             // 2 fires
-            assertEquals(3,
-                         results.size());
-            assertEquals(2,
-                         ((Number) results.get(results.size() - 1)).intValue());
+            assertThat(results.size()).isEqualTo(3);
+            assertThat(((Number) results.get(results.size() - 1)).intValue()).isEqualTo(2);
 
             // ---------------- 4th scenario
             wm.delete(cheeseHandles[3]);
             wm.fireAllRules();
 
             // should not have fired as per constraint
-            assertEquals(3,
-                         results.size());
+            assertThat(results.size()).isEqualTo(3);
         } finally {
             wm.dispose();
         }
@@ -1288,8 +1229,7 @@ public class AccumulateTest {
             // ---------------- 1st scenario
             wm.fireAllRules();
             // no fire, as per rule constraints
-            assertEquals(0,
-                         results.size());
+            assertThat(results.size()).isEqualTo(0);
 
             // ---------------- 2nd scenario
             final int index = 1;
@@ -1299,10 +1239,8 @@ public class AccumulateTest {
             wm.fireAllRules();
 
             // 1 fire
-            assertEquals(1,
-                         results.size());
-            assertEquals(10,
-                         ((Number) results.get(results.size() - 1)).intValue());
+            assertThat(results.size()).isEqualTo(1);
+            assertThat(((Number) results.get(results.size() - 1)).intValue()).isEqualTo(10);
 
             // ---------------- 3rd scenario
             bob.setLikes("brie");
@@ -1311,10 +1249,8 @@ public class AccumulateTest {
             wm.fireAllRules();
 
             // 2 fires
-            assertEquals(2,
-                         results.size());
-            assertEquals(16,
-                         ((Number) results.get(results.size() - 1)).intValue());
+            assertThat(results.size()).isEqualTo(2);
+            assertThat(((Number) results.get(results.size() - 1)).intValue()).isEqualTo(16);
 
             // ---------------- 4th scenario
             wm.delete(cheeseHandles[3]);
@@ -1322,8 +1258,7 @@ public class AccumulateTest {
             wm.fireAllRules();
 
             // should not have fired as per constraint
-            assertEquals(2,
-                         results.size());
+            assertThat(results.size()).isEqualTo(2);
         } finally {
             wm.dispose();
         }
@@ -1359,8 +1294,7 @@ public class AccumulateTest {
             // ---------------- 1st scenario
             wm.fireAllRules();
             // no fire, as per rule constraints
-            assertEquals(0,
-                         results.size());
+            assertThat(results.size()).isEqualTo(0);
 
             // ---------------- 2nd scenario
             final int index = 1;
@@ -1370,10 +1304,8 @@ public class AccumulateTest {
             wm.fireAllRules();
 
             // 1 fire
-            assertEquals(1,
-                         results.size());
-            assertEquals(3,
-                         ((Number) results.get(results.size() - 1)).intValue());
+            assertThat(results.size()).isEqualTo(1);
+            assertThat(((Number) results.get(results.size() - 1)).intValue()).isEqualTo(3);
 
             // ---------------- 3rd scenario
             bob.setLikes("brie");
@@ -1382,10 +1314,8 @@ public class AccumulateTest {
             wm.fireAllRules();
 
             // 2 fires
-            assertEquals(2,
-                         results.size());
-            assertEquals(1,
-                         ((Number) results.get(results.size() - 1)).intValue());
+            assertThat(results.size()).isEqualTo(2);
+            assertThat(((Number) results.get(results.size() - 1)).intValue()).isEqualTo(1);
 
             // ---------------- 4th scenario
             wm.delete(cheeseHandles[3]);
@@ -1393,8 +1323,7 @@ public class AccumulateTest {
             wm.fireAllRules();
 
             // should not have fired as per constraint
-            assertEquals(2,
-                         results.size());
+            assertThat(results.size()).isEqualTo(2);
         } finally {
             wm.dispose();
         }
@@ -1430,8 +1359,7 @@ public class AccumulateTest {
             // ---------------- 1st scenario
             wm.fireAllRules();
             // no fire, as per rule constraints
-            assertEquals(0,
-                         results.size());
+            assertThat(results.size()).isEqualTo(0);
 
             // ---------------- 2nd scenario
             final int index = 1;
@@ -1441,10 +1369,8 @@ public class AccumulateTest {
             wm.fireAllRules();
 
             // 1 fire
-            assertEquals(1,
-                         results.size());
-            assertEquals(9,
-                         ((Number) results.get(results.size() - 1)).intValue());
+            assertThat(results.size()).isEqualTo(1);
+            assertThat(((Number) results.get(results.size() - 1)).intValue()).isEqualTo(9);
 
             // ---------------- 3rd scenario
             bob.setLikes("brie");
@@ -1453,10 +1379,8 @@ public class AccumulateTest {
             wm.fireAllRules();
 
             // 2 fires
-            assertEquals(2,
-                         results.size());
-            assertEquals(17,
-                         ((Number) results.get(results.size() - 1)).intValue());
+            assertThat(results.size()).isEqualTo(2);
+            assertThat(((Number) results.get(results.size() - 1)).intValue()).isEqualTo(17);
 
             // ---------------- 4th scenario
             wm.delete(cheeseHandles[3]);
@@ -1464,8 +1388,7 @@ public class AccumulateTest {
             wm.fireAllRules();
 
             // should not have fired as per constraint
-            assertEquals(2,
-                         results.size());
+            assertThat(results.size()).isEqualTo(2);
         } finally {
             wm.dispose();
         }
@@ -1496,10 +1419,8 @@ public class AccumulateTest {
 
             // ---------------- 1st scenario
             wm.fireAllRules();
-            assertEquals(1,
-                         results.size());
-            assertEquals(6,
-                         ((List) results.get(results.size() - 1)).size());
+            assertThat(results.size()).isEqualTo(1);
+            assertThat(((List) results.get(results.size() - 1)).size()).isEqualTo(6);
 
             // ---------------- 2nd scenario
             final int index = 1;
@@ -1509,10 +1430,8 @@ public class AccumulateTest {
             wm.fireAllRules();
 
             // fire again
-            assertEquals(2,
-                         results.size());
-            assertEquals(6,
-                         ((List) results.get(results.size() - 1)).size());
+            assertThat(results.size()).isEqualTo(2);
+            assertThat(((List) results.get(results.size() - 1)).size()).isEqualTo(6);
 
             // ---------------- 3rd scenario
             wm.delete(cheeseHandles[3]);
@@ -1520,8 +1439,7 @@ public class AccumulateTest {
             wm.fireAllRules();
 
             // should not have fired as per constraint
-            assertEquals(2,
-                         results.size());
+            assertThat(results.size()).isEqualTo(2);
         } finally {
             wm.dispose();
         }
@@ -1552,10 +1470,8 @@ public class AccumulateTest {
 
             // ---------------- 1st scenario
             wm.fireAllRules();
-            assertEquals(1,
-                         results.size());
-            assertEquals(3,
-                         ((Set) results.get(results.size() - 1)).size());
+            assertThat(results.size()).isEqualTo(1);
+            assertThat(((Set) results.get(results.size() - 1)).size()).isEqualTo(3);
 
             // ---------------- 2nd scenario
             final int index = 1;
@@ -1565,27 +1481,22 @@ public class AccumulateTest {
             wm.fireAllRules();
 
             // fire again
-            assertEquals(2,
-                         results.size());
-            assertEquals(3,
-                         ((Set) results.get(results.size() - 1)).size());
+            assertThat(results.size()).isEqualTo(2);
+            assertThat(((Set) results.get(results.size() - 1)).size()).isEqualTo(3);
 
             // ---------------- 3rd scenario
             wm.delete(cheeseHandles[3]);
             wm.fireAllRules();
             // fire again
-            assertEquals(3,
-                         results.size());
-            assertEquals(3,
-                         ((Set) results.get(results.size() - 1)).size());
+            assertThat(results.size()).isEqualTo(3);
+            assertThat(((Set) results.get(results.size() - 1)).size()).isEqualTo(3);
 
             // ---------------- 4rd scenario
             wm.delete(cheeseHandles[4]);
             wm.fireAllRules();
 
             // should not have fired as per constraint
-            assertEquals(3,
-                         results.size());
+            assertThat(results.size()).isEqualTo(3);
         } finally {
             wm.dispose();
         }
@@ -1624,8 +1535,7 @@ public class AccumulateTest {
             // ---------------- 1st scenario
             wm.fireAllRules();
             // no fire, as per rule constraints
-            assertEquals(0,
-                         results.size());
+            assertThat(results.size()).isEqualTo(0);
 
             // ---------------- 2nd scenario
             final int index = 1;
@@ -1635,10 +1545,8 @@ public class AccumulateTest {
             wm.fireAllRules();
 
             // 1 fire
-            assertEquals(1,
-                         results.size());
-            assertEquals(32,
-                         ((Cheesery) results.get(results.size() - 1)).getTotalAmount());
+            assertThat(results.size()).isEqualTo(1);
+            assertThat(((Cheesery) results.get(results.size() - 1)).getTotalAmount()).isEqualTo(32);
 
             // ---------------- 3rd scenario
             bob.setLikes("brie");
@@ -1647,18 +1555,15 @@ public class AccumulateTest {
             wm.fireAllRules();
 
             // 2 fires
-            assertEquals(2,
-                         results.size());
-            assertEquals(39,
-                         ((Cheesery) results.get(results.size() - 1)).getTotalAmount());
+            assertThat(results.size()).isEqualTo(2);
+            assertThat(((Cheesery) results.get(results.size() - 1)).getTotalAmount()).isEqualTo(39);
 
             // ---------------- 4th scenario
             wm.delete(cheeseHandles[3]);
             wm.fireAllRules();
 
             // should not have fired as per constraint
-            assertEquals(2,
-                         results.size());
+            assertThat(results.size()).isEqualTo(2);
         } finally {
             wm.dispose();
         }
@@ -1706,10 +1611,8 @@ public class AccumulateTest {
 
             wm.fireAllRules();
 
-            assertEquals(1,
-                         results.size());
-            assertEquals(45,
-                         results.get(0));
+            assertThat(results.size()).isEqualTo(1);
+            assertThat(results.get(0)).isEqualTo(45);
         } finally {
             wm.dispose();
         }
@@ -1765,13 +1668,9 @@ public class AccumulateTest {
             wm.insert(item2);
             wm.fireAllRules();
 
-            assertEquals(1,
-                         results.size());
-            assertEquals(15,
-                         results.get(0).intValue());
-            assertEquals(15.0,
-                         order.getTotal(),
-                         0.0);
+            assertThat(results.size()).isEqualTo(1);
+            assertThat(results.get(0).intValue()).isEqualTo(15);
+            assertThat(order.getTotal()).isCloseTo(15.0, within(0.0));
         } finally {
             wm.dispose();
         }
@@ -1817,10 +1716,8 @@ public class AccumulateTest {
 
             wm.fireAllRules();
 
-            assertEquals(1,
-                         results.size());
-            assertEquals(100,
-                         results.get(0));
+            assertThat(results.size()).isEqualTo(1);
+            assertThat(results.get(0)).isEqualTo(100);
         } finally {
             wm.dispose();
         }
@@ -1852,11 +1749,11 @@ public class AccumulateTest {
         final KieBuilder kieBuilder = KieUtil.getKieBuilderFromDrls(kieBaseTestConfiguration,
                                                                     false,
                                                                     drl);
-        Assertions.assertThat(kieBuilder.getResults().getMessages()).isNotEmpty();
-        Assertions.assertThat(kieBuilder.getResults().getMessages()).extracting(Message::getText)
-                .anySatisfy(text -> Assertions.assertThat(text).contains("Unknown accumulate function: 'nonExistingFunction' on rule 'Accumulate non existing function - Java'."));
-        Assertions.assertThat(kieBuilder.getResults().getMessages()).extracting(Message::getText)
-                .anySatisfy(text -> Assertions.assertThat(text).contains("Unknown accumulate function: 'nonExistingFunction' on rule 'Accumulate non existing function - MVEL'."));
+        assertThat(kieBuilder.getResults().getMessages()).isNotEmpty();
+        assertThat(kieBuilder.getResults().getMessages()).extracting(Message::getText)
+                .anySatisfy(text -> assertThat(text).contains("Unknown accumulate function: 'nonExistingFunction' on rule 'Accumulate non existing function - Java'."));
+        assertThat(kieBuilder.getResults().getMessages()).extracting(Message::getText)
+                .anySatisfy(text -> assertThat(text).contains("Unknown accumulate function: 'nonExistingFunction' on rule 'Accumulate non existing function - MVEL'."));
     }
 
     @Test(timeout = 10000)
@@ -1882,8 +1779,8 @@ public class AccumulateTest {
 
             ksession.fireAllRules();
 
-            assertEquals(1, list.size());
-            assertEquals(3, list.get(0));
+            assertThat(list.size()).isEqualTo(1);
+            assertThat(list.get(0)).isEqualTo(3);
         } finally {
             ksession.dispose();
         }
@@ -1921,12 +1818,9 @@ public class AccumulateTest {
             Mockito.verify(ael).afterMatchFired(cap.capture());
 
             Match activation = cap.getValue().getMatch();
-            assertThat(((Number) activation.getDeclarationValue("$sum")).intValue(),
-                       is(18));
-            assertThat(((Number) activation.getDeclarationValue("$min")).intValue(),
-                       is(3));
-            assertThat(((Number) activation.getDeclarationValue("$avg")).intValue(),
-                       is(6));
+            assertThat(((Number) activation.getDeclarationValue("$sum")).intValue()).isEqualTo(18);
+            assertThat(((Number) activation.getDeclarationValue("$min")).intValue()).isEqualTo(3);
+            assertThat(((Number) activation.getDeclarationValue("$avg")).intValue()).isEqualTo(6);
 
             Mockito.reset(ael);
             // ---------------- 2nd scenario
@@ -1939,12 +1833,9 @@ public class AccumulateTest {
             Mockito.verify(ael).afterMatchFired(cap.capture());
 
             activation = cap.getValue().getMatch();
-            assertThat(((Number) activation.getDeclarationValue("$sum")).intValue(),
-                       is(24));
-            assertThat(((Number) activation.getDeclarationValue("$min")).intValue(),
-                       is(5));
-            assertThat(((Number) activation.getDeclarationValue("$avg")).intValue(),
-                       is(8));
+            assertThat(((Number) activation.getDeclarationValue("$sum")).intValue()).isEqualTo(24);
+            assertThat(((Number) activation.getDeclarationValue("$min")).intValue()).isEqualTo(5);
+            assertThat(((Number) activation.getDeclarationValue("$avg")).intValue()).isEqualTo(8);
 
             Mockito.reset(ael);
             // ---------------- 3rd scenario
@@ -1956,12 +1847,9 @@ public class AccumulateTest {
             Mockito.verify(ael).afterMatchFired(cap.capture());
 
             activation = cap.getValue().getMatch();
-            assertThat(((Number) activation.getDeclarationValue("$sum")).intValue(),
-                       is(32));
-            assertThat(((Number) activation.getDeclarationValue("$min")).intValue(),
-                       is(15));
-            assertThat(((Number) activation.getDeclarationValue("$avg")).intValue(),
-                       is(16));
+            assertThat(((Number) activation.getDeclarationValue("$sum")).intValue()).isEqualTo(32);
+            assertThat(((Number) activation.getDeclarationValue("$min")).intValue()).isEqualTo(15);
+            assertThat(((Number) activation.getDeclarationValue("$avg")).intValue()).isEqualTo(16);
 
             Mockito.reset(ael);
             // ---------------- 4th scenario
@@ -1971,12 +1859,9 @@ public class AccumulateTest {
             Mockito.verify(ael).afterMatchFired(cap.capture());
 
             activation = cap.getValue().getMatch();
-            assertThat(((Number) activation.getDeclarationValue("$sum")).intValue(),
-                       is(17));
-            assertThat(((Number) activation.getDeclarationValue("$min")).intValue(),
-                       is(17));
-            assertThat(((Number) activation.getDeclarationValue("$avg")).intValue(),
-                       is(17));
+            assertThat(((Number) activation.getDeclarationValue("$sum")).intValue()).isEqualTo(17);
+            assertThat(((Number) activation.getDeclarationValue("$min")).intValue()).isEqualTo(17);
+            assertThat(((Number) activation.getDeclarationValue("$avg")).intValue()).isEqualTo(17);
         } finally {
             ksession.dispose();
         }
@@ -2023,9 +1908,9 @@ public class AccumulateTest {
             }
 
             ksession.fireAllRules();
-            assertEquals(2, results.size());
-            assertEquals(results.get(0).intValue(), 2);
-            assertEquals(results.get(1).intValue(), 17);
+            assertThat(results.size()).isEqualTo(2);
+            assertThat(2).isEqualTo(results.get(0).intValue());
+            assertThat(17).isEqualTo(results.get(1).intValue());
         } finally {
             ksession.dispose();
         }
@@ -2063,8 +1948,8 @@ public class AccumulateTest {
             }
 
             ksession.fireAllRules();
-            assertEquals(1, results.size());
-            assertEquals("7 facts", results.get(0));
+            assertThat(results.size()).isEqualTo(1);
+            assertThat(results.get(0)).isEqualTo("7 facts");
         } finally {
             ksession.dispose();
         }
@@ -2124,7 +2009,7 @@ public class AccumulateTest {
             ks.insert(list);
             ks.fireAllRules();
 
-            assertEquals(3L, resList.get(0));
+            assertThat(resList.get(0)).isEqualTo(3L);
         } finally {
             ks.dispose();
         }
@@ -2202,10 +2087,8 @@ public class AccumulateTest {
                                results);
             ksession.fireAllRules();
             ksession.dispose();
-            assertEquals(1,
-                         results.size());
-            assertEquals(9L,
-                         results.get(0));
+            assertThat(results.size()).isEqualTo(1);
+            assertThat(results.get(0)).isEqualTo(9L);
         } finally {
             ksession.dispose();
         }
@@ -2307,11 +2190,11 @@ public class AccumulateTest {
             ksession.fireAllRules();
 
             final QueryResults res = ksession.getQueryResults("getResults", "1", Variable.v);
-            assertEquals(1, res.size());
+            assertThat(res.size()).isEqualTo(1);
 
             final Object o = res.iterator().next().get("$holders");
-            assertTrue(o instanceof List);
-            assertEquals(1, ((List) o).size());
+            assertThat(o instanceof List).isTrue();
+            assertThat(((List) o).size()).isEqualTo(1);
         } finally {
             ksession.dispose();
         }
@@ -2473,22 +2356,22 @@ public class AccumulateTest {
 
             ksession.fireAllRules();
 
-            assertEquals(2, map.get("count"));
+            assertThat(map.get("count")).isEqualTo(2);
             Map pMap = (Map) map.get("Jos Jr Jr");
-            assertEquals(50.0, ((Number)pMap.get("total")).doubleValue(), 1);
+            assertThat(((Number) pMap.get("total")).doubleValue()).isCloseTo(50.0, within(1.0));
             List kids = (List) pMap.get("k");
-            assertEquals(1, kids.size());
-            assertEquals("John Jr Jrx", ((MyPerson) kids.get(0)).getName());
-            assertEquals(josJr, pMap.get("p"));
-            assertEquals(josJr, pMap.get("r"));
+            assertThat(kids.size()).isEqualTo(1);
+            assertThat(((MyPerson) kids.get(0)).getName()).isEqualTo("John Jr Jrx");
+            assertThat(pMap.get("p")).isEqualTo(josJr);
+            assertThat(pMap.get("r")).isEqualTo(josJr);
 
             pMap = (Map) map.get("Jos");
-            assertEquals(50.0, ((Number)pMap.get("total")).doubleValue(), 1);
+            assertThat(((Number) pMap.get("total")).doubleValue()).isCloseTo(50.0, within(1.0));
             kids = (List) pMap.get("k");
-            assertEquals(1, kids.size());
-            assertEquals("John Jr Jrx", ((MyPerson) kids.get(0)).getName());
-            assertEquals(josJr, pMap.get("p"));
-            assertEquals(jos, pMap.get("r"));
+            assertThat(kids.size()).isEqualTo(1);
+            assertThat(((MyPerson) kids.get(0)).getName()).isEqualTo("John Jr Jrx");
+            assertThat(pMap.get("p")).isEqualTo(josJr);
+            assertThat(pMap.get("r")).isEqualTo(jos);
         } finally {
             ksession.dispose();
         }
@@ -2621,11 +2504,11 @@ public class AccumulateTest {
             ksession.insert(l1);
             ksession.insert(l2);
 
-            assertEquals(1, ksession.fireAllRules());
+            assertThat(ksession.fireAllRules()).isEqualTo(1);
 
-            assertEquals(2, list.size());
-            assertEquals(c, list.get(0));
-            assertEquals(2L, list.get(1));
+            assertThat(list.size()).isEqualTo(2);
+            assertThat(list.get(0)).isEqualTo(c);
+            assertThat(list.get(1)).isEqualTo(2L);
         } finally {
             ksession.dispose();
         }
@@ -2676,7 +2559,7 @@ public class AccumulateTest {
             final ArgumentCaptor<AfterMatchFiredEvent> ac = ArgumentCaptor.forClass(AfterMatchFiredEvent.class);
             verify(ael).afterMatchFired(ac.capture());
 
-            assertThat(ac.getValue().getMatch().getDeclarationValue("$v"), is(1));
+            assertThat(ac.getValue().getMatch().getDeclarationValue("$v")).isEqualTo(1);
         } finally {
             ksession.dispose();
         }
@@ -2758,7 +2641,7 @@ public class AccumulateTest {
             ksession.insert("b");
             ksession.fireAllRules();
 
-            assertEquals(1, list.size());
+            assertThat(list.size()).isEqualTo(1);
         } finally {
             ksession.dispose();
         }
@@ -2789,8 +2672,8 @@ public class AccumulateTest {
             ksession.insert(1);
             ksession.fireAllRules();
 
-            assertEquals(1, list.size());
-            assertEquals(0, (long) list.get(0));
+            assertThat(list.size()).isEqualTo(1);
+            assertThat((long) list.get(0)).isEqualTo(0);
         } finally {
             ksession.dispose();
         }
@@ -2823,8 +2706,8 @@ public class AccumulateTest {
             ksession.insert(1L);
             ksession.fireAllRules();
 
-            assertEquals(1, list.size());
-            assertEquals(0, (long) list.get(0));
+            assertThat(list.size()).isEqualTo(1);
+            assertThat((long) list.get(0)).isEqualTo(0);
         } finally {
             ksession.dispose();
         }
@@ -2849,7 +2732,7 @@ public class AccumulateTest {
                 "end  ";
 
         final KieBuilder kieBuilder = KieUtil.getKieBuilderFromDrls(kieBaseTestConfiguration, false, drl);
-        Assertions.assertThat(kieBuilder.getResults().getMessages()).isNotEmpty();
+        assertThat(kieBuilder.getResults().getMessages()).isNotEmpty();
     }
 
     @Test
@@ -2865,7 +2748,7 @@ public class AccumulateTest {
                 "end";
 
         final KieBuilder kieBuilder = KieUtil.getKieBuilderFromDrls(kieBaseTestConfiguration, false, drl);
-        Assertions.assertThat(kieBuilder.getResults().getMessages()).isNotEmpty();
+        assertThat(kieBuilder.getResults().getMessages()).isNotEmpty();
     }
 
     public static class ExpectedMessage {
@@ -2973,12 +2856,12 @@ public class AccumulateTest {
             ksession.insert("1");
             ksession.fireAllRules();
 
-            assertEquals(1, counter.get());
+            assertThat(counter.get()).isEqualTo(1);
 
             ksession.insert("2");
             ksession.fireAllRules();
 
-            assertEquals(2, counter.get());
+            assertThat(counter.get()).isEqualTo(2);
         } finally {
             ksession.dispose();
         }
@@ -3037,8 +2920,8 @@ public class AccumulateTest {
             ksession.insert(new Converter());
             ksession.fireAllRules();
 
-            assertEquals(1, list.size());
-            assertEquals(5, list.get(0).intValue());
+            assertThat(list.size()).isEqualTo(1);
+            assertThat(list.get(0).intValue()).isEqualTo(5);
         } finally {
             ksession.dispose();
         }
@@ -3076,7 +2959,7 @@ public class AccumulateTest {
             ksession.setGlobal("list", list);
 
             ksession.fireAllRules();
-            assertEquals(1, list.size());
+            assertThat(list.size()).isEqualTo(1);
         } finally {
             ksession.dispose();
         }
@@ -3097,7 +2980,7 @@ public class AccumulateTest {
                         "end\n";
 
         final KieBuilder kieBuilder = KieUtil.getKieBuilderFromDrls(kieBaseTestConfiguration, false, drl);
-        Assertions.assertThat(kieBuilder.getResults().getMessages()).isNotEmpty();
+        assertThat(kieBuilder.getResults().getMessages()).isNotEmpty();
     }
 
     @Test
@@ -3115,7 +2998,7 @@ public class AccumulateTest {
                         "end\n";
 
         final KieBuilder kieBuilder = KieUtil.getKieBuilderFromDrls(kieBaseTestConfiguration, false, drl);
-        Assertions.assertThat(kieBuilder.getResults().getMessages()).isNotEmpty();
+        assertThat(kieBuilder.getResults().getMessages()).isNotEmpty();
     }
 
     @Test
@@ -3142,8 +3025,8 @@ public class AccumulateTest {
             ksession.insert("hi");
             ksession.fireAllRules();
 
-            assertEquals(1, list.size());
-            assertEquals("hello".length() + "hi".length(), (int) list.get(0));
+            assertThat(list.size()).isEqualTo(1);
+            assertThat((int) list.get(0)).isEqualTo("hello".length() + "hi".length());
         } finally {
             ksession.dispose();
         }
@@ -3173,8 +3056,8 @@ public class AccumulateTest {
             ksession.insert(new PersonWithBoxedAge("she", null));
             ksession.fireAllRules();
 
-            assertEquals(1, list.size());
-            assertEquals(70, (int) list.get(0));
+            assertThat(list.size()).isEqualTo(1);
+            assertThat((int) list.get(0)).isEqualTo(70);
         } finally {
             ksession.dispose();
         }
@@ -3213,8 +3096,8 @@ public class AccumulateTest {
             ksession.insert(new PersonWithBoxedAge("she", 25));
             ksession.fireAllRules();
 
-            assertEquals(1, list.size());
-            assertEquals(expectedResult, list.get(0).getName());
+            assertThat(list.size()).isEqualTo(1);
+            assertThat(list.get(0).getName()).isEqualTo(expectedResult);
         } finally {
             ksession.dispose();
         }
@@ -3268,8 +3151,8 @@ public class AccumulateTest {
             ksession.insert("hi");
             ksession.fireAllRules();
 
-            assertEquals(1, list.size());
-            assertEquals("hello".length(), (int) list.get(0));
+            assertThat(list.size()).isEqualTo(1);
+            assertThat((int) list.get(0)).isEqualTo("hello".length());
         } finally {
             ksession.dispose();
         }
@@ -3294,14 +3177,14 @@ public class AccumulateTest {
         final KieBase kieBase = KieBaseUtil.getKieBaseFromKieModuleFromDrl("accumulate-test", kieBaseTestConfiguration,
                                                                            drl);
 
-        assertEquals(0.00, cheeseInsertsFunction(kieBase, 3, 3, 3, 3, 3), 0.01);
-        assertEquals(0.80, cheeseInsertsFunction(kieBase, 4, 4, 3, 2, 2), 0.01);
-        assertEquals(1.20, cheeseInsertsFunction(kieBase, 5, 3, 3, 2, 2), 0.01);
-        assertEquals(2.80, cheeseInsertsFunction(kieBase, 5, 5, 2, 2, 1), 0.01);
-        assertEquals(2.80, cheeseInsertsFunction(kieBase, 6, 3, 3, 2, 1), 0.01);
-        assertEquals(4.40, cheeseInsertsFunction(kieBase, 6, 5, 2, 1, 1), 0.01);
-        assertEquals(16.00, cheeseInsertsFunction(kieBase, 11, 1, 1, 1, 1), 0.01);
-        assertEquals(36.00, cheeseInsertsFunction(kieBase, 15, 0, 0, 0, 0), 0.01);
+        assertThat(cheeseInsertsFunction(kieBase, 3, 3, 3, 3, 3)).isCloseTo(0.00, within(0.01));
+        assertThat(cheeseInsertsFunction(kieBase, 4, 4, 3, 2, 2)).isCloseTo(0.80, within(0.01));
+        assertThat(cheeseInsertsFunction(kieBase, 5, 3, 3, 2, 2)).isCloseTo(1.20, within(0.01));
+        assertThat(cheeseInsertsFunction(kieBase, 5, 5, 2, 2, 1)).isCloseTo(2.80, within(0.01));
+        assertThat(cheeseInsertsFunction(kieBase, 6, 3, 3, 2, 1)).isCloseTo(2.80, within(0.01));
+        assertThat(cheeseInsertsFunction(kieBase, 6, 5, 2, 1, 1)).isCloseTo(4.40, within(0.01));
+        assertThat(cheeseInsertsFunction(kieBase, 11, 1, 1, 1, 1)).isCloseTo(16.00, within(0.01));
+        assertThat(cheeseInsertsFunction(kieBase, 15, 0, 0, 0, 0)).isCloseTo(36.00, within(0.01));
     }
 
     @Test
@@ -3321,14 +3204,14 @@ public class AccumulateTest {
         final KieBase kieBase = KieBaseUtil.getKieBaseFromKieModuleFromDrl("accumulate-test", kieBaseTestConfiguration,
                                                                          drl);
 
-        assertEquals(0.00, cheeseInsertsFunction(kieBase, 3, 3, 3, 3, 3), 0.01);
-        assertEquals(0.89, cheeseInsertsFunction(kieBase, 4, 4, 3, 2, 2), 0.01);
-        assertEquals(1.10, cheeseInsertsFunction(kieBase, 5, 3, 3, 2, 2), 0.01);
-        assertEquals(1.67, cheeseInsertsFunction(kieBase, 5, 5, 2, 2, 1), 0.01);
-        assertEquals(1.67, cheeseInsertsFunction(kieBase, 6, 3, 3, 2, 1), 0.01);
-        assertEquals(2.10, cheeseInsertsFunction(kieBase, 6, 5, 2, 1, 1), 0.01);
-        assertEquals(4.00, cheeseInsertsFunction(kieBase, 11, 1, 1, 1, 1), 0.01);
-        assertEquals(6.00, cheeseInsertsFunction(kieBase, 15, 0, 0, 0, 0), 0.01);
+        assertThat(cheeseInsertsFunction(kieBase, 3, 3, 3, 3, 3)).isCloseTo(0.00, within(0.01));
+        assertThat(cheeseInsertsFunction(kieBase, 4, 4, 3, 2, 2)).isCloseTo(0.89, within(0.01));
+        assertThat(cheeseInsertsFunction(kieBase, 5, 3, 3, 2, 2)).isCloseTo(1.10, within(0.01));
+        assertThat(cheeseInsertsFunction(kieBase, 5, 5, 2, 2, 1)).isCloseTo(1.67, within(0.01));
+        assertThat(cheeseInsertsFunction(kieBase, 6, 3, 3, 2, 1)).isCloseTo(1.67, within(0.01));
+        assertThat(cheeseInsertsFunction(kieBase, 6, 5, 2, 1, 1)).isCloseTo(2.10, within(0.01));
+        assertThat(cheeseInsertsFunction(kieBase, 11, 1, 1, 1, 1)).isCloseTo(4.00, within(0.01));
+        assertThat(cheeseInsertsFunction(kieBase, 15, 0, 0, 0, 0)).isCloseTo(6.00, within(0.01));
     }
 
     private double cheeseInsertsFunction(final KieBase kieBase, final int... prices) {
@@ -3340,16 +3223,16 @@ public class AccumulateTest {
                 ksession.insert(new Cheese("stilton", price));
             }
             ksession.fireAllRules();
-            assertEquals(1, list.size());
+            assertThat(list.size()).isEqualTo(1);
             final double result = list.get(0);
             final FactHandle triggerReverseHandle = ksession.insert(new Cheese("triggerReverse", 7));
             ksession.fireAllRules();
             ksession.delete(triggerReverseHandle);
             list.clear();
             ksession.fireAllRules();
-            assertEquals(1, list.size());
+            assertThat(list.size()).isEqualTo(1);
             // Check that the reserse() does the opposite of the accumulate()
-            assertEquals(result, list.get(0), 0.001);
+            assertThat(list.get(0)).isCloseTo(result, within(0.001));
             return list.get(0);
         } finally {
             ksession.dispose();
@@ -3397,19 +3280,19 @@ public class AccumulateTest {
             final FactHandle fhVisit4 = kieSession.insert(visit4);
 
             kieSession.fireAllRules();
-            assertTrue(containsExactlyAndClear(list, 9.0, 9.0, 9.0, 1.0));
+            assertThat(containsExactlyAndClear(list, 9.0, 9.0, 9.0, 1.0)).isTrue();
 
             kieSession.update(fhVisit4, visit4);
             kieSession.update(fhVisit3, visit3.setBucket(bucketA));
             kieSession.update(fhVisit1, visit1.setBucket(bucketB));
 
             kieSession.fireAllRules();
-            assertTrue(containsExactlyAndClear(list, 7.0, 7.0, 3.0, 7.0));
+            assertThat(containsExactlyAndClear(list, 7.0, 7.0, 3.0, 7.0)).isTrue();
 
             kieSession.update(fhVisit1, visit1.setBucket(bucketA));
 
             kieSession.fireAllRules();
-            assertTrue(list.containsAll(asList(6.0, 4.0, 6.0, 4.0)));
+            assertThat(list.containsAll(asList(6.0, 4.0, 6.0, 4.0))).isTrue();
         } finally {
             kieSession.dispose();
         }
@@ -3543,7 +3426,7 @@ public class AccumulateTest {
             kieSession.fireAllRules();
             final ArrayList<Integer> expected = new ArrayList<>(result);
             Collections.sort(expected);
-            assertEquals(expected, actual);
+            assertThat(actual).isEqualTo(expected);
         } finally {
             kieSession.dispose();
         }
@@ -3635,7 +3518,7 @@ public class AccumulateTest {
                 "end";
 
         final KieBuilder kieBuilder = KieUtil.getKieBuilderFromDrls(kieBaseTestConfiguration, false, drl);
-        Assertions.assertThat(kieBuilder.getResults().getMessages()).isNotEmpty();
+        assertThat(kieBuilder.getResults().getMessages()).isNotEmpty();
     }
 
     @Test
@@ -3661,9 +3544,9 @@ public class AccumulateTest {
             final List<Person> persons = Arrays.asList(new Person("Mario", 42), new Person("Marilena", 44), new Person("Sofia", 4));
             kieSession.setGlobal("persons", persons);
 
-            assertEquals(1, kieSession.fireAllRules());
-            assertEquals(1, list.size());
-            assertEquals(86, (int) list.get(0));
+            assertThat(kieSession.fireAllRules()).isEqualTo(1);
+            assertThat(list.size()).isEqualTo(1);
+            assertThat((int) list.get(0)).isEqualTo(86);
         } finally {
             kieSession.dispose();
         }
@@ -3693,9 +3576,9 @@ public class AccumulateTest {
             kieSession.getEntryPoint("persons").insert(new Person("Marilena", 44));
             kieSession.getEntryPoint("persons").insert(new Person("Sofia", 4));
 
-            assertEquals(1, kieSession.fireAllRules());
-            assertEquals(1, list.size());
-            assertEquals(86, (int) list.get(0));
+            assertThat(kieSession.fireAllRules()).isEqualTo(1);
+            assertThat(list.size()).isEqualTo(1);
+            assertThat((int) list.get(0)).isEqualTo(86);
         } finally {
             kieSession.dispose();
         }
@@ -3704,13 +3587,13 @@ public class AccumulateTest {
     @Test
     public void testNumericMax() {
         // DROOLS-2519
-        assertEquals(44, (int) testMax("age"));
+        assertThat((int) testMax("age")).isEqualTo(44);
     }
 
     @Test
     public void testComparableMax() {
         // DROOLS-2519
-        assertEquals("Sofia", testMax("name"));
+        assertThat(testMax("name")).isEqualTo("Sofia");
     }
 
     private Object testMax(final String fieldToUse) {
@@ -3735,8 +3618,8 @@ public class AccumulateTest {
             kieSession.insert(new Person("Marilena", 44));
             kieSession.insert(new Person("Sofia", 4));
 
-            assertEquals(1, kieSession.fireAllRules());
-            assertEquals(1, list.size());
+            assertThat(kieSession.fireAllRules()).isEqualTo(1);
+            assertThat(list.size()).isEqualTo(1);
             return list.get(0);
         } finally {
             kieSession.dispose();
@@ -3757,9 +3640,9 @@ public class AccumulateTest {
                         "end";
 
         final KieBuilder kieBuilder = KieUtil.getKieBuilderFromDrls(kieBaseTestConfiguration, false, drl);
-        Assertions.assertThat(kieBuilder.getResults().getMessages()).isNotEmpty();
-        Assertions.assertThat(kieBuilder.getResults().getMessages()).extracting(Message::getText)
-                .anySatisfy(text -> Assertions.assertThat(text).contains("openAlarms"));
+        assertThat(kieBuilder.getResults().getMessages()).isNotEmpty();
+        assertThat(kieBuilder.getResults().getMessages()).extracting(Message::getText)
+                .anySatisfy(text -> assertThat(text).contains("openAlarms"));
     }
 
     @Test
@@ -3783,21 +3666,21 @@ public class AccumulateTest {
 
         final FactHandle fh = kieSession.insert("test" );
 
-        assertEquals(1, kieSession.fireAllRules() );
-        assertEquals(1, list.size() );
-        assertEquals(4, ((Number)list.get(0)).intValue());
+        assertThat(kieSession.fireAllRules()).isEqualTo(1);
+        assertThat(list.size()).isEqualTo(1);
+        assertThat(((Number) list.get(0)).intValue()).isEqualTo(4);
 
         list.clear();
 
         kieSession.delete( fh );
         // changed by DROOLS-6064
         if (((SessionConfiguration)kieSession.getSessionConfiguration()).isAccumulateNullPropagation()) {
-            assertEquals(1, kieSession.fireAllRules() );
-            assertEquals(1, list.size() );
-            assertNull(list.get(0));
+            assertThat(kieSession.fireAllRules()).isEqualTo(1);
+            assertThat(list.size()).isEqualTo(1);
+            assertThat(list.get(0)).isNull();
         } else {
-            assertEquals(0, kieSession.fireAllRules() );
-            assertEquals(0, list.size() );
+            assertThat(kieSession.fireAllRules()).isEqualTo(0);
+            assertThat(list.size()).isEqualTo(0);
         }
     }
 
@@ -3825,9 +3708,9 @@ public class AccumulateTest {
             kieSession.insert(new BigDecimal(0));
             kieSession.insert(new BigDecimal(1));
 
-            assertEquals(1, kieSession.fireAllRules());
-            assertEquals(1, resultList.size());
-            assertEquals(BigDecimal.ZERO, resultList.get(0));
+            assertThat(kieSession.fireAllRules()).isEqualTo(1);
+            assertThat(resultList.size()).isEqualTo(1);
+            assertThat(resultList.get(0)).isEqualTo(BigDecimal.ZERO);
         } finally {
             kieSession.dispose();
         }
@@ -3856,7 +3739,7 @@ public class AccumulateTest {
         try {
             kieSession.insert("test");
             kieSession.insert(4);
-            assertEquals(1, kieSession.fireAllRules());
+            assertThat(kieSession.fireAllRules()).isEqualTo(1);
         } finally {
             kieSession.dispose();
         }
@@ -3885,7 +3768,47 @@ public class AccumulateTest {
         try {
             kieSession.insert("test");
             kieSession.insert(4);
-            assertEquals(1, kieSession.fireAllRules());
+            assertThat(kieSession.fireAllRules()).isEqualTo(1);
+        } finally {
+            kieSession.dispose();
+        }
+    }
+
+    public static final class PersonsContainer {
+        public List<Person> getPersons() {
+            List<Person> persons = new ArrayList<>();
+            persons.add(null);
+            persons.add(new Person("test"));
+            return persons;
+        }
+    }
+
+    @Test
+    public void testPeerCollectWithEager() {
+        // DROOLS-6768
+        final String drl =
+                "import " + PersonsContainer.class.getCanonicalName() + ";\n" +
+                "import " + Person.class.getCanonicalName() + ";\n" +
+                "import " + List.class.getCanonicalName() + ";\n" +
+                "rule R1 when\n" +
+                "    $pc : PersonsContainer()\n" +
+                "    List(size == 0) from collect( Person( name.startsWith(\"t\") ) from $pc.persons )\n" +
+                "then\n" +
+                "end\n" +
+                "rule R2 when\n" +
+                "    $pc : PersonsContainer()\n" +
+                "    List(size == 0) from collect( Person( name.endsWith(\"x\") ) from $pc.persons )\n" +
+                "then\n" +
+                "end";
+
+        KieSessionConfiguration config = KieServices.Factory.get().newKieSessionConfiguration(null);
+        config.setOption( ForceEagerActivationOption.YES );
+
+        final KieBase kieBase = KieBaseUtil.getKieBaseFromKieModuleFromDrl("collect-test", kieBaseTestConfiguration, drl);
+        final KieSession kieSession = kieBase.newKieSession(config, null);
+        try {
+            kieSession.insert(new PersonsContainer());
+            assertThat(kieSession.fireAllRules()).isEqualTo(1);
         } finally {
             kieSession.dispose();
         }

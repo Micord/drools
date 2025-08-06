@@ -6,7 +6,7 @@
   <parent>
     <groupId>org.kie</groupId>
     <artifactId>kie-dmn</artifactId>
-    <version>7.58.0.Final</version>
+    <version>7.74.1.Final-Micord.1</version>
   </parent>
   <artifactId>kie-dmn-core-osgi</artifactId>
   <packaging>bundle</packaging><!-- bundle = jar + OSGi metadata -->
@@ -86,8 +86,8 @@
         </executions>
       </plugin>
       <plugin>
-        <!-- The explicit entries below can be inferred by having the bundle 
-          plugin moved in the kie-dmn-core module (where this was originally) and extracted 
+        <!-- The explicit entries below can be inferred by having the bundle
+          plugin moved in the kie-dmn-core module (where this was originally) and extracted
           from MANIFEST.MF from the generated JAR -->
         <groupId>org.apache.felix</groupId>
         <artifactId>maven-bundle-plugin</artifactId>

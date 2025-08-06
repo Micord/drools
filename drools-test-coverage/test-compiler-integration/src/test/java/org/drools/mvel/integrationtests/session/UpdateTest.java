@@ -22,6 +22,8 @@ import java.util.Collection;
 import java.util.List;
 
 import org.drools.mvel.compiler.Address;
+import org.drools.mvel.compiler.Asset;
+import org.drools.mvel.compiler.AssetCard;
 import org.drools.mvel.compiler.Cheese;
 import org.drools.mvel.compiler.IndexedNumber;
 import org.drools.mvel.compiler.OuterClass;
@@ -44,9 +46,7 @@ import org.kie.api.runtime.KieSession;
 import org.kie.api.runtime.rule.FactHandle;
 import org.kie.internal.command.CommandFactory;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -95,8 +95,8 @@ public class UpdateTest {
 
         ksession.fireAllRules();
 
-        assertEquals(10, c.getPrice());
-        assertEquals("fine", bob.getStatus());
+        assertThat(c.getPrice()).isEqualTo(10);
+        assertThat(bob.getStatus()).isEqualTo("fine");
     }
 
     @Test
@@ -117,10 +117,10 @@ public class UpdateTest {
         ksession.fireAllRules();
 
         // modify worked
-        assertEquals("12345", addr.getZipCode());
+        assertThat(addr.getZipCode()).isEqualTo("12345");
         // chaining worked
-        assertEquals(1, results.size());
-        assertEquals(addr, results.get(0));
+        assertThat(results.size()).isEqualTo(1);
+        assertThat(results.get(0)).isEqualTo(addr);
     }
 
     // this test requires mvel 1.2.19. Leaving it commented until mvel is released.
@@ -141,10 +141,10 @@ public class UpdateTest {
 
         ksession.fireAllRules();
 
-        assertEquals(2, list.size());
-        assertEquals("full", bob.getStatus());
-        assertEquals(31, bob.getAge());
-        assertEquals(2, ((OuterClass.InnerClass) list.get(1)).getIntAttr());
+        assertThat(list.size()).isEqualTo(2);
+        assertThat(bob.getStatus()).isEqualTo("full");
+        assertThat(bob.getAge()).isEqualTo(31);
+        assertThat(((OuterClass.InnerClass) list.get(1)).getIntAttr()).isEqualTo(2);
     }
 
     @Test
@@ -173,7 +173,7 @@ public class UpdateTest {
 
         KieBuilder kieBuilder = KieUtil.getKieBuilderFromDrls(kieBaseTestConfiguration, false, str);
         List<Message> errors = kieBuilder.getResults().getMessages(Message.Level.ERROR);
-        assertTrue(errors.toString(), errors.isEmpty());
+        assertThat(errors.isEmpty()).as(errors.toString()).isTrue();
     }
 
     @Test
@@ -220,7 +220,7 @@ public class UpdateTest {
         session.getAgenda().getAgendaGroup("feeding").setFocus();
         session.fireAllRules(5);
 
-        assertEquals(2, ((List) session.getGlobal("results")).size());
+        assertThat(((List) session.getGlobal("results")).size()).isEqualTo(2);
     }
 
     @Test
@@ -237,7 +237,7 @@ public class UpdateTest {
 
         KieBuilder kieBuilder = KieUtil.getKieBuilderFromDrls(kieBaseTestConfiguration, false, str);
         List<Message> errors = kieBuilder.getResults().getMessages(Message.Level.ERROR);
-        assertFalse("Should have an error", errors.isEmpty());
+        assertThat(errors.isEmpty()).as("Should have an error").isFalse();
     }
 
     @Test
@@ -257,7 +257,7 @@ public class UpdateTest {
 
         KieBuilder kieBuilder = KieUtil.getKieBuilderFromDrls(kieBaseTestConfiguration, false, str);
         List<Message> errors = kieBuilder.getResults().getMessages(Message.Level.ERROR);
-        assertFalse("Should have an error", errors.isEmpty());
+        assertThat(errors.isEmpty()).as("Should have an error").isFalse();
     }
 
     @Test
@@ -277,7 +277,7 @@ public class UpdateTest {
 
         KieBuilder kieBuilder = KieUtil.getKieBuilderFromDrls(kieBaseTestConfiguration, false, str);
         List<Message> errors = kieBuilder.getResults().getMessages(Message.Level.ERROR);
-        assertFalse("Should have an error", errors.isEmpty());
+        assertThat(errors.isEmpty()).as("Should have an error").isFalse();
     }
 
     @Test
@@ -295,10 +295,10 @@ public class UpdateTest {
             ksession.insert(n);
         }
         ksession.fireAllRules();
-        assertTrue("Processing generated errors: " + errors.toString(), errors.isEmpty());
+        assertThat(errors.isEmpty()).as("Processing generated errors: " + errors.toString()).isTrue();
         for (int i = 1; i <= MAX; i++) {
             final IndexedNumber n = (IndexedNumber) orderedFacts.get(i - 1);
-            assertEquals("Fact is out of order", i, n.getIndex());
+            assertThat(n.getIndex()).as("Fact is out of order").isEqualTo(i);
         }
     }
 
@@ -363,7 +363,7 @@ public class UpdateTest {
         ksession.fireAllRules();
 
         // a1 is blocked by a2
-        assertEquals(0, list.size());
+        assertThat(list.size()).isEqualTo(0);
 
         // modify a2, so that a1 is now blocked by a3
         a2.setField2("1"); // Do
@@ -377,7 +377,7 @@ public class UpdateTest {
         a3.setField2("1"); // Do
         ksession.update(fa3, a3);
         ksession.fireAllRules();
-        assertEquals(0, list.size()); // this should still now blocked by a2, but bug from previous update hanging onto blocked
+        assertThat(list.size()).isEqualTo(0); // this should still now blocked by a2, but bug from previous update hanging onto blocked
 
         ksession.dispose();
     }
@@ -507,5 +507,127 @@ public class UpdateTest {
         verify(ael, times(2)).afterMatchFired(any(org.kie.api.event.rule.AfterMatchFiredEvent.class));
         // no cancellations should have happened
         verify(ael, never()).matchCancelled(any(org.kie.api.event.rule.MatchCancelledEvent.class));
+    }
+
+    @Test(timeout = 10000)
+    public void testSwapChild() {
+        // DROOLS-6684
+        final String str = "package org.drools.mvel.compiler;\n" +
+                           "import " + Person.class.getCanonicalName() + "\n" +
+                           "import " + Asset.class.getCanonicalName() + "\n" +
+                           "import " + AssetCard.class.getCanonicalName() + "\n" +
+                           "\n" +
+                           "rule R1\n" +
+                           "    no-loop\n" +
+                           "when\n" +
+                           "    $p : Person(name == \"Mario\") @watch(age)\n" +
+                           "    $as : Asset()\n" +
+                           "    $ac : AssetCard(parent == $as, groupCode != \"A\") \n" +
+                           "then\n" +
+                           "    System.out.println(\"Rule \" + drools.getRule().getName() + \"; \" + $ac);\n" +
+                           "    modify($p){setAge(10)}\n" +
+                           "end\n" +
+                           "\n" +
+                           "rule R2\n" +
+                           "    no-loop\n" +
+                           "when\n" +
+                           "    $p : Person(name == \"Mario\") @watch(age)\n" +
+                           "    $as : Asset()\n" +
+                           "    $ac : AssetCard(parent == $as, groupCode == \"A\") \n" +
+                           "then\n" +
+                           "    System.out.println(\"Rule \" + drools.getRule().getName() + \"; \" + $ac);\n" +
+                           "    modify($p){setAge(10)}\n" +
+                           "end";
+
+        KieBase kbase = KieBaseUtil.getKieBaseFromKieModuleFromDrl("test", kieBaseTestConfiguration, str);
+        KieSession ksession = kbase.newKieSession();
+
+        Asset asset = new Asset();
+
+        AssetCard assetCard = new AssetCard(1);
+        assetCard.setParent(asset);
+        assetCard.setGroupCode("A");
+        asset.setAssetCard(assetCard);
+
+        Person p = new Person("Mario", 20);
+
+        ksession.insert(asset);
+        FactHandle assetCardFh = ksession.insert(assetCard);
+        ksession.insert(p);
+
+        assertThat(ksession.fireAllRules()).isEqualTo(1);
+
+        //----------------------
+
+        AssetCard assetCard2 = new AssetCard(2);
+        assetCard2.setParent(asset);
+        assetCard2.setGroupCode("A");
+        asset.setAssetCard(assetCard2);
+
+        ksession.delete(assetCardFh);
+        ksession.insert(assetCard2);
+
+        assertThat(ksession.fireAllRules()).isEqualTo(1);
+
+        ksession.dispose();
+    }
+
+    public static class Firings {
+        private final List<String> list = new ArrayList<>();
+
+        public List<String> getList() {
+            return list;
+        }
+    }
+
+    @Test
+    public void testPeerUpdate() {
+        // DROOLS-6783
+        final String str =
+                "import " + Firings.class.getCanonicalName() + "\n" +
+                "\n" +
+                "rule R1 when\n" +
+                "  Integer()\n" +
+                "  $f : Firings( list not contains \"R1\" )\n" +
+                "then\n" +
+                "  $f.getList().add(\"R1\");\n" +
+                "  update($f);\n" +
+                "end\n" +
+                "\n" +
+                "rule R2 agenda-group \"x\" when\n" +
+                "  Integer()\n" +
+                "  Firings( $l : list )\n" +
+                "  String()\n" +
+                "then\n" +
+                "end\n" +
+                "\n" +
+                "rule R3 agenda-group \"x\" when\n" +
+                "  Integer()\n" +
+                "  Firings( $l : list )\n" +
+                "then\n" +
+                "end\n" +
+                "\n" +
+                "rule R4 when\n" +
+                "  Integer()\n" +
+                "  Firings( $l : list )\n" +
+                "then\n" +
+                "end\n" +
+                "\n" +
+                "rule R5 when\n" +
+                "  Integer()\n" +
+                "  $f : Firings( list not contains \"R5\" )\n" +
+                "then\n" +
+                "  $f.getList().add(\"R5\");\n" +
+                "  update($f);\n" +
+                "end";
+
+        KieBase kbase = KieBaseUtil.getKieBaseFromKieModuleFromDrl("test", kieBaseTestConfiguration, str);
+        KieSession ksession = kbase.newKieSession();
+
+        ksession.insert(1);
+        ksession.insert(new Firings());
+
+        ksession.getAgenda().getAgendaGroup("x").setFocus();
+        assertThat(ksession.fireAllRules()).isEqualTo(5);
     }
 }

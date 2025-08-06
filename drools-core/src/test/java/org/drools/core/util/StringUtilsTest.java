@@ -15,16 +15,17 @@
 
 package org.drools.core.util;
 
-import org.junit.Assert;
+import java.util.List;
+
 import org.junit.Test;
 import org.kie.api.builder.ReleaseId;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.drools.core.util.StringUtils.getPkgUUID;
 import static org.drools.core.util.StringUtils.indexOfOutOfQuotes;
 import static org.drools.core.util.StringUtils.md5Hash;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.drools.core.util.StringUtils.splitStatements;
+import static org.drools.core.util.StringUtils.splitStatementsAcrossBlocks;
 
 public class StringUtilsTest {
 
@@ -64,192 +65,167 @@ public class StringUtilsTest {
 
     private void findEndOfMethodArgsIndexAndAssertItEqualsToExpected(String strExpr, int expectedIndex) {
         int actualIndex = StringUtils.findEndOfMethodArgsIndex(strExpr, strExpr.indexOf('('));
-        Assert.assertEquals("Expected and actual end of method args index for expr '" + strExpr + "' are not equal!",
-                expectedIndex, actualIndex);
+        assertThat(actualIndex).as("Expected and actual end of method args index for expr '" + strExpr + "' are not equal!").isEqualTo(expectedIndex);
     }
     
     @Test
     public void test_codeAwareEqualsIgnoreSpaces() {
-        Assert.assertTrue( StringUtils.codeAwareEqualsIgnoreSpaces( null, null ) );
-        Assert.assertTrue( StringUtils.codeAwareEqualsIgnoreSpaces( "", "") );
-        Assert.assertFalse( StringUtils.codeAwareEqualsIgnoreSpaces( "", null ) );
-        Assert.assertFalse( StringUtils.codeAwareEqualsIgnoreSpaces( null, "" ) );
-        
-        Assert.assertTrue( StringUtils.codeAwareEqualsIgnoreSpaces( " ", "" ) );
-        Assert.assertTrue( StringUtils.codeAwareEqualsIgnoreSpaces( "", " " ) );
-        
-        Assert.assertTrue( StringUtils.codeAwareEqualsIgnoreSpaces( " ", "  " ) );
-        
-        Assert.assertTrue(
-                StringUtils.codeAwareEqualsIgnoreSpaces(
-                        "rule Rx when then end",
-                        " rule Rx  when then end " // <<- DIFF 3x 
-                )
-            );
-        Assert.assertTrue(
-                StringUtils.codeAwareEqualsIgnoreSpaces(
-                        "rule Rx when then end\n",
-                        " rule Rx  when then end\n " // <<- DIFF, both terminate with whitespace but different types
-                )
-            );
-        
-        Assert.assertFalse(
-                StringUtils.codeAwareEqualsIgnoreSpaces(
-                        "package org.drools.compiler\n",
-                        
-                        "package org.drools.compiler\n " +
+        assertThat(StringUtils.codeAwareEqualsIgnoreSpaces(null, null)).isTrue();
+        assertThat(StringUtils.codeAwareEqualsIgnoreSpaces("", "")).isTrue();
+        assertThat(StringUtils.codeAwareEqualsIgnoreSpaces("", null)).isFalse();
+        assertThat(StringUtils.codeAwareEqualsIgnoreSpaces(null, "")).isFalse();
+
+        assertThat(StringUtils.codeAwareEqualsIgnoreSpaces(" ", "")).isTrue();
+        assertThat(StringUtils.codeAwareEqualsIgnoreSpaces("", " ")).isTrue();
+
+        assertThat(StringUtils.codeAwareEqualsIgnoreSpaces(" ", "  ")).isTrue();
+
+        assertThat(StringUtils.codeAwareEqualsIgnoreSpaces(
+                "rule Rx when then end",
+                " rule Rx  when then end " // <<- DIFF 3x 
+        )).isTrue();
+        assertThat(StringUtils.codeAwareEqualsIgnoreSpaces(
+                "rule Rx when then end\n",
+                " rule Rx  when then end\n " // <<- DIFF, both terminate with whitespace but different types
+        )).isTrue();
+
+        assertThat(StringUtils.codeAwareEqualsIgnoreSpaces(
+                "package org.drools.compiler\n",
+
+                "package org.drools.compiler\n " +
                         "rule Rx when\n" +
                         "   $m : Message( message == \"Hello World\" )\n" +
                         "then\n" +
                         "end\n"
-                )
-            );
-        
-        Assert.assertTrue(
-                StringUtils.codeAwareEqualsIgnoreSpaces(
-                        "package org.drools.compiler\n" +
+        )).isFalse();
+
+        assertThat(StringUtils.codeAwareEqualsIgnoreSpaces(
+                "package org.drools.compiler\n" +
                         "rule Rx when\n" +
                         "   $m : Message( message == \"Hello World\" )\n" +
                         "then\n" +
                         "end\n",
-                        
-                        "package org.drools.compiler\n " +  // <<- DIFF
+
+                "package org.drools.compiler\n " +  // <<- DIFF
                         "rule Rx when\n" +
                         "   $m : Message( message == \"Hello World\" )\n" +
                         "then\n" +
                         "end\n"
-                )
-            );
-        Assert.assertTrue(
-                StringUtils.codeAwareEqualsIgnoreSpaces(
-                        "package org.drools.compiler\n" +
+        )).isTrue();
+        assertThat(StringUtils.codeAwareEqualsIgnoreSpaces(
+                "package org.drools.compiler\n" +
                         "rule Rx when\n" +
                         "   $m : Message( message == \"Hello World\" )\n" +
                         "then\n" +
                         "end\n",
-                        
-                        " package org.drools.compiler\n" +  // <<- DIFF (at beginning of this line)
+
+                " package org.drools.compiler\n" +  // <<- DIFF (at beginning of this line)
                         "rule Rx when\n" +
                         "   $m : Message( message == \"Hello World\" )\n" +
                         "then\n" +
                         "end\n"
-                )
-            );
-        Assert.assertTrue(
-                StringUtils.codeAwareEqualsIgnoreSpaces(
-                        "package org.drools.compiler\n" +
+        )).isTrue();
+        assertThat(StringUtils.codeAwareEqualsIgnoreSpaces(
+                "package org.drools.compiler\n" +
                         "rule Rx when\n" +
                         "   $m : Message( message == \"Hello World\" )\n" +
                         "then\n" +
                         "end\n",
-                        
-                        " package org.drools.compiler\n " +  // <<- DIFF 2x
+
+                " package org.drools.compiler\n " +  // <<- DIFF 2x
                         "rule Rx when\n" +
                         "   $m : Message( message == \"Hello World\" )\n" +
                         "then\n" +
                         "end\n " // <<- DIFF 
-                )
-            );
-        Assert.assertTrue(
-                StringUtils.codeAwareEqualsIgnoreSpaces(
-                        "package org.drools.compiler\n" +
+        )).isTrue();
+        assertThat(StringUtils.codeAwareEqualsIgnoreSpaces(
+                "package org.drools.compiler\n" +
                         "rule Rx when\n" +
                         "   $m : Message( message == \"Hello World\" )\n" +
                         "then\n" +
                         "end\n",
-                        
-                        "package org.drools.compiler\n" +  
+
+                "package org.drools.compiler\n" +
                         "rule Rx when\n" +
                         "   $m : Message( message == \"Hello World\"  )\n" + // <<- DIFF
                         "then\n" +
                         "end\n"
-                )
-            );
-        Assert.assertFalse(
-                StringUtils.codeAwareEqualsIgnoreSpaces(
-                        "package org.drools.compiler\n" +
+        )).isTrue();
+        assertThat(StringUtils.codeAwareEqualsIgnoreSpaces(
+                "package org.drools.compiler\n" +
                         "rule Rx when\n" +
                         "   $m : Message( message == \"Hello World\" )\n" +
                         "then\n" +
                         "end\n",
-                        
-                        "package org.drools.compiler\n" +  
+
+                "package org.drools.compiler\n" +
                         "rule Rx when\n" +
                         "   $m : Message( message == \"Hello    World\" )\n" + // <<- DIFF
                         "then\n" +
                         "end\n"
-                )
-            );
-        Assert.assertFalse(
-                StringUtils.codeAwareEqualsIgnoreSpaces(
-                        "package org.drools.compiler\n" +
+        )).isFalse();
+        assertThat(StringUtils.codeAwareEqualsIgnoreSpaces(
+                "package org.drools.compiler\n" +
                         "rule Rx when\n" +
                         "   $m : Message( message == \"Hello' World\" )\n" +
                         "then\n" +
                         "end\n",
-                        
-                        "package org.drools.compiler\n" +  
+
+                "package org.drools.compiler\n" +
                         "rule Rx when\n" +
                         "   $m : Message( message == \"Hello'    World\" )\n" + // <<- DIFF
                         "then\n" +
                         "end\n"
-                )
-            );
-        Assert.assertFalse(
-                StringUtils.codeAwareEqualsIgnoreSpaces(
-                        "package org.drools.compiler\n" +
+        )).isFalse();
+        assertThat(StringUtils.codeAwareEqualsIgnoreSpaces(
+                "package org.drools.compiler\n" +
                         "rule Rx when\n" +
                         "   $m : Message( message == 'Hello World' )\n" +
                         "then\n" +
                         "end\n",
-                        
-                        "package org.drools.compiler\n" +  
+
+                "package org.drools.compiler\n" +
                         "rule Rx when\n" +
                         "   $m : Message( message == 'Hello    World' )\n" + // <<- DIFF
                         "then\n" +
                         "end\n"
-                )
-            );
-        Assert.assertFalse(
-                StringUtils.codeAwareEqualsIgnoreSpaces(
-                        "package org.drools.compiler\n" +
+        )).isFalse();
+        assertThat(StringUtils.codeAwareEqualsIgnoreSpaces(
+                "package org.drools.compiler\n" +
                         "rule Rx when\n" +
                         "   $m : Message( message == 'Hello\" World' )\n" +
                         "then\n" +
                         "end\n",
-                        
-                        "package org.drools.compiler\n" +  
+
+                "package org.drools.compiler\n" +
                         "rule Rx when\n" +
                         "   $m : Message( message == 'Hello\"    World' )\n" + // <<- DIFF
                         "then\n" +
                         "end\n"
-                )
-            );
-        Assert.assertFalse(
-                StringUtils.codeAwareEqualsIgnoreSpaces(
-                        "package org.drools.compiler\n" +
+        )).isFalse();
+        assertThat(StringUtils.codeAwareEqualsIgnoreSpaces(
+                "package org.drools.compiler\n" +
                         "rule Rx when\n" +
                         "   $m : Message( message == 'Hello\\' World' )\n" +
                         "then\n" +
                         "end\n",
-                        
-                        "package org.drools.compiler\n" +  
+
+                "package org.drools.compiler\n" +
                         "rule Rx when\n" +
                         "   $m : Message( message == 'Hello\\'    World' )\n" + // <<- DIFF
                         "then\n" +
                         "end\n"
-                )
-            );
+        )).isFalse();
     }
 
     @Test
     public void test_indexOfOutOfQuotes() {
-        assertEquals(0, indexOfOutOfQuotes("bla\"bla\"bla", "bla"));
-        assertEquals(5, indexOfOutOfQuotes("\"bla\"bla", "bla"));
-        assertEquals(-1, indexOfOutOfQuotes("\"bla\"", "bla"));
-        assertEquals(0, indexOfOutOfQuotes("bla\"bla\"bla", "bla", 0));
-        assertEquals(8, indexOfOutOfQuotes("bla\"bla\"bla", "bla", 1));
-        assertEquals(-1, indexOfOutOfQuotes("bla\"bla\"bla", "bla", 9));
+        assertThat(indexOfOutOfQuotes("bla\"bla\"bla", "bla")).isEqualTo(0);
+        assertThat(indexOfOutOfQuotes("\"bla\"bla", "bla")).isEqualTo(5);
+        assertThat(indexOfOutOfQuotes("\"bla\"", "bla")).isEqualTo(-1);
+        assertThat(indexOfOutOfQuotes("bla\"bla\"bla", "bla", 0)).isEqualTo(0);
+        assertThat(indexOfOutOfQuotes("bla\"bla\"bla", "bla", 1)).isEqualTo(8);
+        assertThat(indexOfOutOfQuotes("bla\"bla\"bla", "bla", 9)).isEqualTo(-1);
     }
 
     @Test
@@ -258,7 +234,7 @@ public class StringUtilsTest {
         String packageName = "apackage";
         String retrieved = getPkgUUID(releaseId, packageName);
         String expected = md5Hash(releaseId.toString()+packageName);
-        assertEquals(expected, retrieved);
+        assertThat(retrieved).isEqualTo(expected);
     }
 
     @Test
@@ -267,7 +243,7 @@ public class StringUtilsTest {
         String packageName = "apackage";
         String retrieved = getPkgUUID(releaseId, packageName);
         String unexpected = md5Hash(releaseId.toString()+packageName);
-        assertNotEquals(unexpected, retrieved);
+        assertThat(retrieved).isNotEqualTo(unexpected);
     }
 
     @Test
@@ -275,7 +251,7 @@ public class StringUtilsTest {
         ReleaseId releaseId = null;
         String packageName = "apackage";
         String retrieved = getPkgUUID(releaseId, packageName);
-        assertNotNull(retrieved);
+        assertThat(retrieved).isNotNull();
     }
 
     @Test
@@ -284,7 +260,7 @@ public class StringUtilsTest {
         String packageName = "apackage";
         String retrieved = getPkgUUID(gav, packageName);
         String expected = md5Hash(gav+packageName);
-        assertEquals(expected, retrieved);
+        assertThat(retrieved).isEqualTo(expected);
     }
 
 
@@ -320,6 +296,102 @@ public class StringUtilsTest {
         public boolean isSnapshot() {
             return snapshot;
         }
+    }
 
+    @Test
+    public void testSplitStatements() {
+        String text =
+                "System.out.println(\"'\");" +
+                "$visaApplication.setValidation( Validation.FAILED );" +
+                "drools.update($visaApplication);";
+        List<String> statements = splitStatements(text);
+        assertThat(statements.size()).isEqualTo(3);
+        assertThat(statements.get(0)).isEqualTo("System.out.println(\"'\")");
+        assertThat(statements.get(1)).isEqualTo("$visaApplication.setValidation( Validation.FAILED )");
+        assertThat(statements.get(2)).isEqualTo("drools.update($visaApplication)");
+    }
+
+    @Test
+    public void splitStatementsAcrossBlocksIf() {
+        String text = "if (true) {\n" +
+                      "  $fact.value1 = 2;\n" +
+                      "  drools.update($fact);\n" +
+                      "}";
+        List<String> statements = splitStatementsAcrossBlocks(text);
+        assertThat(statements.get(0)).isEqualTo("if (true)");
+        assertThat(statements.get(1)).isEqualTo("$fact.value1 = 2");
+        assertThat(statements.get(2)).isEqualTo("drools.update($fact)");
+    }
+
+    @Test
+    public void splitStatementsAcrossBlocksDoWhile() {
+        String text = "do {\n" +
+                      "  $fact.value1 = 2;\n" +
+                      "  drools.update($fact);\n" +
+                      "} while (false);";
+        List<String> statements = splitStatementsAcrossBlocks(text);
+        assertThat(statements.get(0)).isEqualTo("do");
+        assertThat(statements.get(1)).isEqualTo("$fact.value1 = 2");
+        assertThat(statements.get(2)).isEqualTo("drools.update($fact)");
+        assertThat(statements.get(3)).isEqualTo("while (false)");
+    }
+
+    @Test
+    public void splitStatementsAcrossBlocksFor() {
+        String text = "for (int i = 0; i < 1; i++) {\n" +
+                      "  $fact.value1 = 2;\n" +
+                      "  drools.update($fact);\n" +
+                      "}";
+        List<String> statements = splitStatementsAcrossBlocks(text);
+        assertThat(statements.get(0)).isEqualTo("for (int i = 0; i < 1; i++)");
+        assertThat(statements.get(1)).isEqualTo("$fact.value1 = 2");
+        assertThat(statements.get(2)).isEqualTo("drools.update($fact)");
+    }
+
+    @Test
+    public void splitStatementsAcrossBlocksCommentedIf() {
+        String text = "// if (true) {\n" +
+                      "  $fact.value1 = 2;\n" +
+                      "  drools.update($fact);\n" +
+                      "// }";
+        List<String> statements = splitStatementsAcrossBlocks(text);
+        assertThat(statements.get(0)).isEqualTo("$fact.value1 = 2");
+        assertThat(statements.get(1)).isEqualTo("drools.update($fact)");
+    }
+
+    @Test
+    public void splitStatementsAcrossBlocksCommentedIfMissingStartingBrace() {
+        String text = "// if (true)\n" +
+                      "  $fact.value1 = 2;\n" +
+                      "  drools.update($fact);\n" +
+                      "// }";
+        List<String> statements = splitStatementsAcrossBlocks(text);
+        assertThat(statements.get(0)).isEqualTo("$fact.value1 = 2");
+        assertThat(statements.get(1)).isEqualTo("drools.update($fact)");
+    }
+
+    @Test
+    public void splitStatementsAcrossBlocksCommentedIfMissingEndingBrace() {
+        String text = "// if (true) {\n" +
+                      "  $fact.value1 = 2;\n" +
+                      "  drools.update($fact);\n" +
+                      "//";
+        List<String> statements = splitStatementsAcrossBlocks(text);
+        assertThat(statements.get(0)).isEqualTo("$fact.value1 = 2");
+        assertThat(statements.get(1)).isEqualTo("drools.update($fact)");
+    }
+
+    @Test
+    public void splitStatementsAcrossBlocksIfInsideAndOutsideAssginment() {
+        String text = "$fact.value1 = 2;\n" +
+                      "if (true) {\n" +
+                      "  $fact.value2 = 2;\n" +
+                      "  drools.update($fact);\n" +
+                      "}";
+        List<String> statements = splitStatementsAcrossBlocks(text);
+        assertThat(statements.get(0)).isEqualTo("$fact.value1 = 2");
+        assertThat(statements.get(1)).isEqualTo("if (true)");
+        assertThat(statements.get(2)).isEqualTo("$fact.value2 = 2");
+        assertThat(statements.get(3)).isEqualTo("drools.update($fact)");
     }
 }

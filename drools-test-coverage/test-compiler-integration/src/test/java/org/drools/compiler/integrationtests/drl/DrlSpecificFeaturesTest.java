@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import org.assertj.core.api.Assertions;
 import org.drools.testcoverage.common.model.Address;
 import org.drools.testcoverage.common.model.Person;
 import org.drools.testcoverage.common.util.KieBaseTestConfiguration;
@@ -35,8 +34,8 @@ import org.kie.api.builder.KieBuilder;
 import org.kie.api.builder.Message;
 import org.kie.api.runtime.KieSession;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 @RunWith(Parameterized.class)
 public class DrlSpecificFeaturesTest {
@@ -49,6 +48,7 @@ public class DrlSpecificFeaturesTest {
 
     @Parameterized.Parameters(name = "KieBase type={0}")
     public static Collection<Object[]> getParameters() {
+        // This class is meant to test features only supported by non-exec-model.
         return TestParametersUtil.getKieBaseCloudConfigurations(false);
     }
 
@@ -71,7 +71,7 @@ public class DrlSpecificFeaturesTest {
         final KieBuilder kieBuilder = KieUtil.getKieBuilderFromDrls(kieBaseTestConfiguration,
                 false,
                 drl);
-        Assertions.assertThat(kieBuilder.getResults().getMessages()).isNotEmpty();
+        assertThat(kieBuilder.getResults().getMessages()).isNotEmpty();
     }
 
     @Test
@@ -94,14 +94,15 @@ public class DrlSpecificFeaturesTest {
                 ksession.insert(new ChildB(i % 10));
             }
 
-            assertEquals(4, ksession.fireAllRules());
+            assertThat(ksession.fireAllRules()).isEqualTo(4);
 
             // give time to async jitting to complete
+            // actually, the constraint is not jitted because MVELConstraint.isDynamic == true
             Thread.sleep(100);
 
             ksession.insert(new ChildA(1));
             ksession.insert(new ChildB(1));
-            assertEquals(2, ksession.fireAllRules());
+            assertThat(ksession.fireAllRules()).isEqualTo(2);
         } finally {
             ksession.dispose();
         }
@@ -220,7 +221,7 @@ public class DrlSpecificFeaturesTest {
 
             ksession.insert(p);
             ksession.fireAllRules();
-            assertEquals(p, list.get(0));
+            assertThat(list.get(0)).isEqualTo(p);
         } finally {
             ksession.dispose();
         }
@@ -239,7 +240,7 @@ public class DrlSpecificFeaturesTest {
                 "end\n";
 
         final KieBuilder kieBuilder = KieUtil.getKieBuilderFromDrls(kieBaseTestConfiguration, false, drl);
-        Assertions.assertThat(kieBuilder.getResults().getMessages()).isNotEmpty();
-        Assertions.assertThat(kieBuilder.getResults().getMessages()).extracting(Message::getText).doesNotContain("");
+        assertThat(kieBuilder.getResults().getMessages()).isNotEmpty();
+        assertThat(kieBuilder.getResults().getMessages()).extracting(Message::getText).doesNotContain("");
     }
 }

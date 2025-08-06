@@ -23,13 +23,8 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Set;
 
-import org.assertj.core.api.Assertions;
 import org.drools.core.phreak.AbstractReactiveObject;
 import org.drools.core.phreak.ReactiveSet;
-import org.drools.model.Model;
-import org.drools.model.impl.ModelImpl;
-import org.drools.modelcompiler.builder.KieBaseBuilder;
-import org.drools.modelcompiler.dsl.pattern.D;
 import org.drools.mvel.compiler.oopath.model.Adult;
 import org.drools.mvel.compiler.oopath.model.Child;
 import org.drools.mvel.compiler.oopath.model.Group;
@@ -39,14 +34,12 @@ import org.drools.mvel.compiler.oopath.model.TMDirectory;
 import org.drools.mvel.compiler.oopath.model.TMFile;
 import org.drools.mvel.compiler.oopath.model.TMFileSet;
 import org.drools.mvel.compiler.oopath.model.TMFileWithParentObj;
-import org.drools.mvel.compiler.oopath.model.Thing;
 import org.drools.mvel.compiler.oopath.model.Toy;
 import org.drools.mvel.compiler.oopath.model.Woman;
 import org.drools.testcoverage.common.util.KieBaseTestConfiguration;
 import org.drools.testcoverage.common.util.KieBaseUtil;
 import org.drools.testcoverage.common.util.KieUtil;
 import org.drools.testcoverage.common.util.TestParametersUtil;
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -59,10 +52,8 @@ import org.kie.api.event.rule.ObjectInsertedEvent;
 import org.kie.api.event.rule.ObjectUpdatedEvent;
 import org.kie.api.runtime.KieSession;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.drools.mvel.compiler.TestUtil.assertDrlHasCompilationError;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 
 @RunWith(Parameterized.class)
 public class OOPathTest {
@@ -110,7 +101,7 @@ public class OOPathTest {
 
     private void testInvalid(final String drl) {
         KieBuilder kieBuilder = KieUtil.getKieBuilderFromDrls(kieBaseTestConfiguration, false, drl);
-        assertTrue(kieBuilder.getResults().hasMessages(Message.Level.ERROR));
+        assertThat(kieBuilder.getResults().hasMessages(Message.Level.ERROR)).isTrue();
     }
 
     @Test
@@ -147,7 +138,7 @@ public class OOPathTest {
         ksession.insert( bob );
         ksession.fireAllRules();
 
-        Assertions.assertThat(list).containsExactlyInAnyOrder("ball");
+        assertThat(list).containsExactlyInAnyOrder("ball");
     }
 
     @Test
@@ -185,7 +176,7 @@ public class OOPathTest {
         ksession.insert( bob );
         ksession.fireAllRules();
 
-        Assertions.assertThat(list).containsExactlyInAnyOrder("ball", "guitar");
+        assertThat(list).containsExactlyInAnyOrder("ball", "guitar");
     }
 
     @Test
@@ -221,8 +212,8 @@ public class OOPathTest {
         ksession.insert( bob );
         ksession.fireAllRules();
 
-        Assertions.assertThat(list).hasSize(4);
-        Assert.assertEquals( Arrays.asList(new String[] {"t2:12:t2", "t1:12:t1", "t4:8:t4", "t3:8:t3"}),list);
+        assertThat(list).hasSize(4);
+        assertThat(list).isEqualTo(Arrays.asList(new String[]{"t2:12:t2", "t1:12:t1", "t4:8:t4", "t3:8:t3"}));
     }
     
     @Test   
@@ -245,10 +236,10 @@ public class OOPathTest {
         ksession.insert( x );
         ksession.insert( y );
         ksession.fireAllRules();
-        assertFalse (factsCollection(ksession).contains("X.Ada"));
-        assertFalse (factsCollection(ksession).contains("X.Bea"));
-        assertFalse (factsCollection(ksession).contains("Y.Ada"));
-        assertFalse (factsCollection(ksession).contains("Y.Bea"));
+        assertThat(factsCollection(ksession).contains("X.Ada")).isFalse();
+        assertThat(factsCollection(ksession).contains("X.Bea")).isFalse();
+        assertThat(factsCollection(ksession).contains("Y.Ada")).isFalse();
+        assertThat(factsCollection(ksession).contains("Y.Bea")).isFalse();
         
         final Adult ada = new Adult("Ada", 20);
         final Adult bea = new Adult("Bea", 20);
@@ -257,20 +248,20 @@ public class OOPathTest {
         y.addPerson(ada);
         y.addPerson(bea);
         ksession.fireAllRules();
-        assertTrue  (factsCollection(ksession).contains("X.Ada"));
-        assertTrue  (factsCollection(ksession).contains("X.Bea"));
-        assertTrue  (factsCollection(ksession).contains("Y.Ada"));
-        assertTrue  (factsCollection(ksession).contains("Y.Bea"));
+        assertThat(factsCollection(ksession).contains("X.Ada")).isTrue();
+        assertThat(factsCollection(ksession).contains("X.Bea")).isTrue();
+        assertThat(factsCollection(ksession).contains("Y.Ada")).isTrue();
+        assertThat(factsCollection(ksession).contains("Y.Bea")).isTrue();
         
         x.removePerson(ada);
         x.removePerson(bea);
         y.removePerson(ada);
         y.removePerson(bea);  
         ksession.fireAllRules();
-        assertFalse (factsCollection(ksession).contains("X.Ada"));
-        assertFalse (factsCollection(ksession).contains("X.Bea"));
-        assertFalse (factsCollection(ksession).contains("Y.Ada"));
-        assertFalse (factsCollection(ksession).contains("Y.Bea"));
+        assertThat(factsCollection(ksession).contains("X.Ada")).isFalse();
+        assertThat(factsCollection(ksession).contains("X.Bea")).isFalse();
+        assertThat(factsCollection(ksession).contains("Y.Ada")).isFalse();
+        assertThat(factsCollection(ksession).contains("Y.Bea")).isFalse();
     }
     
     @Test
@@ -299,20 +290,20 @@ public class OOPathTest {
         ksession.insert( x );
         ksession.insert( y );
         ksession.fireAllRules();
-        assertTrue  (factsCollection(ksession).contains("X.Ada"));
-        assertTrue  (factsCollection(ksession).contains("X.Bea"));
-        assertTrue  (factsCollection(ksession).contains("Y.Ada"));
-        assertTrue  (factsCollection(ksession).contains("Y.Bea"));
+        assertThat(factsCollection(ksession).contains("X.Ada")).isTrue();
+        assertThat(factsCollection(ksession).contains("X.Bea")).isTrue();
+        assertThat(factsCollection(ksession).contains("Y.Ada")).isTrue();
+        assertThat(factsCollection(ksession).contains("Y.Bea")).isTrue();
         
         x.removePerson(ada);
         x.removePerson(bea);
         y.removePerson(ada);
         y.removePerson(bea);  
         ksession.fireAllRules();
-        assertFalse (factsCollection(ksession).contains("X.Ada"));
-        assertFalse (factsCollection(ksession).contains("X.Bea"));
-        assertFalse (factsCollection(ksession).contains("Y.Ada"));
-        assertFalse (factsCollection(ksession).contains("Y.Bea"));
+        assertThat(factsCollection(ksession).contains("X.Ada")).isFalse();
+        assertThat(factsCollection(ksession).contains("X.Bea")).isFalse();
+        assertThat(factsCollection(ksession).contains("Y.Ada")).isFalse();
+        assertThat(factsCollection(ksession).contains("Y.Bea")).isFalse();
     }
 
     @Test
@@ -332,10 +323,10 @@ public class OOPathTest {
         final Group x = new Group("X");
         final Group y = new Group("Y");
         ksession.fireAllRules();
-        assertFalse (factsCollection(ksession).contains("X.Ada"));
-        assertFalse (factsCollection(ksession).contains("X.Bea"));
-        assertFalse (factsCollection(ksession).contains("Y.Ada"));
-        assertFalse (factsCollection(ksession).contains("Y.Bea"));
+        assertThat(factsCollection(ksession).contains("X.Ada")).isFalse();
+        assertThat(factsCollection(ksession).contains("X.Bea")).isFalse();
+        assertThat(factsCollection(ksession).contains("Y.Ada")).isFalse();
+        assertThat(factsCollection(ksession).contains("Y.Bea")).isFalse();
         
         final Adult ada = new Adult("Ada", 29);
         final Adult bea = new Adult("Bea", 29);
@@ -345,25 +336,25 @@ public class OOPathTest {
         ksession.insert( x );
         ksession.insert( y );
         ksession.fireAllRules();
-        assertFalse (factsCollection(ksession).contains("X.Ada"));
-        assertFalse (factsCollection(ksession).contains("X.Bea"));
-        assertFalse (factsCollection(ksession).contains("Y.Ada"));
-        assertFalse (factsCollection(ksession).contains("Y.Bea"));
+        assertThat(factsCollection(ksession).contains("X.Ada")).isFalse();
+        assertThat(factsCollection(ksession).contains("X.Bea")).isFalse();
+        assertThat(factsCollection(ksession).contains("Y.Ada")).isFalse();
+        assertThat(factsCollection(ksession).contains("Y.Bea")).isFalse();
 
         ada.setAge( 30 );        
         ksession.fireAllRules();
-        assertTrue  (factsCollection(ksession).contains("X.Ada"));
-        assertFalse (factsCollection(ksession).contains("X.Bea"));
-        assertTrue  (factsCollection(ksession).contains("Y.Ada"));
-        assertFalse (factsCollection(ksession).contains("Y.Bea"));
+        assertThat(factsCollection(ksession).contains("X.Ada")).isTrue();
+        assertThat(factsCollection(ksession).contains("X.Bea")).isFalse();
+        assertThat(factsCollection(ksession).contains("Y.Ada")).isTrue();
+        assertThat(factsCollection(ksession).contains("Y.Bea")).isFalse();
         
         y.getMembers().remove(1); // removing Bea from Y
         bea.setAge( 30 );        
         ksession.fireAllRules();
-        assertTrue  (factsCollection(ksession).contains("X.Ada"));
-        assertTrue  (factsCollection(ksession).contains("X.Bea"));
-        assertTrue  (factsCollection(ksession).contains("Y.Ada"));
-        assertFalse (factsCollection(ksession).contains("Y.Bea"));
+        assertThat(factsCollection(ksession).contains("X.Ada")).isTrue();
+        assertThat(factsCollection(ksession).contains("X.Bea")).isTrue();
+        assertThat(factsCollection(ksession).contains("Y.Ada")).isTrue();
+        assertThat(factsCollection(ksession).contains("Y.Bea")).isFalse();
     }
     
     @Test
@@ -385,10 +376,10 @@ public class OOPathTest {
         ksession.insert( x );
         ksession.insert( y );
         ksession.fireAllRules();
-        assertFalse (factsCollection(ksession).contains("X.File0"));
-        assertFalse (factsCollection(ksession).contains("X.File1"));
-        assertFalse (factsCollection(ksession).contains("Y.File0"));
-        assertFalse (factsCollection(ksession).contains("Y.File1"));
+        assertThat(factsCollection(ksession).contains("X.File0")).isFalse();
+        assertThat(factsCollection(ksession).contains("X.File1")).isFalse();
+        assertThat(factsCollection(ksession).contains("Y.File0")).isFalse();
+        assertThat(factsCollection(ksession).contains("Y.File1")).isFalse();
         
         final TMFile file0 = new TMFile("File0", 47);
         final TMFile file1 = new TMFile("File1", 47);
@@ -399,51 +390,51 @@ public class OOPathTest {
         y.getFiles().add(0, file0);
         y.getFiles().add(1, file1);
         ksession.fireAllRules();
-        assertFalse (factsCollection(ksession).contains("X.File0"));
-        assertFalse (factsCollection(ksession).contains("X.File1"));
-        assertFalse (factsCollection(ksession).contains("X.File2"));
-        assertFalse (factsCollection(ksession).contains("Y.File0"));
-        assertFalse (factsCollection(ksession).contains("Y.File1"));
-        assertFalse (factsCollection(ksession).contains("Y.File2"));
+        assertThat(factsCollection(ksession).contains("X.File0")).isFalse();
+        assertThat(factsCollection(ksession).contains("X.File1")).isFalse();
+        assertThat(factsCollection(ksession).contains("X.File2")).isFalse();
+        assertThat(factsCollection(ksession).contains("Y.File0")).isFalse();
+        assertThat(factsCollection(ksession).contains("Y.File1")).isFalse();
+        assertThat(factsCollection(ksession).contains("Y.File2")).isFalse();
 
         file0.setSize( 999 );        
         ksession.fireAllRules();
-        assertTrue  (factsCollection(ksession).contains("X.File0"));
-        assertFalse (factsCollection(ksession).contains("X.File1"));
-        assertFalse (factsCollection(ksession).contains("X.File2"));
-        assertTrue  (factsCollection(ksession).contains("Y.File0"));
-        assertFalse (factsCollection(ksession).contains("Y.File1"));
-        assertFalse (factsCollection(ksession).contains("Y.File2"));
+        assertThat(factsCollection(ksession).contains("X.File0")).isTrue();
+        assertThat(factsCollection(ksession).contains("X.File1")).isFalse();
+        assertThat(factsCollection(ksession).contains("X.File2")).isFalse();
+        assertThat(factsCollection(ksession).contains("Y.File0")).isTrue();
+        assertThat(factsCollection(ksession).contains("Y.File1")).isFalse();
+        assertThat(factsCollection(ksession).contains("Y.File2")).isFalse();
         
         y.getFiles().remove(1); // removing File1 from Y
         file1.setSize( 999 );        
         ksession.fireAllRules();
-        assertTrue  (factsCollection(ksession).contains("X.File0"));
-        assertTrue  (factsCollection(ksession).contains("X.File1"));
-        assertFalse (factsCollection(ksession).contains("X.File2"));
-        assertTrue  (factsCollection(ksession).contains("Y.File0"));
-        assertFalse (factsCollection(ksession).contains("Y.File1"));
-        assertFalse (factsCollection(ksession).contains("Y.File2"));
+        assertThat(factsCollection(ksession).contains("X.File0")).isTrue();
+        assertThat(factsCollection(ksession).contains("X.File1")).isTrue();
+        assertThat(factsCollection(ksession).contains("X.File2")).isFalse();
+        assertThat(factsCollection(ksession).contains("Y.File0")).isTrue();
+        assertThat(factsCollection(ksession).contains("Y.File1")).isFalse();
+        assertThat(factsCollection(ksession).contains("Y.File2")).isFalse();
         
         file2.setSize( 999 );        
         ksession.fireAllRules();
-        assertTrue  (factsCollection(ksession).contains("X.File0"));
-        assertTrue  (factsCollection(ksession).contains("X.File1"));
-        assertTrue  (factsCollection(ksession).contains("X.File2"));
-        assertTrue  (factsCollection(ksession).contains("Y.File0"));
-        assertFalse (factsCollection(ksession).contains("Y.File1"));
-        assertTrue  (factsCollection(ksession).contains("Y.File2"));
+        assertThat(factsCollection(ksession).contains("X.File0")).isTrue();
+        assertThat(factsCollection(ksession).contains("X.File1")).isTrue();
+        assertThat(factsCollection(ksession).contains("X.File2")).isTrue();
+        assertThat(factsCollection(ksession).contains("Y.File0")).isTrue();
+        assertThat(factsCollection(ksession).contains("Y.File1")).isFalse();
+        assertThat(factsCollection(ksession).contains("Y.File2")).isTrue();
         
         final TMFile file0R = new TMFile("File0R", 999);
         x.getFiles().set(0, file0R);
         ksession.fireAllRules();
-        assertFalse (factsCollection(ksession).contains("X.File0"));
-        assertTrue  (factsCollection(ksession).contains("X.File0R"));
-        assertTrue  (factsCollection(ksession).contains("X.File1"));
-        assertTrue  (factsCollection(ksession).contains("X.File2"));
-        assertTrue  (factsCollection(ksession).contains("Y.File0"));
-        assertFalse (factsCollection(ksession).contains("Y.File1"));
-        assertTrue  (factsCollection(ksession).contains("Y.File2"));
+        assertThat(factsCollection(ksession).contains("X.File0")).isFalse();
+        assertThat(factsCollection(ksession).contains("X.File0R")).isTrue();
+        assertThat(factsCollection(ksession).contains("X.File1")).isTrue();
+        assertThat(factsCollection(ksession).contains("X.File2")).isTrue();
+        assertThat(factsCollection(ksession).contains("Y.File0")).isTrue();
+        assertThat(factsCollection(ksession).contains("Y.File1")).isFalse();
+        assertThat(factsCollection(ksession).contains("Y.File2")).isTrue();
     }
     
     @Test
@@ -470,46 +461,46 @@ public class OOPathTest {
         ksession.insert( x );
         ksession.insert( y );
         ksession.fireAllRules();
-        assertTrue  (factsCollection(ksession).contains("X.File0"));
-        assertTrue  (factsCollection(ksession).contains("X.File1"));
-        assertTrue  (factsCollection(ksession).contains("X.File2"));
-        assertTrue  (factsCollection(ksession).contains("Y.File0"));
-        assertTrue  (factsCollection(ksession).contains("Y.File1"));
-        assertTrue  (factsCollection(ksession).contains("Y.File2"));
+        assertThat(factsCollection(ksession).contains("X.File0")).isTrue();
+        assertThat(factsCollection(ksession).contains("X.File1")).isTrue();
+        assertThat(factsCollection(ksession).contains("X.File2")).isTrue();
+        assertThat(factsCollection(ksession).contains("Y.File0")).isTrue();
+        assertThat(factsCollection(ksession).contains("Y.File1")).isTrue();
+        assertThat(factsCollection(ksession).contains("Y.File2")).isTrue();
         
         java.util.Iterator<TMFile> iterator = x.getFiles().iterator();
         
         iterator.next();
         iterator.remove();
         ksession.fireAllRules();
-        assertFalse (factsCollection(ksession).contains("X.File0"));
-        assertTrue  (factsCollection(ksession).contains("X.File1"));
-        assertTrue  (factsCollection(ksession).contains("X.File2"));
-        assertTrue  (factsCollection(ksession).contains("Y.File0"));
-        assertTrue  (factsCollection(ksession).contains("Y.File1"));
-        assertTrue  (factsCollection(ksession).contains("Y.File2"));
+        assertThat(factsCollection(ksession).contains("X.File0")).isFalse();
+        assertThat(factsCollection(ksession).contains("X.File1")).isTrue();
+        assertThat(factsCollection(ksession).contains("X.File2")).isTrue();
+        assertThat(factsCollection(ksession).contains("Y.File0")).isTrue();
+        assertThat(factsCollection(ksession).contains("Y.File1")).isTrue();
+        assertThat(factsCollection(ksession).contains("Y.File2")).isTrue();
         
         iterator.next();
         iterator.remove();
         ksession.fireAllRules();
-        assertFalse (factsCollection(ksession).contains("X.File0"));
-        assertFalse (factsCollection(ksession).contains("X.File1"));
-        assertTrue  (factsCollection(ksession).contains("X.File2"));
-        assertTrue  (factsCollection(ksession).contains("Y.File0"));
-        assertTrue  (factsCollection(ksession).contains("Y.File1"));
-        assertTrue  (factsCollection(ksession).contains("Y.File2"));
+        assertThat(factsCollection(ksession).contains("X.File0")).isFalse();
+        assertThat(factsCollection(ksession).contains("X.File1")).isFalse();
+        assertThat(factsCollection(ksession).contains("X.File2")).isTrue();
+        assertThat(factsCollection(ksession).contains("Y.File0")).isTrue();
+        assertThat(factsCollection(ksession).contains("Y.File1")).isTrue();
+        assertThat(factsCollection(ksession).contains("Y.File2")).isTrue();
         
         iterator.next();
         iterator.remove();
         ksession.fireAllRules();
-        assertFalse (factsCollection(ksession).contains("X.File0"));
-        assertFalse (factsCollection(ksession).contains("X.File1"));
-        assertFalse (factsCollection(ksession).contains("X.File2"));
-        assertTrue  (factsCollection(ksession).contains("Y.File0"));
-        assertTrue  (factsCollection(ksession).contains("Y.File1"));
-        assertTrue  (factsCollection(ksession).contains("Y.File2"));
-        
-        assertFalse( iterator.hasNext() );
+        assertThat(factsCollection(ksession).contains("X.File0")).isFalse();
+        assertThat(factsCollection(ksession).contains("X.File1")).isFalse();
+        assertThat(factsCollection(ksession).contains("X.File2")).isFalse();
+        assertThat(factsCollection(ksession).contains("Y.File0")).isTrue();
+        assertThat(factsCollection(ksession).contains("Y.File1")).isTrue();
+        assertThat(factsCollection(ksession).contains("Y.File2")).isTrue();
+
+        assertThat(iterator.hasNext()).isFalse();
     }
     
     @Test
@@ -553,12 +544,12 @@ public class OOPathTest {
         ksession.insert( x );
         ksession.insert( y );
         ksession.fireAllRules();
-        assertTrue  (factsCollection(ksession).contains("X.File0"));
-        assertTrue  (factsCollection(ksession).contains("X.File1"));
-        assertTrue  (factsCollection(ksession).contains("X.File2"));
-        assertTrue  (factsCollection(ksession).contains("Y.File0"));
-        assertTrue  (factsCollection(ksession).contains("Y.File1"));
-        assertTrue  (factsCollection(ksession).contains("Y.File2"));
+        assertThat(factsCollection(ksession).contains("X.File0")).isTrue();
+        assertThat(factsCollection(ksession).contains("X.File1")).isTrue();
+        assertThat(factsCollection(ksession).contains("X.File2")).isTrue();
+        assertThat(factsCollection(ksession).contains("Y.File0")).isTrue();
+        assertThat(factsCollection(ksession).contains("Y.File1")).isTrue();
+        assertThat(factsCollection(ksession).contains("Y.File2")).isTrue();
         
         final ListIterator<TMFile> xIterator = x.getFiles().listIterator(1);
         final ListIterator<TMFile> yIterator = y.getFiles().listIterator();
@@ -570,51 +561,51 @@ public class OOPathTest {
         yIterator.next();
         yIterator.remove();
         ksession.fireAllRules();
-        assertTrue  (factsCollection(ksession).contains("X.File0"));
-        assertFalse (factsCollection(ksession).contains("X.File1"));
-        assertTrue  (factsCollection(ksession).contains("X.File2"));
-        assertTrue  (factsCollection(ksession).contains("Y.File0"));
-        assertTrue  (factsCollection(ksession).contains("Y.File1"));
-        assertFalse (factsCollection(ksession).contains("Y.File2"));
-        
-        assertTrue  ( xIterator.hasNext()     );
-        assertTrue  ( xIterator.hasPrevious() );
-        assertFalse ( yIterator.hasNext()     );
-        assertTrue  ( yIterator.hasPrevious() );
+        assertThat(factsCollection(ksession).contains("X.File0")).isTrue();
+        assertThat(factsCollection(ksession).contains("X.File1")).isFalse();
+        assertThat(factsCollection(ksession).contains("X.File2")).isTrue();
+        assertThat(factsCollection(ksession).contains("Y.File0")).isTrue();
+        assertThat(factsCollection(ksession).contains("Y.File1")).isTrue();
+        assertThat(factsCollection(ksession).contains("Y.File2")).isFalse();
+
+        assertThat(xIterator.hasNext()).isTrue();
+        assertThat(xIterator.hasPrevious()).isTrue();
+        assertThat(yIterator.hasNext()).isFalse();
+        assertThat(yIterator.hasPrevious()).isTrue();
         
         xIterator.next();
         xIterator.remove();
         yIterator.previous();
         yIterator.remove();
         ksession.fireAllRules();
-        assertTrue  (factsCollection(ksession).contains("X.File0"));
-        assertFalse (factsCollection(ksession).contains("X.File1"));
-        assertFalse (factsCollection(ksession).contains("X.File2"));
-        assertTrue  (factsCollection(ksession).contains("Y.File0"));
-        assertFalse (factsCollection(ksession).contains("Y.File1"));
-        assertFalse (factsCollection(ksession).contains("Y.File2"));
-        
-        assertFalse ( xIterator.hasNext()     );
-        assertTrue  ( xIterator.hasPrevious() );
-        assertFalse ( yIterator.hasNext()     );
-        assertTrue  ( yIterator.hasPrevious() );
+        assertThat(factsCollection(ksession).contains("X.File0")).isTrue();
+        assertThat(factsCollection(ksession).contains("X.File1")).isFalse();
+        assertThat(factsCollection(ksession).contains("X.File2")).isFalse();
+        assertThat(factsCollection(ksession).contains("Y.File0")).isTrue();
+        assertThat(factsCollection(ksession).contains("Y.File1")).isFalse();
+        assertThat(factsCollection(ksession).contains("Y.File2")).isFalse();
+
+        assertThat(xIterator.hasNext()).isFalse();
+        assertThat(xIterator.hasPrevious()).isTrue();
+        assertThat(yIterator.hasNext()).isFalse();
+        assertThat(yIterator.hasPrevious()).isTrue();
         
         xIterator.previous();
         xIterator.remove();
         yIterator.previous();
         yIterator.remove();
         ksession.fireAllRules();
-        assertFalse (factsCollection(ksession).contains("X.File0"));
-        assertFalse (factsCollection(ksession).contains("X.File1"));
-        assertFalse (factsCollection(ksession).contains("X.File2"));
-        assertFalse (factsCollection(ksession).contains("Y.File0"));
-        assertFalse (factsCollection(ksession).contains("Y.File1"));
-        assertFalse (factsCollection(ksession).contains("Y.File2"));
-        
-        assertFalse ( xIterator.hasNext()     );
-        assertFalse ( xIterator.hasPrevious() );
-        assertFalse ( yIterator.hasNext()     );
-        assertFalse ( yIterator.hasPrevious() );
+        assertThat(factsCollection(ksession).contains("X.File0")).isFalse();
+        assertThat(factsCollection(ksession).contains("X.File1")).isFalse();
+        assertThat(factsCollection(ksession).contains("X.File2")).isFalse();
+        assertThat(factsCollection(ksession).contains("Y.File0")).isFalse();
+        assertThat(factsCollection(ksession).contains("Y.File1")).isFalse();
+        assertThat(factsCollection(ksession).contains("Y.File2")).isFalse();
+
+        assertThat(xIterator.hasNext()).isFalse();
+        assertThat(xIterator.hasPrevious()).isFalse();
+        assertThat(yIterator.hasNext()).isFalse();
+        assertThat(yIterator.hasPrevious()).isFalse();
     }
     
     @Test
@@ -654,12 +645,12 @@ public class OOPathTest {
         ksession.insert( x );
         ksession.insert( y );
         ksession.fireAllRules();
-        assertFalse (factsCollection(ksession).contains("X.File0"));
-        assertFalse (factsCollection(ksession).contains("X.File1"));
-        assertFalse (factsCollection(ksession).contains("X.File2"));
-        assertFalse (factsCollection(ksession).contains("Y.File0"));
-        assertFalse (factsCollection(ksession).contains("Y.File1"));
-        assertFalse (factsCollection(ksession).contains("Y.File2"));
+        assertThat(factsCollection(ksession).contains("X.File0")).isFalse();
+        assertThat(factsCollection(ksession).contains("X.File1")).isFalse();
+        assertThat(factsCollection(ksession).contains("X.File2")).isFalse();
+        assertThat(factsCollection(ksession).contains("Y.File0")).isFalse();
+        assertThat(factsCollection(ksession).contains("Y.File1")).isFalse();
+        assertThat(factsCollection(ksession).contains("Y.File2")).isFalse();
         
         final TMFile file0 = new TMFile("File0", 999);
         final TMFile file1 = new TMFile("File1", 999);
@@ -670,34 +661,34 @@ public class OOPathTest {
         xIterator.add(file0);
         yIterator.add(file2);
         ksession.fireAllRules();
-        assertTrue  (factsCollection(ksession).contains("X.File0"));
-        assertFalse (factsCollection(ksession).contains("X.File1"));
-        assertFalse (factsCollection(ksession).contains("X.File2"));
-        assertFalse (factsCollection(ksession).contains("Y.File0"));
-        assertFalse (factsCollection(ksession).contains("Y.File1"));
-        assertTrue  (factsCollection(ksession).contains("Y.File2"));
+        assertThat(factsCollection(ksession).contains("X.File0")).isTrue();
+        assertThat(factsCollection(ksession).contains("X.File1")).isFalse();
+        assertThat(factsCollection(ksession).contains("X.File2")).isFalse();
+        assertThat(factsCollection(ksession).contains("Y.File0")).isFalse();
+        assertThat(factsCollection(ksession).contains("Y.File1")).isFalse();
+        assertThat(factsCollection(ksession).contains("Y.File2")).isTrue();
         
         xIterator.add(file1);
         yIterator.previous();
         yIterator.add(file1);
         ksession.fireAllRules();
-        assertTrue  (factsCollection(ksession).contains("X.File0"));
-        assertTrue  (factsCollection(ksession).contains("X.File1"));
-        assertFalse (factsCollection(ksession).contains("X.File2"));
-        assertFalse (factsCollection(ksession).contains("Y.File0"));
-        assertTrue  (factsCollection(ksession).contains("Y.File1"));
-        assertTrue  (factsCollection(ksession).contains("Y.File2"));
+        assertThat(factsCollection(ksession).contains("X.File0")).isTrue();
+        assertThat(factsCollection(ksession).contains("X.File1")).isTrue();
+        assertThat(factsCollection(ksession).contains("X.File2")).isFalse();
+        assertThat(factsCollection(ksession).contains("Y.File0")).isFalse();
+        assertThat(factsCollection(ksession).contains("Y.File1")).isTrue();
+        assertThat(factsCollection(ksession).contains("Y.File2")).isTrue();
         
         xIterator.add(file2);
         yIterator.previous();
         yIterator.add(file0);
         ksession.fireAllRules();
-        assertTrue  (factsCollection(ksession).contains("X.File0"));
-        assertTrue  (factsCollection(ksession).contains("X.File1"));
-        assertTrue  (factsCollection(ksession).contains("X.File2"));
-        assertTrue  (factsCollection(ksession).contains("Y.File0"));
-        assertTrue  (factsCollection(ksession).contains("Y.File1"));
-        assertTrue  (factsCollection(ksession).contains("Y.File2"));
+        assertThat(factsCollection(ksession).contains("X.File0")).isTrue();
+        assertThat(factsCollection(ksession).contains("X.File1")).isTrue();
+        assertThat(factsCollection(ksession).contains("X.File2")).isTrue();
+        assertThat(factsCollection(ksession).contains("Y.File0")).isTrue();
+        assertThat(factsCollection(ksession).contains("Y.File1")).isTrue();
+        assertThat(factsCollection(ksession).contains("Y.File2")).isTrue();
         
         System.out.println(x.getFiles());
         System.out.println(y.getFiles());
@@ -707,15 +698,15 @@ public class OOPathTest {
         yIterator.previous();
         yIterator.set(new TMFile("File0R", 999));
         ksession.fireAllRules();
-        assertTrue  (factsCollection(ksession).contains("X.File0"));
-        assertTrue  (factsCollection(ksession).contains("X.File1"));
-        assertFalse (factsCollection(ksession).contains("X.File2"));
-        assertFalse (factsCollection(ksession).contains("Y.File0"));
-        assertTrue  (factsCollection(ksession).contains("Y.File1"));
-        assertTrue  (factsCollection(ksession).contains("Y.File2"));
-        
-        assertTrue  (factsCollection(ksession).contains("X.File2R"));
-        assertTrue  (factsCollection(ksession).contains("Y.File0R"));
+        assertThat(factsCollection(ksession).contains("X.File0")).isTrue();
+        assertThat(factsCollection(ksession).contains("X.File1")).isTrue();
+        assertThat(factsCollection(ksession).contains("X.File2")).isFalse();
+        assertThat(factsCollection(ksession).contains("Y.File0")).isFalse();
+        assertThat(factsCollection(ksession).contains("Y.File1")).isTrue();
+        assertThat(factsCollection(ksession).contains("Y.File2")).isTrue();
+
+        assertThat(factsCollection(ksession).contains("X.File2R")).isTrue();
+        assertThat(factsCollection(ksession).contains("Y.File0R")).isTrue();
     }
     
     @Test
@@ -755,12 +746,12 @@ public class OOPathTest {
         ksession.insert( x );
         ksession.insert( y );
         ksession.fireAllRules();
-        assertFalse (factsCollection(ksession).contains("X.File0"));
-        assertFalse (factsCollection(ksession).contains("X.File1"));
-        assertFalse (factsCollection(ksession).contains("X.File2"));
-        assertFalse (factsCollection(ksession).contains("Y.File0"));
-        assertFalse (factsCollection(ksession).contains("Y.File1"));
-        assertFalse (factsCollection(ksession).contains("Y.File2"));
+        assertThat(factsCollection(ksession).contains("X.File0")).isFalse();
+        assertThat(factsCollection(ksession).contains("X.File1")).isFalse();
+        assertThat(factsCollection(ksession).contains("X.File2")).isFalse();
+        assertThat(factsCollection(ksession).contains("Y.File0")).isFalse();
+        assertThat(factsCollection(ksession).contains("Y.File1")).isFalse();
+        assertThat(factsCollection(ksession).contains("Y.File2")).isFalse();
         
         final TMFile file0 = new TMFile("File0", 1000);
         final TMFile file1 = new TMFile("File1", 1001);
@@ -769,22 +760,22 @@ public class OOPathTest {
         x.getFiles().addAll(Arrays.asList(file0, file1, file2));
         y.getFiles().addAll(Arrays.asList(file0, file1, file2));
         ksession.fireAllRules();
-        assertTrue  (factsCollection(ksession).contains("X.File0"));
-        assertTrue  (factsCollection(ksession).contains("X.File1"));
-        assertTrue  (factsCollection(ksession).contains("X.File2"));
-        assertTrue  (factsCollection(ksession).contains("Y.File0"));
-        assertTrue  (factsCollection(ksession).contains("Y.File1"));
-        assertTrue  (factsCollection(ksession).contains("Y.File2"));
+        assertThat(factsCollection(ksession).contains("X.File0")).isTrue();
+        assertThat(factsCollection(ksession).contains("X.File1")).isTrue();
+        assertThat(factsCollection(ksession).contains("X.File2")).isTrue();
+        assertThat(factsCollection(ksession).contains("Y.File0")).isTrue();
+        assertThat(factsCollection(ksession).contains("Y.File1")).isTrue();
+        assertThat(factsCollection(ksession).contains("Y.File2")).isTrue();
         
         x.getFiles().removeIf( f -> f.getSize() % 2 == 0 );
         y.getFiles().removeIf( f -> f.getSize() % 2 == 1 );
         ksession.fireAllRules();
-        assertFalse  (factsCollection(ksession).contains("X.File0"));
-        assertTrue   (factsCollection(ksession).contains("X.File1"));
-        assertFalse  (factsCollection(ksession).contains("X.File2"));
-        assertTrue   (factsCollection(ksession).contains("Y.File0"));
-        assertFalse  (factsCollection(ksession).contains("Y.File1"));
-        assertTrue   (factsCollection(ksession).contains("Y.File2"));
+        assertThat(factsCollection(ksession).contains("X.File0")).isFalse();
+        assertThat(factsCollection(ksession).contains("X.File1")).isTrue();
+        assertThat(factsCollection(ksession).contains("X.File2")).isFalse();
+        assertThat(factsCollection(ksession).contains("Y.File0")).isTrue();
+        assertThat(factsCollection(ksession).contains("Y.File1")).isFalse();
+        assertThat(factsCollection(ksession).contains("Y.File2")).isTrue();
     }
     
     @Test
@@ -806,10 +797,10 @@ public class OOPathTest {
         ksession.insert( x );
         ksession.insert( y );
         ksession.fireAllRules();
-        assertFalse (factsCollection(ksession).contains("X.File0"));
-        assertFalse (factsCollection(ksession).contains("X.File1"));
-        assertFalse (factsCollection(ksession).contains("Y.File0"));
-        assertFalse (factsCollection(ksession).contains("Y.File1"));
+        assertThat(factsCollection(ksession).contains("X.File0")).isFalse();
+        assertThat(factsCollection(ksession).contains("X.File1")).isFalse();
+        assertThat(factsCollection(ksession).contains("Y.File0")).isFalse();
+        assertThat(factsCollection(ksession).contains("Y.File1")).isFalse();
         
         final TMFile file0 = new TMFile("File0", 47);
         final TMFile file1 = new TMFile("File1", 47);
@@ -820,40 +811,40 @@ public class OOPathTest {
         y.getFiles().add(file0);
         y.getFiles().add(file1);
         ksession.fireAllRules();
-        assertFalse (factsCollection(ksession).contains("X.File0"));
-        assertFalse (factsCollection(ksession).contains("X.File1"));
-        assertFalse (factsCollection(ksession).contains("X.File2"));
-        assertFalse (factsCollection(ksession).contains("Y.File0"));
-        assertFalse (factsCollection(ksession).contains("Y.File1"));
-        assertFalse (factsCollection(ksession).contains("Y.File2"));
+        assertThat(factsCollection(ksession).contains("X.File0")).isFalse();
+        assertThat(factsCollection(ksession).contains("X.File1")).isFalse();
+        assertThat(factsCollection(ksession).contains("X.File2")).isFalse();
+        assertThat(factsCollection(ksession).contains("Y.File0")).isFalse();
+        assertThat(factsCollection(ksession).contains("Y.File1")).isFalse();
+        assertThat(factsCollection(ksession).contains("Y.File2")).isFalse();
 
         file0.setSize( 999 );        
         ksession.fireAllRules();
-        assertTrue  (factsCollection(ksession).contains("X.File0"));
-        assertFalse (factsCollection(ksession).contains("X.File1"));
-        assertFalse (factsCollection(ksession).contains("X.File2"));
-        assertTrue  (factsCollection(ksession).contains("Y.File0"));
-        assertFalse (factsCollection(ksession).contains("Y.File1"));
-        assertFalse (factsCollection(ksession).contains("Y.File2"));
+        assertThat(factsCollection(ksession).contains("X.File0")).isTrue();
+        assertThat(factsCollection(ksession).contains("X.File1")).isFalse();
+        assertThat(factsCollection(ksession).contains("X.File2")).isFalse();
+        assertThat(factsCollection(ksession).contains("Y.File0")).isTrue();
+        assertThat(factsCollection(ksession).contains("Y.File1")).isFalse();
+        assertThat(factsCollection(ksession).contains("Y.File2")).isFalse();
         
         y.getFiles().remove( file1 ); // removing File1 from Y
         file1.setSize( 999 );        
         ksession.fireAllRules();
-        assertTrue  (factsCollection(ksession).contains("X.File0"));
-        assertTrue  (factsCollection(ksession).contains("X.File1"));
-        assertFalse (factsCollection(ksession).contains("X.File2"));
-        assertTrue  (factsCollection(ksession).contains("Y.File0"));
-        assertFalse (factsCollection(ksession).contains("Y.File1"));
-        assertFalse (factsCollection(ksession).contains("Y.File2"));
+        assertThat(factsCollection(ksession).contains("X.File0")).isTrue();
+        assertThat(factsCollection(ksession).contains("X.File1")).isTrue();
+        assertThat(factsCollection(ksession).contains("X.File2")).isFalse();
+        assertThat(factsCollection(ksession).contains("Y.File0")).isTrue();
+        assertThat(factsCollection(ksession).contains("Y.File1")).isFalse();
+        assertThat(factsCollection(ksession).contains("Y.File2")).isFalse();
         
         file2.setSize( 999 );        
         ksession.fireAllRules();
-        assertTrue  (factsCollection(ksession).contains("X.File0"));
-        assertTrue  (factsCollection(ksession).contains("X.File1"));
-        assertTrue  (factsCollection(ksession).contains("X.File2"));
-        assertTrue  (factsCollection(ksession).contains("Y.File0"));
-        assertFalse (factsCollection(ksession).contains("Y.File1"));
-        assertTrue  (factsCollection(ksession).contains("Y.File2"));
+        assertThat(factsCollection(ksession).contains("X.File0")).isTrue();
+        assertThat(factsCollection(ksession).contains("X.File1")).isTrue();
+        assertThat(factsCollection(ksession).contains("X.File2")).isTrue();
+        assertThat(factsCollection(ksession).contains("Y.File0")).isTrue();
+        assertThat(factsCollection(ksession).contains("Y.File1")).isFalse();
+        assertThat(factsCollection(ksession).contains("Y.File2")).isTrue();
     }
 
     @Test
@@ -885,8 +876,8 @@ public class OOPathTest {
         ksession.insert(x);
         ksession.fireAllRules();
 
-        assertTrue( duplicateNames.contains("File0") );
-        assertFalse( duplicateNames.contains("File1") );
+        assertThat(duplicateNames.contains("File0")).isTrue();
+        assertThat(duplicateNames.contains("File1")).isFalse();
     }
 
     @Test
@@ -918,8 +909,8 @@ public class OOPathTest {
         ksession.insert(x);
         ksession.fireAllRules();
 
-        assertTrue( duplicateNames.contains("File0") );
-        assertFalse( duplicateNames.contains("File1") );
+        assertThat(duplicateNames.contains("File0")).isTrue();
+        assertThat(duplicateNames.contains("File1")).isFalse();
     }
 
     @Test
@@ -951,8 +942,8 @@ public class OOPathTest {
         ksession.insert(x);
         ksession.fireAllRules();
 
-        assertTrue( duplicateNames.contains("File0") );
-        assertFalse( duplicateNames.contains("File1") );
+        assertThat(duplicateNames.contains("File0")).isTrue();
+        assertThat(duplicateNames.contains("File1")).isFalse();
     }
 
     @Test
@@ -1003,8 +994,8 @@ public class OOPathTest {
         ksession.insert( file2 );
         ksession.fireAllRules();
 
-        assertTrue( duplicateNames.contains("File0") );
-        assertFalse( duplicateNames.contains("File1") );
+        assertThat(duplicateNames.contains("File0")).isTrue();
+        assertThat(duplicateNames.contains("File1")).isFalse();
     }
 
     public static class TMFileSetQuater extends AbstractReactiveObject {
@@ -1054,8 +1045,8 @@ public class OOPathTest {
         ksession.insert( file2 );
         ksession.fireAllRules();
 
-        assertTrue( duplicateNames.contains("File0") );
-        assertFalse( duplicateNames.contains("File1") );
+        assertThat(duplicateNames.contains("File0")).isTrue();
+        assertThat(duplicateNames.contains("File1")).isFalse();
     }
 
     private List<?> factsCollection(KieSession ksession) {
@@ -1104,27 +1095,27 @@ public class OOPathTest {
         ksession.insert( bob );
         ksession.fireAllRules();
 
-        assertEquals( 1, list.size() );
-        assertEquals( "Jane", list.get(0) );
+        assertThat(list.size()).isEqualTo(1);
+        assertThat(list.get(0)).isEqualTo("Jane");
         list.clear();
 
         bob.getWife().setAge(26);
         ksession.fireAllRules();
 
-        assertEquals( 1, list.size() );
-        assertEquals( "Jane", list.get(0) );
+        assertThat(list.size()).isEqualTo(1);
+        assertThat(list.get(0)).isEqualTo("Jane");
         list.clear();
 
         bob.getWife().setAge(27);
         ksession.fireAllRules();
 
-        assertEquals( 1, list.size() );
-        assertEquals( "Jane", list.get(0) );
+        assertThat(list.size()).isEqualTo(1);
+        assertThat(list.get(0)).isEqualTo("Jane");
         list.clear();
 
         bob.getWife().setAge(28);
         ksession.fireAllRules();
-        assertEquals( 0, list.size() );
+        assertThat(list.size()).isEqualTo(0);
     }
 
     @Test
@@ -1152,8 +1143,8 @@ public class OOPathTest {
         ksession.insert( bob );
         ksession.fireAllRules();
 
-        assertEquals( 1, list.size() );
-        assertEquals( "Found", list.get(0) );
+        assertThat(list.size()).isEqualTo(1);
+        assertThat(list.get(0)).isEqualTo("Found");
         list.clear();
     }
 
@@ -1190,7 +1181,7 @@ public class OOPathTest {
         ksession.insert( mario );
         ksession.fireAllRules();
 
-        assertEquals( 1, list.size() );
+        assertThat(list.size()).isEqualTo(1);
     }
 
     @Test
@@ -1219,8 +1210,8 @@ public class OOPathTest {
         ksession.insert(parent);
         ksession.fireAllRules();
 
-        assertEquals( 1, list.size() );
-        assertEquals( "joe", list.get(0) );
+        assertThat(list.size()).isEqualTo(1);
+        assertThat(list.get(0)).isEqualTo("joe");
     }
 
     public class Son {
@@ -1251,4 +1242,91 @@ public class OOPathTest {
             this.children = children;
         }
     }
+
+    @Test
+    public void testOopathAfterNot() {
+        // DROOLS-6541
+        final String drl =
+                "import "+ Pojo1.class.getCanonicalName() +";\n" +
+                "import "+ Pojo2.class.getCanonicalName() +";\n" +
+                "import "+ Pojo3.class.getCanonicalName() +";\n" +
+                "rule R1 when\n" +
+                "    a : Pojo1() \n" +
+                "    not( b : Pojo2( field == \"val\" ) from a.getPojo2List() ) \n  " +
+                "    c : Pojo2( /pojo3List[firstName == \"Bob\"] ) from a.getPojo2List() \n" +
+                "then\n" +
+                "end";
+
+        KieBase kbase = KieBaseUtil.getKieBaseFromKieModuleFromDrl("test", kieBaseTestConfiguration, drl);
+        KieSession ksession = kbase.newKieSession();
+
+        Pojo3 bob = new Pojo3();
+        bob.setFirstName("Bob");
+
+        List<Pojo3> pojo3List = new ArrayList<>();
+        pojo3List.add(bob);
+
+        Pojo2 pojo2 = new Pojo2();
+        pojo2.setField("not_val");
+        pojo2.setPojo3List(pojo3List);
+
+        List<Pojo2> pojo2List = new ArrayList<>();
+        pojo2List.add(pojo2);
+
+        Pojo1 pojo1 = new Pojo1();
+        pojo1.setPojo2List(pojo2List);
+
+        ksession.insert(pojo1);
+        assertThat(ksession.fireAllRules()).isEqualTo(1);
+    }
+
+    public static class Pojo1 {
+
+        private List<Pojo2> pojo2List = new ArrayList<>();
+
+        public List<Pojo2> getPojo2List() {
+            return pojo2List;
+        }
+
+        public void setPojo2List(List<Pojo2> pojo2List) {
+            this.pojo2List = pojo2List;
+        }
+    }
+
+    public static class Pojo2 {
+
+        public String field;
+
+        public String getField() {
+            return field;
+        }
+
+        public void setField(String field) {
+            this.field = field;
+        }
+
+        private List<Pojo3> pojo3List = new ArrayList<>();
+
+        public List<Pojo3> getPojo3List() {
+            return pojo3List;
+        }
+
+        public void setPojo3List(List<Pojo3> pojo3List) {
+            this.pojo3List = pojo3List;
+        }
+    }
+
+    public static class Pojo3 {
+
+        private String firstName;
+
+        public String getFirstName() {
+            return firstName;
+        }
+
+        public void setFirstName(String firstName) {
+            this.firstName = firstName;
+        }
+    }
+
 }

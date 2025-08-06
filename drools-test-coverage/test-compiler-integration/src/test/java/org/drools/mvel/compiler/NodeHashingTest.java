@@ -29,7 +29,7 @@ import org.junit.runners.Parameterized;
 import org.kie.api.KieBase;
 import org.kie.api.runtime.KieSession;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(Parameterized.class)
 public class NodeHashingTest {
@@ -42,8 +42,7 @@ public class NodeHashingTest {
 
     @Parameterized.Parameters(name = "KieBase type={0}")
     public static Collection<Object[]> getParameters() {
-     // TODO: EM failed with testNodeHashTypeMismatchWithBigDecimal, testNodeHashTypeMismatchWithBigInteger, testNodeHashTypeMismatchWithPrimitiveDouble. File JIRAs
-        return TestParametersUtil.getKieBaseCloudConfigurations(false);
+        return TestParametersUtil.getKieBaseCloudConfigurations(true);
     }
 
     @Test
@@ -70,7 +69,7 @@ public class NodeHashingTest {
         p1.setStatus( "1" );
         ksession1.insert( p1 );
 
-        assertEquals( 1, ksession1.fireAllRules() );
+        assertThat(ksession1.fireAllRules()).isEqualTo(1);
         ksession1.dispose();
 
         // 3 rules -- Node Hashing
@@ -98,7 +97,7 @@ public class NodeHashingTest {
         p2.setStatus( "1" );
         ksession2.insert( p2 );
 
-        assertEquals( 1, ksession2.fireAllRules() );
+        assertThat(ksession2.fireAllRules()).isEqualTo(1);
         ksession2.dispose();
     }
 
@@ -126,7 +125,7 @@ public class NodeHashingTest {
         p1.setBigInteger( new BigInteger( "1" ) );
         ksession1.insert( p1 );
 
-        assertEquals( 1, ksession1.fireAllRules() );
+        assertThat(ksession1.fireAllRules()).isEqualTo(1);
         ksession1.dispose();
 
         // 3 rules -- Node Hashing
@@ -154,7 +153,7 @@ public class NodeHashingTest {
         p2.setBigInteger( new BigInteger( "1" ) );
         ksession2.insert( p2 );
 
-        assertEquals( 1, ksession2.fireAllRules() );
+        assertThat(ksession2.fireAllRules()).isEqualTo(1);
         ksession2.dispose();
     }
 
@@ -182,7 +181,7 @@ public class NodeHashingTest {
         p1.setBigDecimal( new BigDecimal( "1.00" ) );
         ksession1.insert( p1 );
 
-        assertEquals( 1, ksession1.fireAllRules() );
+        assertThat(ksession1.fireAllRules()).isEqualTo(1);
         ksession1.dispose();
 
         // 3 rules -- Node Hashing
@@ -210,7 +209,7 @@ public class NodeHashingTest {
         p2.setBigDecimal( new BigDecimal( "1.00" ) );
         ksession2.insert( p2 );
 
-        assertEquals( 1, ksession2.fireAllRules() );
+        assertThat(ksession2.fireAllRules()).isEqualTo(1);
         ksession2.dispose();
     }
 
@@ -239,7 +238,7 @@ public class NodeHashingTest {
         p1.setAge( 1 );
         ksession1.insert( p1 );
 
-        assertEquals( 1, ksession1.fireAllRules() );
+        assertThat(ksession1.fireAllRules()).isEqualTo(1);
         ksession1.dispose();
 
         // 3 rules -- Node Hashing
@@ -268,7 +267,7 @@ public class NodeHashingTest {
         p2.setAge( 1 );
         ksession2.insert( p2 );
 
-        assertEquals( 1, ksession2.fireAllRules() );
+        assertThat(ksession2.fireAllRules()).isEqualTo(1);
         ksession2.dispose();
     }
 
@@ -297,7 +296,7 @@ public class NodeHashingTest {
         p1.setAge( 1 );
         ksession1.insert( p1 );
 
-        assertEquals( 1, ksession1.fireAllRules() );
+        assertThat(ksession1.fireAllRules()).isEqualTo(1);
         ksession1.dispose();
 
         // 3 rules -- Node Hashing
@@ -326,7 +325,7 @@ public class NodeHashingTest {
         p2.setAge( 1 );
         ksession2.insert( p2 );
 
-        assertEquals( 1, ksession2.fireAllRules() );
+        assertThat(ksession2.fireAllRules()).isEqualTo(1);
         ksession2.dispose();
     }
 
@@ -355,7 +354,7 @@ public class NodeHashingTest {
         p1.setBigDecimal( new BigDecimal( 1 ) );
         ksession1.insert( p1 );
 
-        assertEquals( 1, ksession1.fireAllRules() );
+        assertThat(ksession1.fireAllRules()).isEqualTo(1);
         ksession1.dispose();
 
         // 3 rules -- Node Hashing
@@ -384,7 +383,7 @@ public class NodeHashingTest {
         p2.setBigDecimal( new BigDecimal( 1 ) );
         ksession2.insert( p2 );
 
-        assertEquals( 1, ksession2.fireAllRules() );
+        assertThat(ksession2.fireAllRules()).isEqualTo(1);
         ksession2.dispose();
     }
 
@@ -422,7 +421,7 @@ public class NodeHashingTest {
 
         ksession1.insert( new DoubleValue(1.00) );
 
-        assertEquals( 1, ksession1.fireAllRules() );
+        assertThat(ksession1.fireAllRules()).isEqualTo(1);
         ksession1.dispose();
 
         // 3 rules -- Node Hashing
@@ -448,7 +447,7 @@ public class NodeHashingTest {
 
         ksession2.insert( new DoubleValue(1.00) );
 
-        assertEquals( 1, ksession2.fireAllRules() );
+        assertThat(ksession2.fireAllRules()).isEqualTo(1);
         ksession2.dispose();
     }
 
@@ -476,7 +475,7 @@ public class NodeHashingTest {
 
         kieSession.insert( new A( ) );
 
-        assertEquals( 3, kieSession.fireAllRules() );
+        assertThat(kieSession.fireAllRules()).isEqualTo(3);
     }
 
     public static class A {

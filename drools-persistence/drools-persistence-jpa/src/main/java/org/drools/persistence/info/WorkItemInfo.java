@@ -3,7 +3,7 @@
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
@@ -20,15 +20,15 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Date;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Lob;
-import javax.persistence.SequenceGenerator;
-import javax.persistence.Transient;
-import javax.persistence.Version;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Lob;
+import jakarta.persistence.SequenceGenerator;
+import jakarta.persistence.Transient;
+import jakarta.persistence.Version;
 import org.drools.core.impl.InternalKnowledgeBase;
 import org.drools.core.marshalling.impl.InputMarshaller;
 import org.drools.core.marshalling.impl.MarshallerReaderContext;
@@ -44,7 +44,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Entity
-@SequenceGenerator(name="workItemInfoIdSeq", sequenceName="WORKITEMINFO_ID_SEQ")
+@SequenceGenerator(name="workItemInfoIdSeq", sequenceName="WORKITEMINFO_ID_SEQ", allocationSize = 1)
 public class WorkItemInfo implements PersistentWorkItem {
 
     private static final Logger logger = LoggerFactory.getLogger(WorkItemInfo.class);
@@ -61,17 +61,17 @@ public class WorkItemInfo implements PersistentWorkItem {
     private Date   creationDate;
     private long   processInstanceId;
     private long   state;
-    
+
     @Lob
     @Column(length=2147483647)
     private byte[] workItemByteArray;
-    
+
     private @Transient
     WorkItem       workItem;
 
     private @Transient
     Environment                               env;
-    
+
     protected WorkItemInfo() {
     }
 
@@ -86,7 +86,7 @@ public class WorkItemInfo implements PersistentWorkItem {
     public Long getId() {
         return workItemId;
     }
-    
+
     public int getVersion() {
         return this.version;
     }
@@ -106,11 +106,11 @@ public class WorkItemInfo implements PersistentWorkItem {
     public long getState() {
         return state;
     }
-    
-    public byte [] getWorkItemByteArray() { 
+
+    public byte [] getWorkItemByteArray() {
        return workItemByteArray;
     }
-    
+
     public WorkItem getWorkItem(Environment env, InternalKnowledgeBase kBase) {
         this.env = env;
         if ( workItem == null ) {
@@ -146,14 +146,14 @@ public class WorkItemInfo implements PersistentWorkItem {
 
                 context.close();
             } catch ( IOException e ) {
-                e.printStackTrace();
+                logger.error("Exception", e);
                 throw new IllegalArgumentException( "IOException while loading work item: " + e.getMessage() );
             }
         }
         return workItem;
     }
 
-     
+
 
 //    @PreUpdate
     @Override
@@ -178,7 +178,7 @@ public class WorkItemInfo implements PersistentWorkItem {
             throw new IllegalArgumentException( "IOException while storing workItem " + workItem.getId() + ": " + e.getMessage() );
         }
     }
-    
+
     public void setId(Long id){
         this.workItemId = id;
     }

@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.kie</groupId>
     <artifactId>kie-dmn</artifactId>
-    <version>7.58.0.Final</version>
+    <version>7.74.1.Final-Micord.1</version>
   </parent>
   <artifactId>kie-dmn-validation-bootstrap</artifactId>
 
@@ -43,7 +43,7 @@ This is not an user dependency, hence is not added to the boms</description>
       <artifactId>slf4j-api</artifactId>
     </dependency>
   </dependencies>
-  
+
   <profiles>
     <profile>
       <id>sonarcloud-analysis</id>

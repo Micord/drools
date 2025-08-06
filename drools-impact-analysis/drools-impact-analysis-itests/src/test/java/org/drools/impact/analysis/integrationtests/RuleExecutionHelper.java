@@ -29,7 +29,7 @@ import org.kie.api.builder.model.KieModuleModel;
 import org.kie.api.runtime.KieContainer;
 import org.kie.api.runtime.KieSession;
 
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.fail;
 
 public class RuleExecutionHelper {
 
@@ -114,7 +114,7 @@ public class RuleExecutionHelper {
         public final String content;
 
         public KieFile(int index, String content) {
-            this(String.format("src/main/resources/r%d.drl", index), content);
+            this(String.format("src/main/resources/mypkg/r%d.drl", index), content);
         }
 
         public KieFile(String path, String content) {

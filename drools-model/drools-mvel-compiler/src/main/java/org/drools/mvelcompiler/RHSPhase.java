@@ -29,6 +29,7 @@ import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.ast.expr.ArrayAccessExpr;
 import com.github.javaparser.ast.expr.AssignExpr;
 import com.github.javaparser.ast.expr.BinaryExpr;
+import com.github.javaparser.ast.expr.BooleanLiteralExpr;
 import com.github.javaparser.ast.expr.CastExpr;
 import com.github.javaparser.ast.expr.CharLiteralExpr;
 import com.github.javaparser.ast.expr.EnclosedExpr;
@@ -39,18 +40,25 @@ import com.github.javaparser.ast.expr.LongLiteralExpr;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.expr.NullLiteralExpr;
 import com.github.javaparser.ast.expr.ObjectCreationExpr;
+import com.github.javaparser.ast.expr.PatternExpr;
 import com.github.javaparser.ast.expr.SimpleName;
 import com.github.javaparser.ast.expr.StringLiteralExpr;
+import com.github.javaparser.ast.expr.TextBlockLiteralExpr;
+import com.github.javaparser.ast.expr.UnaryExpr;
 import com.github.javaparser.ast.expr.VariableDeclarationExpr;
 import com.github.javaparser.ast.stmt.ExpressionStmt;
+import com.github.javaparser.ast.stmt.YieldStmt;
 import org.drools.core.util.ClassUtils;
 import org.drools.core.util.MethodUtils.NullType;
 import org.drools.mvel.parser.ast.expr.BigDecimalLiteralExpr;
+import org.drools.mvel.parser.ast.expr.BigIntegerLiteralExpr;
 import org.drools.mvel.parser.ast.expr.DrlNameExpr;
 import org.drools.mvel.parser.ast.visitor.DrlGenericVisitor;
 import org.drools.mvelcompiler.ast.BigDecimalArithmeticExprT;
 import org.drools.mvelcompiler.ast.BigDecimalConvertedExprT;
+import org.drools.mvelcompiler.ast.BigIntegerConvertedExprT;
 import org.drools.mvelcompiler.ast.BinaryExprT;
+import org.drools.mvelcompiler.ast.BooleanLiteralExpressionT;
 import org.drools.mvelcompiler.ast.CastExprT;
 import org.drools.mvelcompiler.ast.CharacterLiteralExpressionT;
 import org.drools.mvelcompiler.ast.FieldAccessTExpr;
@@ -129,6 +137,21 @@ public class RHSPhase implements DrlGenericVisitor<TypedExpression, RHSPhase.Con
         } else {
             return simpleNameAsField(n, arg);
         }
+    }
+
+    @Override
+    public TypedExpression visit(YieldStmt n, Context arg) {
+        return null;
+    }
+
+    @Override
+    public TypedExpression visit(TextBlockLiteralExpr n, Context arg) {
+        return null;
+    }
+
+    @Override
+    public TypedExpression visit(PatternExpr n, Context arg) {
+        return null;
     }
 
     private TypedExpression simpleNameAsFirstNode(SimpleName n) {
@@ -295,6 +318,11 @@ public class RHSPhase implements DrlGenericVisitor<TypedExpression, RHSPhase.Con
     }
 
     @Override
+    public TypedExpression visit(BooleanLiteralExpr n, Context arg) {
+        return new BooleanLiteralExpressionT(n);
+    }
+
+    @Override
     public TypedExpression defaultMethod(Node n, Context context) {
         return new UnalteredTypedExpression(n);
     }
@@ -339,6 +367,24 @@ public class RHSPhase implements DrlGenericVisitor<TypedExpression, RHSPhase.Con
     @Override
     public TypedExpression visit(BigDecimalLiteralExpr n, Context arg) {
         return new BigDecimalConvertedExprT(new StringLiteralExpressionT(new StringLiteralExpr(n.getValue())));
+    }
+
+    @Override
+    public TypedExpression visit(BigIntegerLiteralExpr n, Context arg) {
+        return new BigIntegerConvertedExprT(new StringLiteralExpressionT(new StringLiteralExpr(n.getValue())));
+    }
+
+    @Override
+    public TypedExpression visit(UnaryExpr n, Context arg) {
+        Expression innerExpr = n.getExpression();
+        UnaryExpr.Operator operator = n.getOperator();
+        if (innerExpr instanceof BigDecimalLiteralExpr && operator == UnaryExpr.Operator.MINUS) {
+            return new BigDecimalConvertedExprT(new StringLiteralExpressionT(new StringLiteralExpr(operator.asString() + ((BigDecimalLiteralExpr) innerExpr).getValue())));
+        } else if (innerExpr instanceof BigIntegerLiteralExpr && operator == UnaryExpr.Operator.MINUS) {
+            return new BigIntegerConvertedExprT(new StringLiteralExpressionT(new StringLiteralExpr(operator.asString() + ((BigIntegerLiteralExpr) innerExpr).getValue())));
+        } else {
+            return defaultMethod(n, arg);
+        }
     }
 
     private Class<?> resolveType(com.github.javaparser.ast.type.Type type) {

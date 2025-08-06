@@ -29,11 +29,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import javax.json.bind.Jsonb;
-import javax.json.bind.JsonbBuilder;
-import javax.json.bind.JsonbConfig;
+import jakarta.json.bind.Jsonb;
+import jakarta.json.bind.JsonbBuilder;
+import jakarta.json.bind.JsonbConfig;
 
-import org.assertj.core.api.Assertions;
 import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.Index;
@@ -42,6 +41,8 @@ import org.junit.Test;
 import org.kie.dmn.model.api.DMNModelInstrumentedBase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class KieDMNModelJandexTest {
 
@@ -68,7 +69,7 @@ public class KieDMNModelJandexTest {
         LOG.debug("results: \n{}", results);
         String json = jsonb.toJson(results);
         LOG.debug("Expected reflect-config.json: \n{}", json);
-        
+
         @SuppressWarnings("unchecked")
         List<Map<String, Object>> fromJson = jsonb.fromJson(new FileReader("src/main/resources/META-INF/native-image/org.kie/" + moduleName + "/reflect-config.json"),
                                                             List.class);
@@ -76,7 +77,7 @@ public class KieDMNModelJandexTest {
 
         Set<DotName> foundsViaJandex = founds.stream().map(ClassInfo::name).collect(Collectors.toSet());
         Set<DotName> foundsViaJSON = dotNamesInJSON.stream().collect(Collectors.toSet());
-        Assertions.assertThat(foundsViaJandex)
+        assertThat(foundsViaJandex)
                   .as("List of classes found via Jandex during test and listed in JSON file must be same.")
                   .isEqualTo(foundsViaJSON)
         ;

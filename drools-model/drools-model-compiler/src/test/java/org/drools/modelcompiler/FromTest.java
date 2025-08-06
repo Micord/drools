@@ -26,8 +26,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
-import org.assertj.core.api.Assertions;
 import org.drools.modelcompiler.FunctionsTest.Pojo;
 import org.drools.modelcompiler.domain.Address;
 import org.drools.modelcompiler.domain.Adult;
@@ -39,13 +39,14 @@ import org.drools.modelcompiler.domain.PetPerson;
 import org.drools.modelcompiler.domain.Toy;
 import org.drools.modelcompiler.domain.ToysStore;
 import org.drools.modelcompiler.domain.Woman;
-import org.junit.Ignore;
 import org.junit.Test;
+import org.kie.api.KieServices;
+import org.kie.api.builder.model.KieModuleModel;
 import org.kie.api.runtime.KieSession;
+import org.kie.api.runtime.rule.FactHandle;
+import org.kie.internal.builder.conf.PropertySpecificOption;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class FromTest extends BaseModelTest {
 
@@ -68,12 +69,12 @@ public class FromTest extends BaseModelTest {
 
         ksession.setGlobal("list", strings);
 
-        assertEquals( 1, ksession.fireAllRules() );
+        assertThat(ksession.fireAllRules()).isEqualTo(1);
 
         List<String> results = getObjectsIntoList(ksession, String.class);
-        assertFalse(results.contains("a"));
-        assertTrue(results.contains("Hello World!"));
-        assertFalse(results.contains("xyz"));
+        assertThat(results.contains("a")).isFalse();
+        assertThat(results.contains("Hello World!")).isTrue();
+        assertThat(results.contains("xyz")).isFalse();
     }
 
     @Test
@@ -106,7 +107,7 @@ public class FromTest extends BaseModelTest {
         ksession.insert( bob );
         ksession.fireAllRules();
 
-        Assertions.assertThat(list).containsExactlyInAnyOrder("Charles");
+        assertThat(list).containsExactlyInAnyOrder("Charles");
     }
 
     @Test
@@ -139,10 +140,10 @@ public class FromTest extends BaseModelTest {
         ksession.insert( bob );
         ksession.fireAllRules();
 
-        Assertions.assertThat(list).containsExactlyInAnyOrder("Charles");
+        assertThat(list).containsExactlyInAnyOrder("Charles");
     }
 
-    @Test @Ignore
+    @Test
     public void testModifyWithFrom() {
         // DROOLS-6486
         final String str =
@@ -170,7 +171,319 @@ public class FromTest extends BaseModelTest {
         ksession.insert( charlie ); // object has to be in the session in order to be modified, but it's retrieved with a FromNode
         ksession.fireAllRules();
 
-        assertEquals("Charlesx", charlie.getName());
+        assertThat(charlie.getName()).isEqualTo("Charlesx");
+    }
+
+    @Test
+    public void testModifyWithFromAndReevaluate() {
+        // DROOLS-7203
+        final String str =
+                "import " + Woman.class.getCanonicalName() + ";\n" +
+                        "import " + Child.class.getCanonicalName() + ";\n" +
+                        "global java.util.List results;\n" +
+                        "rule R1 when\n" +
+                        " String(this == \"Trigger R1\")\n" +
+                        " $woman : Woman()\n" +
+                        " $child : Child( age == 12 )\n" +
+                        "then\n" +
+                        "  System.out.println(\"R1\");\n" +
+                        "  results.add(\"executed\");\n" +
+                        "  modify( $child ) { setAge(13) };\n" +
+                        "end\n" +
+                        "rule R2 when\n" +
+                        " String(this == \"Trigger R2\")\n" +
+                        " $woman : Woman()\n" +
+                        " $child : Child( age > 10 ) from $woman.children\n" +
+                        "then\n" +
+                        "  System.out.println(\"R2\");\n" +
+                        "  modify( $child ) { setName($child.getName() + \"x\") };\n" +
+                        "end\n" +
+                        "rule R3 when\n" +
+                        " $s : String(this == \"Trigger R2\")\n" +
+                        "then\n" +
+                        "  System.out.println(\"R3\");\n" +
+                        "  delete($s);\n" +
+                        "end\n";
+
+        KieSession ksession = getKieSession(str);
+        List<String> results = new ArrayList<>();
+        ksession.setGlobal("results", results);
+
+        final Woman alice = new Woman("Alice", 38);
+
+        final Child charlie = new Child("Charles", 12, "Alice");
+        final Child debbie = new Child("Debbie", 10, "Alice");
+        alice.addChild(charlie);
+        alice.addChild(debbie);
+
+        FactHandle aliceHandle = ksession.insert(alice);
+        ksession.insert(charlie);
+        ksession.insert(debbie);
+        ksession.insert("Trigger R2");
+        ksession.fireAllRules();
+
+        System.out.println("-- 1st fire done");
+
+        ksession.insert("Trigger R1");
+        ksession.fireAllRules();
+
+        System.out.println("-- 2nd fire done");
+
+        alice.setAge(39);
+        ksession.update(aliceHandle, alice);
+        ksession.fireAllRules();
+
+        System.out.println("-- 3rd fire done");
+
+        assertThat(results).containsExactly("executed"); // R1 should not be executed twice because age is modified to 13
+    }
+
+    @Test(timeout = 20000)
+    public void testModifyWithFromSudoku() {
+        // DROOLS-7203 : Slimmed down Sudoku
+        final String str =
+                "import " + Setting.class.getCanonicalName() + ";\n" +
+                           "import " + Cell.class.getCanonicalName() + ";\n" +
+                           "import " + Counter.class.getCanonicalName() + ";\n" +
+                           "\n" +
+                           "rule haltRule\n" +
+                           "when\n" +
+                           "    $ctr : Counter( count == 0 )\n" +
+                           "then\n" +
+                           "  System.out.println(\"halt!\");\n" +
+                           "  drools.halt();\n" +
+                           "end\n" +
+                           "rule \"set a value\" when\n" +
+                           "  $s : Setting( $rn: rowNo, $cn: colNo, $v: value )\n" +
+                           "  $c : Cell( rowNo == $rn, colNo == $cn, value == null)\n" +
+                           "  $ctr : Counter( $count: count )\n" +
+                           "then\n" +
+                           "  System.out.println(\"set a value [\" + $v + \"] to $c = \" + $c);\n" +
+                           "  modify( $c ){ setValue( $v ) }\n" +
+                           "  modify( $ctr ){ setCount( $count - 1 ) }\n" +
+                           "end\n" +
+                           "rule \"eliminate a value from Cell\" when\n" +
+                           "  $s: Setting( $rn: rowNo, $cn: colNo, $v: value )\n" +
+                           "  Cell( rowNo == $rn, colNo == $cn, value == $v, $exCells: exCells )\n" +
+                           "  $c: Cell( free contains $v ) from $exCells\n" +
+                           "then\n" +
+                           "  System.out.println(\"eliminate a value [\" + $v + \"] from Cell : $c = \" + $c);\n" +
+                           "  modify( $c ){ blockValue( $v ) }\n" +
+                           "end\n" +
+                           "rule \"retract setting\"\n" +
+                           "when\n" +
+                           "    $s: Setting( $rn: rowNo, $cn: colNo, $v: value )\n" +
+                           "    $c: Cell( rowNo == $rn, colNo == $cn, value == $v )\n" +
+                           "    not( $x: Cell( free contains $v )\n" +
+                           "         and\n" +
+                           "         Cell( this == $c, exCells contains $x ) )\n" +
+                           "then\n" +
+                           "    System.out.println( \"done setting cell \" + $c.toString() ); \n" +
+                           "    delete( $s );\n" +
+                           "end\n" +
+                           "rule \"single\"\n" +
+                           "when\n" +
+                           "    not Setting()\n" +
+                           "    $c: Cell( $rn: rowNo, $cn: colNo, freeCount == 1 )\n" +
+                           "then\n" +
+                           "    Integer i = $c.getFreeValue();\n" +
+                           "    System.out.println( \"single \" + i + \" at \" + $c.toString() );\n" +
+                           "    insert( new Setting( $rn, $cn, i ) );\n" +
+                           "end\n";
+
+        KieSession ksession = getKieSession(getDisablePropertyReactivityKieModuleModel(), str);
+
+        Cell c1 = new Cell(0, 0, null);
+        c1.setFree(new HashSet<>(Arrays.asList(1, 2, 3)));
+        Cell c2 = new Cell(0, 1, null);
+        c2.setFree(new HashSet<>(Arrays.asList(1, 2)));
+        Cell c3 = new Cell(0, 2, null);
+        c3.setFree(new HashSet<>(Arrays.asList(1, 2, 3)));
+
+        c1.setExCells(new HashSet<>(Arrays.asList(c2, c3)));
+        c2.setExCells(new HashSet<>(Arrays.asList(c1, c3)));
+        c3.setExCells(new HashSet<>(Arrays.asList(c1, c2)));
+        ksession.insert(c1);
+        ksession.insert(c2);
+        ksession.insert(c3);
+
+        Setting setting001 = new Setting(0, 0, 1);
+        ksession.insert(setting001);
+
+        Counter counter = new Counter(1);
+        ksession.insert(counter);
+
+        ksession.fireAllRules();
+
+        System.out.println("---- init done");
+        System.out.println(c1);
+        System.out.println(c2);
+        System.out.println(c3);
+        assertThat(c1.getValue()).isEqualTo(1);
+        assertThat(c2.getValue()).isNull();
+        assertThat(c3.getValue()).isNull();
+
+        counter.setCount(1);
+        ksession.update(ksession.getFactHandle(counter), counter);
+
+        ksession.fireUntilHalt();
+
+        System.out.println("---- 1st step done");
+        System.out.println(c1);
+        System.out.println(c2);
+        System.out.println(c3);
+        assertThat(c1.getValue()).isEqualTo(1);
+        assertThat(c2.getValue()).isEqualTo(2);
+        assertThat(c3.getValue()).isNull();
+
+        counter.setCount(1);
+        ksession.update(ksession.getFactHandle(counter), counter);
+
+        ksession.fireUntilHalt();
+
+        System.out.println("---- 2nd step done");
+        System.out.println(c1);
+        System.out.println(c2);
+        System.out.println(c3);
+        assertThat(c1.getValue()).isEqualTo(1);
+        assertThat(c2.getValue()).isEqualTo(2);
+        assertThat(c3.getValue()).isEqualTo(3);
+    }
+
+    public static class Setting {
+
+        private int rowNo = 0;
+        private int colNo = 0;
+        private Integer value = null;
+
+        public Setting(int rowNo, int colNo, Integer value) {
+            this.rowNo = rowNo;
+            this.colNo = colNo;
+            this.value = value;
+        }
+
+        public int getRowNo() {
+            return rowNo;
+        }
+
+        public void setRowNo(int rowNo) {
+            this.rowNo = rowNo;
+        }
+
+        public int getColNo() {
+            return colNo;
+        }
+
+        public void setColNo(int colNo) {
+            this.colNo = colNo;
+        }
+
+        public Integer getValue() {
+            return value;
+        }
+
+        public void setValue(Integer value) {
+            this.value = value;
+        }
+
+    }
+
+    public static class Cell {
+
+        private int rowNo = 0;
+        private int colNo = 0;
+        private Integer value = null;
+        private Set<Cell> exCells;
+        private Set<Integer> free;
+
+        public Cell(int rowNo, int col, Integer value) {
+            this.rowNo = rowNo;
+            this.colNo = col;
+            this.value = value;
+        }
+
+        public int getRowNo() {
+            return rowNo;
+        }
+
+        public void setRowNo(int rowNo) {
+            this.rowNo = rowNo;
+        }
+
+        public int getColNo() {
+            return colNo;
+        }
+
+        public void setColNo(int colNo) {
+            this.colNo = colNo;
+        }
+
+        public Integer getValue() {
+            return value;
+        }
+
+        public void setValue(Integer value) {
+            free.clear();
+            this.value = value;
+        }
+
+        public Set<Cell> getExCells() {
+            return exCells;
+        }
+
+        public void setExCells(Set<Cell> exCells) {
+            this.exCells = exCells;
+        }
+
+        public Set<Integer> getFree() {
+            return free;
+        }
+
+        public void setFree(Set<Integer> free) {
+            this.free = free;
+        }
+
+        public int getFreeCount() {
+            return free.size();
+        }
+
+        public Integer getFreeValue() {
+            return free.iterator().next();
+        }
+
+        public void blockValue(Integer i) {
+            free.remove(i);
+        }
+
+        @Override
+        public String toString() {
+            return "Cell [rowNo=" + rowNo + ", colNo=" + colNo + ", value=" + value + ", free=" + free + "]";
+        }
+    }
+
+    public static class Counter {
+
+        private int count = 0;
+
+        public Counter(int count) {
+            super();
+            this.count = count;
+        }
+
+        public int getCount() {
+            return count;
+        }
+
+        public void setCount(int count) {
+            this.count = count;
+        }
+
+    }
+
+    private static KieModuleModel getDisablePropertyReactivityKieModuleModel() {
+        KieModuleModel kproj = KieServices.get().newKieModuleModel();
+        kproj.setConfigurationProperty(PropertySpecificOption.PROPERTY_NAME, PropertySpecificOption.DISABLED.name());
+        return kproj;
     }
 
     public static Integer getLength(String ignoredParameter, String s, Integer offset) {
@@ -198,7 +511,7 @@ public class FromTest extends BaseModelTest {
         ksession.insert("Hello World!");
         ksession.fireAllRules();
 
-        Assertions.assertThat(list).containsExactlyInAnyOrder("received long message: Hello World!");
+        assertThat(list).containsExactlyInAnyOrder("received long message: Hello World!");
     }
 
     @Test
@@ -224,7 +537,7 @@ public class FromTest extends BaseModelTest {
         ksession.insert(4);
         ksession.fireAllRules();
 
-        Assertions.assertThat(list).containsExactlyInAnyOrder("received long message: Hello!");
+        assertThat(list).containsExactlyInAnyOrder("received long message: Hello!");
     }
 
     @Test
@@ -245,8 +558,8 @@ public class FromTest extends BaseModelTest {
         ksession.setGlobal("list", list);
 
         ksession.fireAllRules();
-        assertEquals( 1, list.size() );
-        assertEquals( "test", list.get(0) );
+        assertThat(list.size()).isEqualTo(1);
+        assertThat(list.get(0)).isEqualTo("test");
     }
 
     @Test
@@ -266,7 +579,7 @@ public class FromTest extends BaseModelTest {
 
         KieSession ksession = getKieSession( str );
 
-        final List<String> list = new ArrayList<>();
+        final List<Person> list = new ArrayList<>();
         ksession.setGlobal("list", list);
 
         ksession.insert( "Mario" );
@@ -274,8 +587,8 @@ public class FromTest extends BaseModelTest {
 
         ksession.fireAllRules();
 
-        assertEquals( 1, list.size() );
-        assertEquals( new Person("Mario", 44), list.get(0) );
+        assertThat(list.size()).isEqualTo(1);
+        assertThat(list.get(0)).isEqualTo(new Person("Mario", 44));
     }
 
     @Test
@@ -301,7 +614,7 @@ public class FromTest extends BaseModelTest {
         petPerson.setPets( petMap );
 
         ksession.insert( petPerson );
-        assertEquals( 1, ksession.fireAllRules() );
+        assertThat(ksession.fireAllRules()).isEqualTo(1);
     }
 
     @Test
@@ -330,7 +643,7 @@ public class FromTest extends BaseModelTest {
         petPerson.setPets( petMap );
 
         ksession.insert( petPerson );
-        assertEquals( 1, ksession.fireAllRules() );
+        assertThat(ksession.fireAllRules()).isEqualTo(1);
     }
 
     @Test
@@ -350,7 +663,7 @@ public class FromTest extends BaseModelTest {
 
         ksession.insert( new Pojo( Arrays.asList(1,2,3) ) );
         int rulesFired = ksession.fireAllRules();
-        assertEquals( 2, rulesFired );
+        assertThat(rulesFired).isEqualTo(2);
     }
 
     @Test
@@ -370,7 +683,7 @@ public class FromTest extends BaseModelTest {
 
         ksession.insert( new Pojo( Arrays.asList(1,2,3) ) );
         int rulesFired = ksession.fireAllRules();
-        assertEquals( 1, rulesFired );
+        assertThat(rulesFired).isEqualTo(1);
     }
 
     @Test
@@ -395,7 +708,7 @@ public class FromTest extends BaseModelTest {
         ksession.insert(p2);
         ksession.insert(p3);
 
-        assertEquals(1, ksession.fireAllRules());
+        assertThat(ksession.fireAllRules()).isEqualTo(1);
     }
 
     @Test
@@ -423,7 +736,7 @@ public class FromTest extends BaseModelTest {
         ksession.insert(john);
         ksession.fireAllRules();
 
-        Assertions.assertThat(list).containsExactlyInAnyOrder(2);
+        assertThat(list).containsExactlyInAnyOrder(2);
     }
 
     @Test
@@ -452,7 +765,7 @@ public class FromTest extends BaseModelTest {
         ksession.insert(john);
         ksession.fireAllRules();
 
-        Assertions.assertThat(list).containsExactlyInAnyOrder("Julian", "Sean");
+        assertThat(list).containsExactlyInAnyOrder("Julian", "Sean");
     }
 
     @Test
@@ -477,7 +790,7 @@ public class FromTest extends BaseModelTest {
 
         ksession.insert(john);
 
-        assertEquals(2, ksession.fireAllRules());
+        assertThat(ksession.fireAllRules()).isEqualTo(2);
     }
 
     @Test
@@ -501,8 +814,8 @@ public class FromTest extends BaseModelTest {
         MyPerson john = new MyPerson("John");
         ksession.insert(john);
 
-        assertEquals(1, ksession.fireAllRules());
-        Assertions.assertThat(list).containsExactlyInAnyOrder("Dummy");
+        assertThat(ksession.fireAllRules()).isEqualTo(1);
+        assertThat(list).containsExactlyInAnyOrder("Dummy");
     }
 
     @Test
@@ -522,8 +835,8 @@ public class FromTest extends BaseModelTest {
         List<String> list = new ArrayList<>();
         ksession.setGlobal("list", list);
 
-        assertEquals(1, ksession.fireAllRules());
-        Assertions.assertThat(list).containsExactlyInAnyOrder("Dummy");
+        assertThat(ksession.fireAllRules()).isEqualTo(1);
+        assertThat(list).containsExactlyInAnyOrder("Dummy");
     }
 
     @Test
@@ -546,8 +859,8 @@ public class FromTest extends BaseModelTest {
 
         ksession.insert("John");
 
-        assertEquals(1, ksession.fireAllRules());
-        Assertions.assertThat(list).containsExactlyInAnyOrder("DummyJohn");
+        assertThat(ksession.fireAllRules()).isEqualTo(1);
+        assertThat(list).containsExactlyInAnyOrder("DummyJohn");
     }
 
     public static class MyPerson {
@@ -624,7 +937,7 @@ public class FromTest extends BaseModelTest {
 
         ksession.fireAllRules();
 
-        assertEquals(1, list.size());
+        assertThat(list.size()).isEqualTo(1);
     }
 
     @Test
@@ -669,7 +982,7 @@ public class FromTest extends BaseModelTest {
 
         ksession.fireAllRules();
 
-        Assertions.assertThat(list).contains("Toystore1");
+        assertThat(list).contains("Toystore1");
     }
 
     public static class Measurement {
@@ -750,8 +1063,8 @@ public class FromTest extends BaseModelTest {
 
         int ruleFired = ksession.fireAllRules();
 
-        assertEquals( 2, ruleFired );
-        assertEquals( "red", hashSet.iterator().next() );
+        assertThat(ruleFired).isEqualTo(2);
+        assertThat(hashSet.iterator().next()).isEqualTo("red");
     }
 
     @Test
@@ -786,8 +1099,8 @@ public class FromTest extends BaseModelTest {
 
         int ruleFired = ksession.fireAllRules();
 
-        assertEquals( 1, ruleFired );
-        assertEquals( "red", hashSet.iterator().next() );
+        assertThat(ruleFired).isEqualTo(1);
+        assertThat(hashSet.iterator().next()).isEqualTo("red");
     }
 
     @Test
@@ -819,8 +1132,8 @@ public class FromTest extends BaseModelTest {
 
         int ruleFired = ksession.fireAllRules();
 
-        assertEquals( 1, ruleFired );
-        assertEquals( "red", hashSet.iterator().next() );
+        assertThat(ruleFired).isEqualTo(1);
+        assertThat(hashSet.iterator().next()).isEqualTo("red");
     }
 
     public static class DummyService {
@@ -868,8 +1181,8 @@ public class FromTest extends BaseModelTest {
 
         int ruleFired = ksession.fireAllRules();
 
-        assertEquals( 1, ruleFired );
-        assertEquals( "red", hashSet.iterator().next() );
+        assertThat(ruleFired).isEqualTo(1);
+        assertThat(hashSet.iterator().next()).isEqualTo("red");
     }
 
 
@@ -904,8 +1217,8 @@ public class FromTest extends BaseModelTest {
 
         int ruleFired = ksession.fireAllRules();
 
-        assertEquals( 1, ruleFired );
-        assertEquals( "red", hashSet.iterator().next() );
+        assertThat(ruleFired).isEqualTo(1);
+        assertThat(hashSet.iterator().next()).isEqualTo("red");
     }
 
     @Test
@@ -936,8 +1249,8 @@ public class FromTest extends BaseModelTest {
 
         int ruleFired = ksession.fireAllRules();
 
-        assertEquals( 1, ruleFired );
-        assertEquals( "red", hashSet.iterator().next() );
+        assertThat(ruleFired).isEqualTo(1);
+        assertThat(hashSet.iterator().next()).isEqualTo("red");
     }
 
     @Test
@@ -974,8 +1287,8 @@ public class FromTest extends BaseModelTest {
 
         int ruleFired = ksession.fireAllRules();
 
-        assertEquals( 1, ruleFired );
-        assertEquals( "red", hashSet.iterator().next() );
+        assertThat(ruleFired).isEqualTo(1);
+        assertThat(hashSet.iterator().next()).isEqualTo("red");
     }
 
     @Test
@@ -1012,8 +1325,8 @@ public class FromTest extends BaseModelTest {
 
         int ruleFired = ksession.fireAllRules();
 
-        assertEquals( 1, ruleFired );
-        assertEquals( "red", hashSet.iterator().next() );
+        assertThat(ruleFired).isEqualTo(1);
+        assertThat(hashSet.iterator().next()).isEqualTo("red");
     }
 
     @Test
@@ -1037,7 +1350,7 @@ public class FromTest extends BaseModelTest {
         ksession.insert( "B" );
         ksession.fireAllRules();
 
-        Assertions.assertThat(list).containsExactlyInAnyOrder("AA", "AB", "BA", "BB");
+        assertThat(list).containsExactlyInAnyOrder("AA", "AB", "BA", "BB");
     }
 
     @Test
@@ -1054,6 +1367,33 @@ public class FromTest extends BaseModelTest {
         KieSession ksession = getKieSession( str );
 
         ksession.insert( "A" );
-        assertEquals( 1, ksession.fireAllRules() );
+        assertThat(ksession.fireAllRules()).isEqualTo(1);
+    }
+
+    @Test
+    public void testFromCollectWithOr() {
+        // DROOLS-6531
+        String str =
+                "import java.util.List;\n" +
+                "rule R when\n" +
+                "        $list: List()\n" +
+                "        $values:    (\n" +
+                "            List(size > 0) from collect ( String(length < 3) ) or\n" +
+                "            List(size > 0) from collect ( String(length > 5) )\n" +
+                "        )\n" +
+                "    then\n" +
+                "        $list.addAll($values);\n" +
+                "end";
+
+        KieSession ksession = getKieSession( str );
+
+        List<String> list = new ArrayList<>();
+        ksession.insert(list);
+        ksession.insert("t");
+        ksession.insert("test");
+        ksession.insert("testtest");
+
+        ksession.fireAllRules();
+        assertThat(list.size()).isEqualTo(2);
     }
 }

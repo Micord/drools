@@ -29,15 +29,14 @@ import org.drools.core.reteoo.LeftTupleSink;
 import org.drools.core.reteoo.NodeTypeEnums;
 import org.drools.core.reteoo.SegmentMemory;
 import org.drools.core.reteoo.builder.BuildContext;
-import org.drools.mvel.MVELDialectRuntimeData;
+import org.drools.core.rule.JavaDialectRuntimeData;
 import org.junit.Test;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.drools.mvel.integrationtests.phreak.B.b;
 import static org.drools.mvel.integrationtests.phreak.Pair.t;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
-// TODO: EM Need to migrate this to executable model
 public class ScenarioTest {
     BuildContext          buildContext;
     JoinNode              joinNode;
@@ -103,7 +102,7 @@ public class ScenarioTest {
             fail("Should not reach here");
      
         } catch ( AssertionError e ) {
-            assertTrue( e.getMessage().contains( "insert existed" ) );
+            assertThat(e.getMessage().contains("insert existed")).isTrue();
         }
     }
     
@@ -120,7 +119,7 @@ public class ScenarioTest {
             // @formatter:on            
             fail("Should not reach here");
         } catch ( AssertionError e ) {
-            assertTrue( e.getMessage().contains( "Insert excpected more" ) );
+            assertThat(e.getMessage().contains("Insert excpected more")).isTrue();
         }
     }  
     
@@ -137,7 +136,7 @@ public class ScenarioTest {
             // @formatter:on            
             fail("Should not reach here");
         } catch ( AssertionError e ) {
-            assertTrue( e.getMessage().contains( "insert 0" ) );
+            assertThat(e.getMessage().contains("insert 0")).isTrue();
         }
     }        
     
@@ -190,7 +189,7 @@ public class ScenarioTest {
             // @formatter:on            
             fail("Should not reach here");
         } catch ( AssertionError e ) {
-            assertTrue( e.getMessage().contains( "delete 0" ) );
+            assertThat(e.getMessage().contains("delete 0")).isTrue();
         }
     }     
     
@@ -211,7 +210,7 @@ public class ScenarioTest {
             // @formatter:on            
             fail("Should not reach here");
         } catch ( AssertionError e ) {
-            assertTrue( e.getMessage().contains( "insert existed" ) );
+            assertThat(e.getMessage().contains("insert existed")).isTrue();
         }
     }   
     
@@ -232,7 +231,7 @@ public class ScenarioTest {
             // @formatter:on            
             fail("Should not reach here");
         } catch ( AssertionError e ) {
-            assertTrue( e.getMessage().contains( "Insert excpected more" ) );
+            assertThat(e.getMessage().contains("Insert excpected more")).isTrue();
         }
     }    
     
@@ -253,7 +252,7 @@ public class ScenarioTest {
             // @formatter:on            
             fail("Should not reach here");
         } catch ( AssertionError e ) {
-            assertTrue( e.getMessage().contains( "Insert excpected more" ) );
+            assertThat(e.getMessage().contains("Insert excpected more")).isTrue();
         }
     }        
 
@@ -269,7 +268,7 @@ public class ScenarioTest {
             // @formatter:on            
             fail("Should not reach here");
         } catch ( AssertionError e ) {
-            assertTrue( e.getMessage().contains( "LeftTuple memory size did not match" ) );
+            assertThat(e.getMessage().contains("LeftTuple memory size did not match")).isTrue();
         }
     }    
     
@@ -285,7 +284,7 @@ public class ScenarioTest {
             // @formatter:on            
             fail("Should not reach here");
         } catch ( AssertionError e ) {
-            assertTrue( e.getMessage().contains( "LeftTuple memory size did not match" ) );
+            assertThat(e.getMessage().contains("LeftTuple memory size did not match")).isTrue();
         }
     }    
     
@@ -303,7 +302,7 @@ public class ScenarioTest {
             // @formatter:on            
             fail("Should not reach here");
         } catch ( AssertionError e ) {
-            assertTrue( e.getMessage().contains( "Could not find LeftTuple" ) );
+            assertThat(e.getMessage().contains("Could not find LeftTuple")).isTrue();
         }
     }    
     
@@ -321,7 +320,7 @@ public class ScenarioTest {
             // @formatter:on            
             fail("Should not reach here");
         } catch ( AssertionError e ) {
-            assertTrue( e.getMessage().contains( "Could not find LeftTuple" ) );
+            assertThat(e.getMessage().contains("Could not find LeftTuple")).isTrue();
         }
     }      
     
@@ -338,7 +337,7 @@ public class ScenarioTest {
             // @formatter:on            
             fail("Should not reach here");
         } catch ( AssertionError e ) {
-            assertTrue( e.getMessage().contains( "RightTuple memory size did not match" ) );
+            assertThat(e.getMessage().contains("RightTuple memory size did not match")).isTrue();
         }
     }    
     
@@ -354,7 +353,7 @@ public class ScenarioTest {
             // @formatter:on            
             fail("Should not reach here");
         } catch ( AssertionError e ) {
-            assertTrue( e.getMessage().contains( "RightTuple memory size did not match" ) );
+            assertThat(e.getMessage().contains("RightTuple memory size did not match")).isTrue();
         }
     }    
     
@@ -372,7 +371,7 @@ public class ScenarioTest {
             // @formatter:on            
             fail("Should not reach here");
         } catch ( AssertionError e ) {
-            assertTrue( e.getMessage().contains( "Could not find RightTuple" ) );
+            assertThat(e.getMessage().contains("Could not find RightTuple")).isTrue();
         }
     }   
     
@@ -389,7 +388,7 @@ public class ScenarioTest {
             // @formatter:on            
             fail("Should not reach here");
         } catch ( AssertionError e ) {
-            assertTrue( e.getMessage().contains( "Could not find RightTuple" ) );
+            assertThat(e.getMessage().contains("Could not find RightTuple")).isTrue();
         }
     }      
     
@@ -409,7 +408,7 @@ public class ScenarioTest {
             // @formatter:on            
             fail("Should not reach here");
         } catch ( AssertionError e ) {
-            assertTrue( e.getMessage().contains( "insert existed" ) );
+            assertThat(e.getMessage().contains("insert existed")).isTrue();
         }
     } 
     
@@ -430,7 +429,7 @@ public class ScenarioTest {
             fail("Should not reach here");
         } catch ( AssertionError e ) {
             System.out.println( e.getMessage() );
-            assertTrue( e.getMessage().contains( "Insert excpected more" ) );
+            assertThat(e.getMessage().contains("Insert excpected more")).isTrue();
         }
     }    
     
@@ -452,7 +451,7 @@ public class ScenarioTest {
             // @formatter:on            
             fail("Should not reach here");
         } catch ( AssertionError e ) {
-            assertTrue( e.getMessage().contains( "insert 0" ) );
+            assertThat(e.getMessage().contains("insert 0")).isTrue();
         }
     } 
     
@@ -477,7 +476,7 @@ public class ScenarioTest {
             fail("Should not reach here");
         } catch ( AssertionError e ) {
             System.out.println( e.getMessage() );
-            assertTrue( e.getMessage().contains( "insert 2" ) );
+            assertThat(e.getMessage().contains("insert 2")).isTrue();
         }
     }     
     
@@ -536,7 +535,7 @@ public class ScenarioTest {
             // @formatter:on            
             fail("Should not reach here");
         } catch ( AssertionError e ) {
-            assertTrue( e.getMessage().contains( "delete 0" ) );
+            assertThat(e.getMessage().contains("delete 0")).isTrue();
         }
     }     
     
@@ -559,7 +558,7 @@ public class ScenarioTest {
             // @formatter:on            
             fail("Should not reach here");
         } catch ( AssertionError e ) {
-            assertTrue( e.getMessage().contains( "insert existed" ) );
+            assertThat(e.getMessage().contains("insert existed")).isTrue();
         }
     }      
     
@@ -582,7 +581,7 @@ public class ScenarioTest {
             // @formatter:on            
             fail("Should not reach here");
         } catch ( AssertionError e ) {
-            assertTrue( e.getMessage().contains( "Insert excpected more" ) );
+            assertThat(e.getMessage().contains("Insert excpected more")).isTrue();
         }
     }
     
@@ -605,7 +604,7 @@ public class ScenarioTest {
             // @formatter:on            
             fail("Should not reach here");
         } catch ( AssertionError e ) {
-            assertTrue( e.getMessage().contains( "update 0" ) );
+            assertThat(e.getMessage().contains("update 0")).isTrue();
         }
     }
 
@@ -622,7 +621,7 @@ public class ScenarioTest {
             // @formatter:on            
             fail("Should not reach here");
         } catch ( AssertionError e ) {
-            assertTrue( e.getMessage().contains( "insert existed" ) );
+            assertThat(e.getMessage().contains("insert existed")).isTrue();
         }
     }  
     
@@ -657,7 +656,7 @@ public class ScenarioTest {
             // @formatter:on            
             fail("Should not reach here");
         } catch ( AssertionError e ) {
-            assertTrue( e.getMessage().contains( "delete 0" ) );
+            assertThat(e.getMessage().contains("delete 0")).isTrue();
         }
     }    
     
@@ -677,7 +676,7 @@ public class ScenarioTest {
             // @formatter:on            
             fail("Should not reach here");
         } catch ( AssertionError e ) {
-            assertTrue( e.getMessage().contains( "insert existed" ) );
+            assertThat(e.getMessage().contains("insert existed")).isTrue();
         }
     }
     
@@ -697,7 +696,7 @@ public class ScenarioTest {
             // @formatter:on            
             fail("Should not reach here");
         } catch ( AssertionError e ) {
-            assertTrue( e.getMessage().contains( "Insert excpected more" ) );
+            assertThat(e.getMessage().contains("Insert excpected more")).isTrue();
         }
     }    
     
@@ -717,7 +716,7 @@ public class ScenarioTest {
             // @formatter:on
             fail("Should not reach here");
         } catch ( AssertionError e ) {
-            assertTrue( e.getMessage().contains( "update 0" ) );
+            assertThat(e.getMessage().contains("update 0")).isTrue();
         }
     }        
     
@@ -745,7 +744,7 @@ public class ScenarioTest {
 
         RuleImpl rule = new RuleImpl( "rule1").setPackage( "org.pkg1" );
         InternalKnowledgePackage pkg = new KnowledgePackageImpl( "org.pkg1" );
-        pkg.getDialectRuntimeRegistry().setDialectData( "mvel", new MVELDialectRuntimeData() );
+        pkg.getDialectRuntimeRegistry().setDialectData( "java", new JavaDialectRuntimeData() );
         pkg.addRule( rule );
         buildContext.setRule( rule );
 

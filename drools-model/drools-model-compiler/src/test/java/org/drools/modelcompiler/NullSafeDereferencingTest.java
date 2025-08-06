@@ -20,14 +20,15 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import org.assertj.core.api.Assertions;
 import org.drools.modelcompiler.domain.Address;
+import org.drools.modelcompiler.domain.MysteriousMan;
 import org.drools.modelcompiler.domain.Person;
 import org.drools.modelcompiler.domain.Result;
+
 import org.junit.Test;
 import org.kie.api.runtime.KieSession;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class NullSafeDereferencingTest extends BaseModelTest {
 
@@ -57,7 +58,8 @@ public class NullSafeDereferencingTest extends BaseModelTest {
         ksession.insert( new Person( null, 40 ) );
         ksession.fireAllRules();
 
-        assertEquals( "Found: Mark", result.getValue() );
+        assertThat(result.getValue()).isEqualTo("Found: Mark");
+
     }
 
     public static class NullUnsafeA {
@@ -152,10 +154,10 @@ public class NullSafeDereferencingTest extends BaseModelTest {
 
             Collection<String> results = getObjectsIntoList(ksession, String.class);
             if (i < 4) {
-                assertEquals(0, results.size());
+                assertThat(results.size()).isEqualTo(0);
             } else if (i == 4) {
                 // iteration #3 has no null-traps
-                assertEquals(1, results.size());
+                assertThat(results.size()).isEqualTo(1);
             }
         }
     }
@@ -178,8 +180,8 @@ public class NullSafeDereferencingTest extends BaseModelTest {
         ksession.fireAllRules();
 
         List<Result> results = getObjectsIntoList(ksession, Result.class);
-        assertEquals(1, results.size());
-        assertEquals("John2", results.get(0).getValue());
+        assertThat(results.size()).isEqualTo(1);
+        assertThat(results.get(0).getValue()).isEqualTo("John2");
     }
 
     @Test
@@ -200,8 +202,8 @@ public class NullSafeDereferencingTest extends BaseModelTest {
         ksession.fireAllRules();
 
         List<Result> results = getObjectsIntoList(ksession, Result.class);
-        assertEquals(1, results.size());
-        assertEquals("John2", results.get(0).getValue());
+        assertThat(results.size()).isEqualTo(1);
+        assertThat(results.get(0).getValue()).isEqualTo("John2");
     }
 
     @Test
@@ -222,8 +224,8 @@ public class NullSafeDereferencingTest extends BaseModelTest {
         ksession.fireAllRules();
 
         List<Result> results = getObjectsIntoList(ksession, Result.class);
-        assertEquals(1, results.size());
-        assertEquals("John2", results.get(0).getValue());
+        assertThat(results.size()).isEqualTo(1);
+        assertThat(results.get(0).getValue()).isEqualTo("John2");
     }
 
     @Test
@@ -244,8 +246,8 @@ public class NullSafeDereferencingTest extends BaseModelTest {
         ksession.fireAllRules();
 
         List<Result> results = getObjectsIntoList(ksession, Result.class);
-        assertEquals(1, results.size());
-        assertEquals("John2", results.get(0).getValue());
+        assertThat(results.size()).isEqualTo(1);
+        assertThat(results.get(0).getValue()).isEqualTo("John2");
     }
 
     @Test
@@ -264,11 +266,170 @@ public class NullSafeDereferencingTest extends BaseModelTest {
         List<String> result = new ArrayList<>();
         ksession.setGlobal("result", result);
 
-        ksession.insert(new Person("John", 24, new Address("ABC")));
+        ksession.insert(new Person("John", 24, (Address) null));
         ksession.insert(new Person("Paul", 22, (Address) null));
         ksession.insert(new Person("George", 21, new Address("George")));
         ksession.fireAllRules();
 
-        Assertions.assertThat(result).containsExactlyInAnyOrder("John", "George");
+        assertThat(result).containsExactlyInAnyOrder("John", "George");
+    }
+
+    @Test
+    public void testNullSafeDereferencingNonPredicate() {
+        String str =
+                "import " + Person.class.getCanonicalName() + ";\n" +
+                     "global java.util.List result;\n" +
+                     "rule R1 when\n" +
+                     "   Person( $cityName : address!.city ) \n" +
+                     "then\n" +
+                     "  result.add($cityName);\n" +
+                     "end";
+
+        KieSession ksession = getKieSession(str);
+        List<String> result = new ArrayList<>();
+        ksession.setGlobal("result", result);
+
+        ksession.insert(new Person("John", 24, new Address("London")));
+        ksession.insert(new Person("Paul", 22, (Address) null));
+        ksession.insert(new Person("George", 21, new Address("Tokyo")));
+        ksession.fireAllRules();
+
+        assertThat(result).containsExactlyInAnyOrder("London", "Tokyo");
+    }
+
+    @Test
+    public void testMultipleNullSafeDereferencingNonPredicate() {
+        String str =
+                "import " + Person.class.getCanonicalName() + ";\n" +
+                     "global java.util.List result;\n" +
+                     "rule R1 when\n" +
+                     "   Person( $cityNameLength : address!.city!.length ) \n" +
+                     "then\n" +
+                     "  result.add($cityNameLength);\n" +
+                     "end";
+
+        KieSession ksession = getKieSession(str);
+        List<Integer> result = new ArrayList<>();
+        ksession.setGlobal("result", result);
+
+        ksession.insert(new Person("John", 24, new Address("London")));
+        ksession.insert(new Person("Paul", 22, (Address) null));
+        ksession.insert(new Person("George", 21, new Address(null)));
+        ksession.fireAllRules();
+
+        assertThat(result).containsExactlyInAnyOrder(6);
+    }
+
+    @Test
+    public void testNullSafeDereferencingPredicateMethod() {
+        String str =
+                "import " + Person.class.getCanonicalName() + ";\n" +
+                     "global java.util.List result;\n" +
+                     "rule R1 when\n" +
+                     "   Person( $containsL : address!.city.contains(\"L\") ) \n" +
+                     "then\n" +
+                     "  result.add($containsL);\n" +
+                     "end";
+
+        KieSession ksession = getKieSession(str);
+        List<Boolean> result = new ArrayList<>();
+        ksession.setGlobal("result", result);
+
+        ksession.insert(new Person("John", 24, new Address("London")));
+        ksession.insert(new Person("Paul", 22, (Address) null));
+        ksession.insert(new Person("George", 21, new Address("Tokyo")));
+        ksession.fireAllRules();
+
+        assertThat(result).containsExactlyInAnyOrder(true, false);
+    }
+
+    @Test
+    public void testNullSafeIndex() {
+        String str = "import " + Person.class.getCanonicalName() + ";\n" +
+                     "rule R1 when\n" +
+                     " $city : String()\n"+
+                     " Person( address!.city == $city ) \n" +
+                     "then\n" +
+                     "end";
+
+        KieSession ksession = getKieSession(str);
+
+        ksession.insert(new Person("Mario", 38));
+
+        ksession.insert("London");
+        Person mark = new Person("Mark", 37);
+        mark.setAddress(new Address("London"));
+        ksession.insert(mark);
+
+        Person edson = new Person("Edson", 34);
+        edson.setAddress(new Address(null));
+        ksession.insert(edson);
+
+        assertThat(ksession.fireAllRules()).isEqualTo(1);
+        ksession.dispose();
+    }
+
+    @Test
+    public void testNullSafeDereferncingWithOr() {
+        String str =
+                "import " + Person.class.getCanonicalName() + ";\n" +
+                     "global java.util.List result;\n" +
+                     "rule R\n" +
+                     "when\n" +
+                     "  $p : Person( name!.length == 3 || address!.city == \"Milan\" )\n" +
+                     "then\n" +
+                     "  result.add($p.getName());\n" +
+                     "end";
+
+        KieSession ksession = getKieSession(str);
+        List<String> result = new ArrayList<>();
+        ksession.setGlobal("result", result);
+
+        Person p1 = new Person("Bob", 24, (Address) null);
+        Person p2 = new Person(null, 24, (Address) null);
+        Person p3 = new Person("John", 24, (Address) null);
+        Person p4 = new Person("Paul", 24, new Address("Milan"));
+
+        ksession.insert(p1);
+        ksession.insert(p2);
+        ksession.insert(p3);
+        ksession.insert(p4);
+
+        ksession.fireAllRules();
+
+        assertThat(result).containsExactlyInAnyOrder("Bob", "Paul");
+    }
+
+    @Test
+    public void testNullSafeDereferncingWithInstanceof() {
+        // instanceof has to be evaluated before null check
+        String str =
+                "import " + Person.class.getCanonicalName() + ";\n" +
+                     "import " + MysteriousMan.class.getCanonicalName() + ";\n" +
+                     "global java.util.List result;\n" +
+                     "rule R\n" +
+                     "when\n" +
+                     "  $p : Person( !(this instanceof MysteriousMan), address!.city != null )\n" +
+                     "then\n" +
+                     "  result.add($p.getName());\n" +
+                     "end";
+
+        KieSession ksession = getKieSession(str);
+        List<String> result = new ArrayList<>();
+        ksession.setGlobal("result", result);
+
+        Person p1 = new MysteriousMan("Bob", 24);
+        Person p2 = new Person("Alice", 24, (Address) null);
+        Person p3 = new Person("John", 24, new Address((String) null));
+        Person p4 = new Person("Paul", 24, new Address("Milan"));
+
+        ksession.insert(p1);
+        ksession.insert(p2);
+        ksession.insert(p3);
+        ksession.insert(p4);
+
+        ksession.fireAllRules();
+
+        assertThat(result).containsExactlyInAnyOrder("Paul");
     }
 }

@@ -45,7 +45,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.IntStream;
 
 import org.apache.commons.math3.util.Pair;
-import org.assertj.core.api.Assertions;
 import org.drools.core.base.accumulators.IntegerMaxAccumulateFunction;
 import org.drools.core.spi.Activation;
 import org.drools.model.functions.accumulate.GroupKey;
@@ -64,11 +63,8 @@ import org.kie.api.runtime.KieSession;
 import org.kie.api.runtime.rule.AccumulateFunction;
 import org.kie.api.runtime.rule.FactHandle;
 
-import static org.hamcrest.CoreMatchers.hasItem;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 public class AccumulateTest extends BaseModelTest {
 
@@ -98,8 +94,8 @@ public class AccumulateTest extends BaseModelTest {
         ksession.fireAllRules();
 
         Collection<Result> results = getObjectsIntoList(ksession, Result.class);
-        assertEquals(1, results.size());
-        assertEquals(77, results.iterator().next().getValue());
+        assertThat(results.size()).isEqualTo(1);
+        assertThat(results.iterator().next().getValue()).isEqualTo(77);
     }
 
     @Test
@@ -127,8 +123,8 @@ public class AccumulateTest extends BaseModelTest {
         ksession.fireAllRules();
 
         Collection<Result> results = getObjectsIntoList(ksession, Result.class);
-        assertEquals(1, results.size());
-        assertEquals("77", results.iterator().next().getValue());
+        assertThat(results.size()).isEqualTo(1);
+        assertThat(results.iterator().next().getValue()).isEqualTo("77");
     }
 
     @Test
@@ -156,8 +152,8 @@ public class AccumulateTest extends BaseModelTest {
         ksession.fireAllRules();
 
         Collection<Result> results = getObjectsIntoList(ksession, Result.class);
-        assertEquals(1, results.size());
-        assertEquals("77", results.iterator().next().getValue());
+        assertThat(results.size()).isEqualTo(1);
+        assertThat(results.iterator().next().getValue()).isEqualTo("77");
     }
 
     @Test
@@ -182,8 +178,8 @@ public class AccumulateTest extends BaseModelTest {
         ksession.fireAllRules();
 
         Collection<Result> results = getObjectsIntoList(ksession, Result.class);
-        assertEquals(1, results.size());
-        assertEquals(2l, results.iterator().next().getValue());
+        assertThat(results.size()).isEqualTo(1);
+        assertThat(results.iterator().next().getValue()).isEqualTo(2l);
     }
 
     @Test
@@ -207,11 +203,11 @@ public class AccumulateTest extends BaseModelTest {
 
         int numberOfRules = ksession.fireAllRules();
 
-        assertEquals(1, numberOfRules);
+        assertThat(numberOfRules).isEqualTo(1);
 
         Collection<Result> results = getObjectsIntoList(ksession, Result.class);
-        assertEquals(1, results.size());
-        assertEquals("fired", results.iterator().next().getValue());
+        assertThat(results.size()).isEqualTo(1);
+        assertThat(results.iterator().next().getValue()).isEqualTo("fired");
     }
 
     @Test
@@ -236,8 +232,8 @@ public class AccumulateTest extends BaseModelTest {
         ksession.fireAllRules();
 
         Collection<Result> results = getObjectsIntoList(ksession, Result.class);
-        assertEquals(1, results.size());
-        assertEquals(2, results.iterator().next().getValue());
+        assertThat(results.size()).isEqualTo(1);
+        assertThat(results.iterator().next().getValue()).isEqualTo(2);
     }
 
     @Test
@@ -262,8 +258,8 @@ public class AccumulateTest extends BaseModelTest {
         ksession.fireAllRules();
 
         Collection<Result> results = getObjectsIntoList(ksession, Result.class);
-        assertEquals(1, results.size());
-        assertEquals(77, results.iterator().next().getValue());
+        assertThat(results.size()).isEqualTo(1);
+        assertThat(results.iterator().next().getValue()).isEqualTo(77);
     }
 
     @Test
@@ -288,7 +284,7 @@ public class AccumulateTest extends BaseModelTest {
         ksession.fireAllRules();
 
         Collection<Result> results = getObjectsIntoList(ksession, Result.class);
-        assertEquals(0, results.size());
+        assertThat(results.size()).isEqualTo(0);
     }
 
     @Test
@@ -313,8 +309,8 @@ public class AccumulateTest extends BaseModelTest {
         ksession.fireAllRules();
 
         Collection<Result> results = getObjectsIntoList(ksession, Result.class);
-        assertEquals(1, results.size());
-        assertEquals(77, results.iterator().next().getValue());
+        assertThat(results.size()).isEqualTo(1);
+        assertThat(results.iterator().next().getValue()).isEqualTo(77);
     }
 
     @Test
@@ -339,8 +335,8 @@ public class AccumulateTest extends BaseModelTest {
         ksession.fireAllRules();
 
         Collection<Result> results = getObjectsIntoList(ksession, Result.class);
-        assertEquals(1, results.size());
-        assertEquals(77, results.iterator().next().getValue());
+        assertThat(results.size()).isEqualTo(1);
+        assertThat(results.iterator().next().getValue()).isEqualTo(77);
     }
 
     @Test
@@ -367,8 +363,8 @@ public class AccumulateTest extends BaseModelTest {
         ksession.fireAllRules();
 
         Collection<Result> results = getObjectsIntoList(ksession, Result.class);
-        assertThat(results, hasItem(new Result(38.5)));
-        assertThat(results, hasItem(new Result(77)));
+        assertThat(results).contains(new Result(38.5));
+        assertThat(results).contains(new Result(77));
     }
 
     @Test
@@ -395,8 +391,8 @@ public class AccumulateTest extends BaseModelTest {
         ksession.fireAllRules();
 
         Collection<Result> results = getObjectsIntoList(ksession, Result.class);
-        assertThat(results, hasItem(new Result(38.5d)));
-        assertThat(results, hasItem(new Result(77)));
+        assertThat(results).contains(new Result(38.5d));
+        assertThat(results).contains(new Result(77));
     }
 
     @Test
@@ -424,8 +420,8 @@ public class AccumulateTest extends BaseModelTest {
         ksession.fireAllRules();
 
         Collection<Result> results = getObjectsIntoList(ksession, Result.class);
-        assertThat(results, hasItem(new Result(37)));
-        assertThat(results, hasItem(new Result(77)));
+        assertThat(results).contains(new Result(37));
+        assertThat(results).contains(new Result(77));
     }
 
     @Test
@@ -450,7 +446,7 @@ public class AccumulateTest extends BaseModelTest {
         ksession.fireAllRules();
 
         Collection<Result> results = getObjectsIntoList(ksession, Result.class);
-        assertThat(results, hasItem(new Result(43)));
+        assertThat(results).contains(new Result(43));
     }
 
     @Test
@@ -476,7 +472,7 @@ public class AccumulateTest extends BaseModelTest {
 
         Collection<Result> results = getObjectsIntoList(ksession, Result.class);
         // The original DSL test returns a double while the exec model returns an integer
-        assertEquals(((Number)results.iterator().next().getValue()).intValue(), 49);
+        assertThat(((Number) results.iterator().next().getValue()).intValue()).isEqualTo(49);
     }
 
     @Test
@@ -502,7 +498,7 @@ public class AccumulateTest extends BaseModelTest {
 
         Collection<Result> results = getObjectsIntoList(ksession, Result.class);
         // The original DSL test returns a double while the exec model returns an integer
-        assertEquals(((Number)results.iterator().next().getValue()).intValue(), 49);
+        assertThat(((Number) results.iterator().next().getValue()).intValue()).isEqualTo(49);
     }
 
     @Test
@@ -530,7 +526,7 @@ public class AccumulateTest extends BaseModelTest {
 
         Collection<Result> results = getObjectsIntoList(ksession, Result.class);
         // The original DSL test returns a double while the exec model returns an integer
-        assertEquals(54, ((Number)results.iterator().next().getValue()).intValue());
+        assertThat(((Number) results.iterator().next().getValue()).intValue()).isEqualTo(54);
     }
 
     @Test
@@ -559,7 +555,7 @@ public class AccumulateTest extends BaseModelTest {
 
         Collection<Result> results = getObjectsIntoList(ksession, Result.class);
         // The original DSL test returns a double while the exec model returns an integer
-        assertEquals(59, ((Number)results.iterator().next().getValue()).intValue());
+        assertThat(((Number) results.iterator().next().getValue()).intValue()).isEqualTo(59);
     }
 
     @Test
@@ -585,7 +581,7 @@ public class AccumulateTest extends BaseModelTest {
         ksession.fireAllRules();
 
         Collection<Result> results = getObjectsIntoList(ksession, Result.class);
-        assertThat(results, hasItem(new Result(1)));
+        assertThat(results).contains(new Result(1));
     }
 
     public static class TestFunction implements AccumulateFunction<Serializable> {
@@ -652,8 +648,8 @@ public class AccumulateTest extends BaseModelTest {
         ksession.fireAllRules();
 
         Collection<Result> results = getObjectsIntoList(ksession, Result.class);
-        assertEquals(1, results.size());
-        assertEquals(77, results.iterator().next().getValue());
+        assertThat(results.size()).isEqualTo(1);
+        assertThat(results.iterator().next().getValue()).isEqualTo(77);
     }
 
     @Test
@@ -741,7 +737,7 @@ public class AccumulateTest extends BaseModelTest {
 
         List<TargetPolicy> targetPolicyList = Arrays.asList(target1, target2, target3);
         long filtered = targetPolicyList.stream().filter(c -> c.getCoefficient() == 1).count();
-        assertEquals(1, filtered);
+        assertThat(filtered).isEqualTo(1);
     }
 
     @Test
@@ -772,16 +768,16 @@ public class AccumulateTest extends BaseModelTest {
         ksession.fireAllRules();
 
         List<Integer> results = getObjectsIntoList(ksession, Integer.class);
-        assertEquals(1, results.size());
-        assertThat(results, hasItem(112));
+        assertThat(results.size()).isEqualTo(1);
+        assertThat(results).contains(112);
 
         if (performReverse) {
             ksession.delete(fh_Mario);
             ksession.fireAllRules();
 
             results = getObjectsIntoList(ksession, Integer.class);
-            assertEquals(2, results.size());
-            assertThat(results, hasItem(72));
+            assertThat(results.size()).isEqualTo(2);
+            assertThat(results).contains(72);
         }
     }
 
@@ -807,15 +803,15 @@ public class AccumulateTest extends BaseModelTest {
         ksession.fireAllRules();
 
         List<Integer> results = getObjectsIntoList(ksession, Integer.class);
-        assertEquals(1, results.size());
-        assertThat(results, hasItem(38));
+        assertThat(results.size()).isEqualTo(1);
+        assertThat(results).contains(38);
 
         ksession.delete(fh_Mario);
         ksession.fireAllRules();
 
         results = getObjectsIntoList(ksession, Integer.class);
-        assertEquals(2, results.size());
-        assertThat(results, hasItem(36));
+        assertThat(results.size()).isEqualTo(2);
+        assertThat(results).contains(36);
     }
 
     @Test
@@ -841,15 +837,15 @@ public class AccumulateTest extends BaseModelTest {
         ksession.fireAllRules();
 
         List<Integer> results = getObjectsIntoList(ksession, Integer.class);
-        assertEquals(1, results.size());
-        assertThat(results, hasItem(38 + 14));
+        assertThat(results.size()).isEqualTo(1);
+        assertThat(results).contains(38 + 14);
 
         ksession.delete(fh_Mario);
         ksession.fireAllRules();
 
         results = getObjectsIntoList(ksession, Integer.class);
-        assertEquals(2, results.size());
-        assertThat(results, hasItem(36 + 14));
+        assertThat(results.size()).isEqualTo(2);
+        assertThat(results).contains(36 + 14);
     }
 
 
@@ -874,8 +870,8 @@ public class AccumulateTest extends BaseModelTest {
         ksession.fireAllRules();
 
         List<Integer> results = getObjectsIntoList(ksession, Integer.class);
-        assertEquals(1, results.size());
-        assertThat(results, hasItem(8));
+        assertThat(results.size()).isEqualTo(1);
+        assertThat(results).contains(8);
     }
 
     @Test
@@ -898,8 +894,8 @@ public class AccumulateTest extends BaseModelTest {
         ksession.fireAllRules();
 
         List<String> results = getObjectsIntoList(ksession, String.class);
-        assertEquals(1, results.size());
-        assertThat(results, hasItem("Milan"));
+        assertThat(results.size()).isEqualTo(1);
+        assertThat(results).contains("Milan");
     }
 
     @Test
@@ -927,7 +923,7 @@ public class AccumulateTest extends BaseModelTest {
 
         List<Integer> results = getObjectsIntoList(ksession, Integer.class);
 
-        assertThat(results, hasItem(4));
+        assertThat(results).contains(4);
     }
 
     @Test
@@ -954,8 +950,8 @@ public class AccumulateTest extends BaseModelTest {
         ksession.fireAllRules();
 
         Collection<Result> results = getObjectsIntoList(ksession, Result.class);
-        assertEquals(1, results.size());
-        assertEquals(77, ((Number) results.iterator().next().getValue()).intValue());
+        assertThat(results.size()).isEqualTo(1);
+        assertThat(((Number) results.iterator().next().getValue()).intValue()).isEqualTo(77);
     }
 
     @Test
@@ -979,8 +975,8 @@ public class AccumulateTest extends BaseModelTest {
         ksession.fireAllRules();
 
         List<Integer> results = getObjectsIntoList(ksession, Integer.class);
-        assertEquals(1, results.size());
-        assertThat(results, hasItem(112));
+        assertThat(results.size()).isEqualTo(1);
+        assertThat(results).contains(112);
 
     }
 
@@ -1005,8 +1001,8 @@ public class AccumulateTest extends BaseModelTest {
         ksession.fireAllRules();
 
         List<Integer> results = getObjectsIntoList(ksession, Integer.class);
-        assertEquals(1, results.size());
-        assertThat(results, hasItem(112));
+        assertThat(results.size()).isEqualTo(1);
+        assertThat(results).contains(112);
 
     }
 
@@ -1031,8 +1027,8 @@ public class AccumulateTest extends BaseModelTest {
         ksession.fireAllRules();
 
         List<Number> results = getObjectsIntoList(ksession, Number.class);
-        assertEquals(1, results.size());
-        assertEquals(112, results.get(0).intValue());
+        assertThat(results.size()).isEqualTo(1);
+        assertThat(results.get(0).intValue()).isEqualTo(112);
 
     }
 
@@ -1061,8 +1057,8 @@ public class AccumulateTest extends BaseModelTest {
         ksession.fireAllRules();
 
         List<Number> results = getObjectsIntoList(ksession, Number.class);
-        assertEquals(1, results.size());
-        assertEquals(11, results.get(0).intValue());
+        assertThat(results.size()).isEqualTo(1);
+        assertThat(results.get(0).intValue()).isEqualTo(11);
     }
 
     @Test
@@ -1091,8 +1087,8 @@ public class AccumulateTest extends BaseModelTest {
         ksession.fireAllRules();
 
         List<Number> results = getObjectsIntoList(ksession, Number.class);
-        assertEquals(1, results.size());
-        assertEquals(2, results.get(0).intValue());
+        assertThat(results.size()).isEqualTo(1);
+        assertThat(results.get(0).intValue()).isEqualTo(2);
     }
 
     @Test
@@ -1128,8 +1124,8 @@ public class AccumulateTest extends BaseModelTest {
         ksession.fireAllRules();
 
         List<Number> results = getObjectsIntoList(ksession, Number.class);
-        assertEquals(1, results.size());
-        assertEquals(212, results.get(0).intValue());
+        assertThat(results.size()).isEqualTo(1);
+        assertThat(results.get(0).intValue()).isEqualTo(212);
     }
 
     @Test
@@ -1152,8 +1148,8 @@ public class AccumulateTest extends BaseModelTest {
         ksession.fireAllRules();
 
         Collection<Person> results = getObjectsIntoList(ksession, Person.class);
-        assertEquals(1, results.size());
-        assertEquals(3, results.iterator().next().getAge());
+        assertThat(results.size()).isEqualTo(1);
+        assertThat(results.iterator().next().getAge()).isEqualTo(3);
     }
 
     @Test
@@ -1176,8 +1172,8 @@ public class AccumulateTest extends BaseModelTest {
         ksession.fireAllRules();
 
         Collection<Result> results = getObjectsIntoList(ksession, Result.class);
-        assertEquals(1, results.size());
-        assertEquals(23, results.iterator().next().getValue());
+        assertThat(results.size()).isEqualTo(1);
+        assertThat(results.iterator().next().getValue()).isEqualTo(23);
     }
 
 
@@ -1202,8 +1198,8 @@ public class AccumulateTest extends BaseModelTest {
         ksession.fireAllRules();
 
         Collection<Result> results = getObjectsIntoList(ksession, Result.class);
-        assertEquals(1, results.size());
-        assertEquals(10, results.iterator().next().getValue());
+        assertThat(results.size()).isEqualTo(1);
+        assertThat(results.iterator().next().getValue()).isEqualTo(10);
     }
 
 
@@ -1228,8 +1224,8 @@ public class AccumulateTest extends BaseModelTest {
         ksession.fireAllRules();
 
         Collection<Result> results = getObjectsIntoList(ksession, Result.class);
-        assertEquals(1, results.size());
-        assertEquals(23, results.iterator().next().getValue());
+        assertThat(results.size()).isEqualTo(1);
+        assertThat(results.iterator().next().getValue()).isEqualTo(23);
     }
 
     @Test
@@ -1257,9 +1253,9 @@ public class AccumulateTest extends BaseModelTest {
         Person p2 = new Person();
         p2.setMoney( new BigDecimal(3 ));
         ksession1.insert(p2);
-        assertEquals( 1, ksession1.fireAllRules() );
+        assertThat(ksession1.fireAllRules()).isEqualTo(1);
 
-        Assertions.assertThat(results).containsExactly(BigDecimal.valueOf(8));
+        assertThat(results).containsExactly(BigDecimal.valueOf(8));
 
     }
 
@@ -1284,7 +1280,7 @@ public class AccumulateTest extends BaseModelTest {
         StockTick st = new StockTick("RHT");
         st.setTimeField(new Date().getTime());
         ksession.insert(st);
-        Assertions.assertThat(ksession.fireAllRules()).isEqualTo(1);
+        assertThat(ksession.fireAllRules()).isEqualTo(1);
     }
 
     @Test
@@ -1305,7 +1301,7 @@ public class AccumulateTest extends BaseModelTest {
         StockTick st = new StockTick("RHT");
         st.setDueDate(Calendar.getInstance());
         ksession.insert(st);
-        Assertions.assertThat(ksession.fireAllRules()).isEqualTo(1);
+        assertThat(ksession.fireAllRules()).isEqualTo(1);
     }
 
     @Test
@@ -1332,7 +1328,7 @@ public class AccumulateTest extends BaseModelTest {
         c.setCode("RHT");
         ksession.insert(st);
         ksession.insert(c);
-        Assertions.assertThat(ksession.fireAllRules()).isEqualTo(1);
+        assertThat(ksession.fireAllRules()).isEqualTo(1);
     }
 
     @Test
@@ -1371,7 +1367,7 @@ public class AccumulateTest extends BaseModelTest {
 
         ksession.insert(new ShortValue());
 
-        assertEquals(1, ksession.fireAllRules());
+        assertThat(ksession.fireAllRules()).isEqualTo(1);
     }
 
     @Test
@@ -1397,8 +1393,8 @@ public class AccumulateTest extends BaseModelTest {
         ksession.insert(new Converter());
         ksession.fireAllRules();
 
-        assertEquals(1, list.size());
-        assertEquals(5, list.get(0).intValue());
+        assertThat(list.size()).isEqualTo(1);
+        assertThat(list.get(0).intValue()).isEqualTo(5);
     }
 
     public static class Converter {
@@ -1434,8 +1430,8 @@ public class AccumulateTest extends BaseModelTest {
         ksession.insert(new Converter());
         ksession.fireAllRules();
 
-        assertEquals(1, list.size());
-        assertEquals(5, list.get(0).intValue());
+        assertThat(list.size()).isEqualTo(1);
+        assertThat(list.get(0).intValue()).isEqualTo(5);
     }
 
     @Test
@@ -1462,8 +1458,8 @@ public class AccumulateTest extends BaseModelTest {
         ksession.insert("hello");
         ksession.fireAllRules();
 
-        assertEquals(1, list.size());
-        assertEquals(5, list.get(0).intValue());
+        assertThat(list.size()).isEqualTo(1);
+        assertThat(list.get(0).intValue()).isEqualTo(5);
     }
 
     @Test
@@ -1498,8 +1494,8 @@ public class AccumulateTest extends BaseModelTest {
 
         ksession.fireAllRules();
 
-        assertEquals(true, result.isResultAccumulated());
-        assertEquals(40, result.getMaxShortValue());
+        assertThat(result.isResultAccumulated()).isEqualTo(true);
+        assertThat(result.getMaxShortValue()).isEqualTo((short)40);
     }
 
     public static class AccumulateResult {
@@ -1568,8 +1564,8 @@ public class AccumulateTest extends BaseModelTest {
 
         int rulesFired = ksession.fireAllRules();
 
-        assertEquals(1, rulesFired);
-        assertEquals(BigDecimal.valueOf(3000), result.getBigDecimalValue());
+        assertThat(rulesFired).isEqualTo(1);
+        assertThat(result.getBigDecimalValue()).isEqualTo(BigDecimal.valueOf(3000));
     }
 
     @Test
@@ -1603,7 +1599,7 @@ public class AccumulateTest extends BaseModelTest {
 
         ksession.fireAllRules();
 
-        assertEquals(new BigDecimal(300), list.get(0));
+        assertThat(list.get(0)).isEqualTo(new BigDecimal(300));
 
     }
 
@@ -1639,7 +1635,7 @@ public class AccumulateTest extends BaseModelTest {
 
         ksession.fireAllRules();
 
-        assertEquals(63, list.get(0));
+        assertThat(list.get(0)).isEqualTo(63);
     }
 
 
@@ -1800,26 +1796,26 @@ public class AccumulateTest extends BaseModelTest {
         FactHandle geoffreyFH = ksession.insert(new Person("Geoffrey", 35));
         ksession.fireAllRules();
 
-        assertEquals( 3, results.size() );
-        assertEquals( 35, results.get("G") );
-        assertEquals( 71, results.get("E") );
-        assertEquals( 126, results.get("M") );
+        assertThat(results.size()).isEqualTo(3);
+        assertThat(results.get("G")).isEqualTo(35);
+        assertThat(results.get("E")).isEqualTo(71);
+        assertThat(results.get("M")).isEqualTo(126);
         results.clear();
 
         ksession.delete( meFH );
         ksession.fireAllRules();
 
-        assertEquals( 1, results.size() );
-        assertEquals( 81, results.get("M") );
+        assertThat(results.size()).isEqualTo(1);
+        assertThat(results.get("M")).isEqualTo(81);
         results.clear();
 
         ksession.update(geoffreyFH, new Person("Geoffrey", 40));
         ksession.insert(new Person("Matteo", 38));
         ksession.fireAllRules();
 
-        assertEquals( 2, results.size() );
-        assertEquals( 40, results.get("G") );
-        assertEquals( 119, results.get("M") );
+        assertThat(results.size()).isEqualTo(2);
+        assertThat(results.get("G")).isEqualTo(40);
+        assertThat(results.get("M")).isEqualTo(119);
     }
 
     @Test
@@ -1867,26 +1863,26 @@ public class AccumulateTest extends BaseModelTest {
         FactHandle geoffreyFH = ksession.insert(new Person("Geoffrey", 35));
         ksession.fireAllRules();
 
-        assertEquals( 3, results.size() );
-        assertEquals( 35, results.get("G") );
-        assertEquals( 71, results.get("E") );
-        assertEquals( 126, results.get("M") );
+        assertThat(results.size()).isEqualTo(3);
+        assertThat(results.get("G")).isEqualTo(35);
+        assertThat(results.get("E")).isEqualTo(71);
+        assertThat(results.get("M")).isEqualTo(126);
         results.clear();
 
         ksession.delete( meFH );
         ksession.fireAllRules();
 
-        assertEquals( 1, results.size() );
-        assertEquals( 81, results.get("M") );
+        assertThat(results.size()).isEqualTo(1);
+        assertThat(results.get("M")).isEqualTo(81);
         results.clear();
 
         ksession.update(geoffreyFH, new Person("Geoffrey", 40));
         ksession.insert(new Person("Matteo", 38));
         ksession.fireAllRules();
 
-        assertEquals( 2, results.size() );
-        assertEquals( 40, results.get("G") );
-        assertEquals( 119, results.get("M") );
+        assertThat(results.size()).isEqualTo(2);
+        assertThat(results.get("G")).isEqualTo(40);
+        assertThat(results.get("M")).isEqualTo(119);
     }
 
     @Test
@@ -1939,26 +1935,26 @@ public class AccumulateTest extends BaseModelTest {
 
         ksession.fireAllRules();
 
-        assertEquals( 2, results.size() );
-        assertEquals( 35, results.get("G") );
-        assertNull( results.get("E") );
-        assertEquals( 126, results.get("M") );
+        assertThat(results.size()).isEqualTo(2);
+        assertThat(results.get("G")).isEqualTo(35);
+        assertThat(results.get("E")).isNull();
+        assertThat(results.get("M")).isEqualTo(126);
         results.clear();
 
         ksession.delete( meFH );
         ksession.fireAllRules();
 
-        assertEquals( 1, results.size() );
-        assertEquals( 81, results.get("M") );
+        assertThat(results.size()).isEqualTo(1);
+        assertThat(results.get("M")).isEqualTo(81);
         results.clear();
 
         ksession.update(geoffreyFH, new Person("Geoffrey", 40));
         ksession.insert(new Person("Matteo", 38));
         ksession.fireAllRules();
 
-        assertEquals( 2, results.size() );
-        assertEquals( 40, results.get("G") );
-        assertEquals( 119, results.get("M") );
+        assertThat(results.size()).isEqualTo(2);
+        assertThat(results.get("G")).isEqualTo(40);
+        assertThat(results.get("M")).isEqualTo(119);
     }
 
     @Test
@@ -2009,7 +2005,7 @@ public class AccumulateTest extends BaseModelTest {
        FactHandle toRemove = ksession.insert(child1);
         ksession.insert(child2);
         ksession.fireAllRules();
-        Assertions.assertThat(results)
+        assertThat(results)
                   .containsOnly(Arrays.asList(child1, 2L), Arrays.asList(child2, 2L));
 
         // Remove child1, therefore it does not exist, therefore there should be no groupBy matches for the child.
@@ -2018,7 +2014,7 @@ public class AccumulateTest extends BaseModelTest {
 
         // Yet, we still get (Child2, 0).
         ksession.fireAllRules();
-        Assertions.assertThat(results)
+        assertThat(results)
                 .containsOnly(Arrays.asList(child2, 1L));
     }
 
@@ -2072,32 +2068,32 @@ public class AccumulateTest extends BaseModelTest {
         FactHandle geoffreyFH = ksession.insert(new Person("Geoffrey", 35));
         ksession.fireAllRules();
 
-        assertEquals( 6, results.size() );
-        assertEquals( 35, results.get("G4") );
-        assertEquals( 71, results.get("E4") );
-        assertEquals( 126, results.get("M4") );
-        assertEquals( 35, results.get("G5") );
-        assertEquals( 71, results.get("E5") );
-        assertEquals( 126, results.get("M5") );
+        assertThat(results.size()).isEqualTo(6);
+        assertThat(results.get("G4")).isEqualTo(35);
+        assertThat(results.get("E4")).isEqualTo(71);
+        assertThat(results.get("M4")).isEqualTo(126);
+        assertThat(results.get("G5")).isEqualTo(35);
+        assertThat(results.get("E5")).isEqualTo(71);
+        assertThat(results.get("M5")).isEqualTo(126);
         results.clear();
 
         ksession.delete( meFH );
         ksession.fireAllRules();
 
-        assertEquals( 2, results.size() );
-        assertEquals( 81, results.get("M4") );
-        assertEquals( 81, results.get("M5") );
+        assertThat(results.size()).isEqualTo(2);
+        assertThat(results.get("M4")).isEqualTo(81);
+        assertThat(results.get("M5")).isEqualTo(81);
         results.clear();
 
         ksession.update(geoffreyFH, new Person("Geoffrey", 40));
         ksession.insert(new Person("Matteo", 38));
         ksession.fireAllRules();
 
-        assertEquals( 4, results.size() );
-        assertEquals( 40, results.get("G4") );
-        assertEquals( 119, results.get("M4") );
-        assertEquals( 40, results.get("G5") );
-        assertEquals( 119, results.get("M5") );
+        assertThat(results.size()).isEqualTo(4);
+        assertThat(results.get("G4")).isEqualTo(40);
+        assertThat(results.get("M4")).isEqualTo(119);
+        assertThat(results.get("G5")).isEqualTo(40);
+        assertThat(results.get("M5")).isEqualTo(119);
     }
 
     @Test
@@ -2143,7 +2139,7 @@ public class AccumulateTest extends BaseModelTest {
 
         ksession.fireAllRules();
 
-        assertEquals(6, result.iterator().next().longValue());
+        assertThat(result.iterator().next().longValue()).isEqualTo(6);
 
     }
 
@@ -2176,7 +2172,7 @@ public class AccumulateTest extends BaseModelTest {
 
         ksession.fireAllRules();
 
-        assertEquals(3, result.iterator().next().longValue());
+        assertThat(result.iterator().next().longValue()).isEqualTo(3);
     }
 
     public static class Interval {
@@ -2240,7 +2236,7 @@ public class AccumulateTest extends BaseModelTest {
 
         ksession.fireAllRules();
 
-        assertEquals(60, result.iterator().next().longValue());
+        assertThat(result.iterator().next().longValue()).isEqualTo(60);
 
     }
 
@@ -2274,7 +2270,7 @@ public class AccumulateTest extends BaseModelTest {
 
         ksession.fireAllRules();
 
-        assertEquals(60, result.iterator().next().longValue());
+        assertThat(result.iterator().next().longValue()).isEqualTo(60);
 
     }
 
@@ -2348,8 +2344,8 @@ public class AccumulateTest extends BaseModelTest {
         ksession.fireAllRules();
 
         List<Number> results = getObjectsIntoList(ksession, Number.class);
-        assertEquals(1, results.size());
-        assertEquals(142, results.get(0).intValue());
+        assertThat(results.size()).isEqualTo(1);
+        assertThat(results.get(0).intValue()).isEqualTo(142);
     }
 
     public static class MyUtil {
@@ -2403,12 +2399,12 @@ public class AccumulateTest extends BaseModelTest {
         ksession.insert( d2 );
         ksession.insert( d3 );
 
-        assertEquals( 4, ksession.fireAllRules() );
+        assertThat(ksession.fireAllRules()).isEqualTo(4);
 
         c2.setName( "b" );
         ksession.update( c2fh, c2 );
 
-        assertEquals( 2, ksession.fireAllRules() );
+        assertThat(ksession.fireAllRules()).isEqualTo(2);
     }
 
     @Test
@@ -2433,8 +2429,8 @@ public class AccumulateTest extends BaseModelTest {
         ksession.fireAllRules();
 
         List<Number> results = getObjectsIntoList(ksession, Number.class);
-        assertEquals(1, results.size());
-        assertEquals(5, results.get(0).intValue());
+        assertThat(results.size()).isEqualTo(1);
+        assertThat(results.get(0).intValue()).isEqualTo(5);
     }
 
     @Test
@@ -2466,12 +2462,12 @@ public class AccumulateTest extends BaseModelTest {
         ksession.fireAllRules();
 
         List<Number> resultsInt = getObjectsIntoList(ksession, Number.class);
-        assertEquals(1, resultsInt.size());
-        assertEquals(126, resultsInt.get(0).intValue());
+        assertThat(resultsInt.size()).isEqualTo(1);
+        assertThat(resultsInt.get(0).intValue()).isEqualTo(126);
 
         List<String> resultsString = getObjectsIntoList(ksession, String.class);
-        assertEquals(1, resultsString.size());
-        assertEquals("13", resultsString.get(0));
+        assertThat(resultsString.size()).isEqualTo(1);
+        assertThat(resultsString.get(0)).isEqualTo("13");
     }
 
     @Test
@@ -2496,7 +2492,7 @@ public class AccumulateTest extends BaseModelTest {
 
         ksession.insert( new Shift( OffsetDateTime.now()) );
 
-        Assertions.assertThat(ksession.fireAllRules()).isEqualTo(1);
+        assertThat(ksession.fireAllRules()).isEqualTo(1);
     }
 
     @Test
@@ -2521,7 +2517,7 @@ public class AccumulateTest extends BaseModelTest {
 
         ksession.insert( new Shift( OffsetDateTime.now()) );
 
-        Assertions.assertThat(ksession.fireAllRules()).isEqualTo(1);
+        assertThat(ksession.fireAllRules()).isEqualTo(1);
     }
 
     public class Shift {
@@ -2609,8 +2605,8 @@ public class AccumulateTest extends BaseModelTest {
         ksession.fireAllRules();
 
         Collection<Result> results = getObjectsIntoList(ksession, Result.class);
-        assertEquals(1, results.size());
-        assertEquals(8 * 60L, results.iterator().next().getValue());
+        assertThat(results.size()).isEqualTo(1);
+        assertThat(results.iterator().next().getValue()).isEqualTo(8 * 60L);
     }
 
     private static int switchMachinesInAssignments(KieSession session, MrProcessAssignment left,
@@ -2661,22 +2657,22 @@ public class AccumulateTest extends BaseModelTest {
         kieSession.insert(assignment3);
         kieSession.insert(assignment4);
         int fired = kieSession.fireAllRules();
-        assertEquals(0, fired);
-        assertTrue(result.isEmpty());
+        assertThat(fired).isEqualTo(0);
+        assertThat(result.isEmpty()).isTrue();
 
         // Execute the sequence of session events that triggers the exception.
         fired = switchMachinesInAssignments(kieSession, assignment1, assignment2);
-        assertEquals(1, fired);
-        assertEquals(2, result.get(0).longValue());
+        assertThat(fired).isEqualTo(1);
+        assertThat(result.get(0).longValue()).isEqualTo(2);
         result.clear();
 
         fired = switchMachinesInAssignments(kieSession, assignment1, assignment2);
-        assertEquals(0, fired);
-        assertTrue(result.isEmpty());
+        assertThat(fired).isEqualTo(0);
+        assertThat(result.isEmpty()).isTrue();
 
         fired = switchMachinesInAssignments(kieSession, assignment4, assignment3);
-        assertEquals(1, fired);
-        assertEquals(2, result.get(0).longValue());
+        assertThat(fired).isEqualTo(1);
+        assertThat(result.get(0).longValue()).isEqualTo(2);
         result.clear();
 
         kieSession.dispose();
@@ -2774,8 +2770,8 @@ public class AccumulateTest extends BaseModelTest {
 
         ksession.fireAllRules();
 
-        assertEquals( 1, result.size() );
-        assertEquals( new BigDecimal( 225000 ), result.get(0) );
+        assertThat(result.size()).isEqualTo(1);
+        assertThat(result.get(0)).isEqualTo(new BigDecimal( 225000 ));
 
         ksession.dispose();
     }
@@ -2824,8 +2820,8 @@ public class AccumulateTest extends BaseModelTest {
 
         ksession.fireAllRules();
 
-        assertEquals( 1, result.size() );
-        assertEquals( new BigDecimal( 225000 ), result.get(0) );
+        assertThat(result.size()).isEqualTo(1);
+        assertThat(result.get(0)).isEqualTo(new BigDecimal( 225000 ));
 
         ksession.dispose();
     }
@@ -2939,9 +2935,9 @@ public class AccumulateTest extends BaseModelTest {
         FactHandle lucaFH = ksession.insert( new Person( "Luca", 36 ) );
 
         ksession.fireAllRules();
-        assertEquals(1, result.size());
-        assertEquals(46, result.get(0).intValue());
-        assertEquals(3, accFunction.getAccumulateCount());
+        assertThat(result.size()).isEqualTo(1);
+        assertThat(result.get(0).intValue()).isEqualTo(46);
+        assertThat(accFunction.getAccumulateCount()).isEqualTo(3);
 
         result.clear();
         accFunction.resetAccumulateCount();
@@ -2950,9 +2946,9 @@ public class AccumulateTest extends BaseModelTest {
         ksession.delete( markFH );
 
         ksession.fireAllRules();
-        assertEquals(1, result.size());
-        assertEquals(46, result.get(0).intValue());
-        assertEquals(0, accFunction.getAccumulateCount());
+        assertThat(result.size()).isEqualTo(1);
+        assertThat(result.get(0).intValue()).isEqualTo(46);
+        assertThat(accFunction.getAccumulateCount()).isEqualTo(0);
 
         result.clear();
         accFunction.resetAccumulateCount();
@@ -2961,9 +2957,9 @@ public class AccumulateTest extends BaseModelTest {
         ksession.update( marioFH, mario );
 
         ksession.fireAllRules();
-        assertEquals(1, result.size());
-        assertEquals(36, result.get(0).intValue());
-        assertEquals(2, accFunction.getAccumulateCount());
+        assertThat(result.size()).isEqualTo(1);
+        assertThat(result.get(0).intValue()).isEqualTo(36);
+        assertThat(accFunction.getAccumulateCount()).isEqualTo(2);
     }
 
     public static class CountingIntegerMaxAccumulateFunction extends IntegerMaxAccumulateFunction {
@@ -3006,7 +3002,7 @@ public class AccumulateTest extends BaseModelTest {
 
         KieSession ksession = getKieSession( str );
 
-        List<Integer> result = new ArrayList<>();
+        List<Person> result = new ArrayList<>();
         ksession.setGlobal("result", result);
 
         Person lukas = new Person("Lukas", 35);
@@ -3015,8 +3011,8 @@ public class AccumulateTest extends BaseModelTest {
 
         System.out.println(result);
 
-        assertEquals(1, result.size());
-        assertEquals(lukas, result.get(0));
+        assertThat(result.size()).isEqualTo(1);
+        assertThat(result.get(0)).isEqualTo(lukas);
     }
 
     @Test
@@ -3035,17 +3031,16 @@ public class AccumulateTest extends BaseModelTest {
 
         KieSession ksession = getKieSession( str );
 
-        List<Integer> result = new ArrayList<>();
+        List<Person> result = new ArrayList<>();
         ksession.setGlobal("result", result);
 
         Person lukas = new Person("Lukas", 35);
         ksession.insert(lukas);
         ksession.fireAllRules();
 
-        System.out.println(result);
 
-        assertEquals(1, result.size());
-        assertEquals(lukas, result.get(0));
+        assertThat(result.size()).isEqualTo(1);
+        assertThat(result.get(0)).isEqualTo(lukas);
     }
 
     @Test
@@ -3073,8 +3068,8 @@ public class AccumulateTest extends BaseModelTest {
         ksession.insert(new Person("Lukas", 35));
         ksession.fireAllRules();
 
-        assertEquals(1, result.size());
-        assertEquals(Pair.create("Lukas", 35), result.get(0));
+        assertThat(result.size()).isEqualTo(1);
+        assertThat(result.get(0)).isEqualTo(Pair.create("Lukas", 35));
     }
 
     @Test
@@ -3096,16 +3091,14 @@ public class AccumulateTest extends BaseModelTest {
 
         KieSession ksession = getKieSession( str );
 
-        List<Integer> result = new ArrayList<>();
+        List<Pair> result = new ArrayList<>();
         ksession.setGlobal("result", result);
 
         ksession.insert(new Person("Lukas", 35));
         ksession.fireAllRules();
 
-        System.out.println(result);
-
-        assertEquals(1, result.size());
-        assertEquals(Pair.create("Lukas", 35), result.get(0));
+        assertThat(result.size()).isEqualTo(1);
+        assertThat(result.get(0)).isEqualTo(Pair.create("Lukas", 35));
     }
 
     @Test
@@ -3147,9 +3140,9 @@ public class AccumulateTest extends BaseModelTest {
         kSession.insert(new Cclass("C200"));
         kSession.insert(new Dclass("D250"));
 
-        assertEquals( 1, kSession.fireAllRules() );
-        assertEquals( 1, result.size() );
-        assertEquals( "B180", result.get(0) );
+        assertThat(kSession.fireAllRules()).isEqualTo(1);
+        assertThat(result.size()).isEqualTo(1);
+        assertThat(result.get(0)).isEqualTo("B180");
 
         kSession.dispose();
     }
@@ -3193,9 +3186,9 @@ public class AccumulateTest extends BaseModelTest {
         kSession.insert(new Cclass("C200"));
         kSession.insert(new Dclass("D250"));
 
-        assertEquals( 1, kSession.fireAllRules() );
-        assertEquals( 1, result.size() );
-        assertEquals( "B180", result.get(0) );
+        assertThat(kSession.fireAllRules()).isEqualTo(1);
+        assertThat(result.size()).isEqualTo(1);
+        assertThat(result.get(0)).isEqualTo("B180");
 
         kSession.dispose();
     }
@@ -3240,9 +3233,9 @@ public class AccumulateTest extends BaseModelTest {
         kSession.insert(new Cclass("C200"));
         kSession.insert(new Dclass("D250"));
 
-        assertEquals( 1, kSession.fireAllRules() );
-        assertEquals( 1, result.size() );
-        assertEquals( "B180", result.get(0) );
+        assertThat(kSession.fireAllRules()).isEqualTo(1);
+        assertThat(result.size()).isEqualTo(1);
+        assertThat(result.get(0)).isEqualTo("B180");
 
         kSession.dispose();
     }
@@ -3352,13 +3345,13 @@ public class AccumulateTest extends BaseModelTest {
         kSession.insert( "mytest" );
         kSession.insert( "anothertest" );
 
-        assertEquals( 1, kSession.fireAllRules() );
-        assertEquals( 5, result.size() );
-        assertEquals( 3L, result.get( 0 ) );
-        assertEquals( 21, result.get( 1 ) );
-        assertTrue( result.contains( "test" ) );
-        assertTrue( result.contains( "mytest" ) );
-        assertTrue( result.contains( "anothertest" ) );
+        assertThat(kSession.fireAllRules()).isEqualTo(1);
+        assertThat(result.size()).isEqualTo(5);
+        assertThat(result.get(0)).isEqualTo(3L);
+        assertThat(result.get(1)).isEqualTo(21);
+        assertThat(result.contains("test")).isTrue();
+        assertThat(result.contains("mytest")).isTrue();
+        assertThat(result.contains("anothertest")).isTrue();
 
         kSession.dispose();
     }
@@ -3388,9 +3381,9 @@ public class AccumulateTest extends BaseModelTest {
         ksession.insert(new Aclass("A180"));
         ksession.insert(new Aclass("A180"));
 
-        assertEquals( 1, ksession.fireAllRules() );
-        assertEquals( 1, result.size() );
-        assertEquals( "A180", result.get(0).getName() );
+        assertThat(ksession.fireAllRules()).isEqualTo(1);
+        assertThat(result.size()).isEqualTo(1);
+        assertThat(result.get(0).getName()).isEqualTo("A180");
 
         ksession.dispose();
     }
@@ -3419,7 +3412,7 @@ public class AccumulateTest extends BaseModelTest {
         grandParent.setGrandChild( Collections.singletonList( grandChild ));
 
         ksession.insert(grandParent);
-        assertEquals( 1, ksession.fireAllRules() );
+        assertThat(ksession.fireAllRules()).isEqualTo(1);
     }
 
     public static class GrandChild {
@@ -3474,8 +3467,8 @@ public class AccumulateTest extends BaseModelTest {
         FactHandle fh2 = ksession.insert( new Person("name2", 40));
         FactHandle fh3 = ksession.insert( new Person("name3", 25));
 
-        Assertions.assertThat(ksession.fireAllRules()).isEqualTo(1);
-        assertEquals(0, (int)holder.get());
+        assertThat(ksession.fireAllRules()).isEqualTo(1);
+        assertThat((int) holder.get()).isEqualTo(0);
     }
 
     @Test
@@ -3508,7 +3501,7 @@ public class AccumulateTest extends BaseModelTest {
 
         ksession.insert(new Person("Mark", 42));
         ksession.insert(new Person("Edson", 38));
-        assertEquals( 1, ksession.fireAllRules() );
+        assertThat(ksession.fireAllRules()).isEqualTo(1);
     }
 
     public static class GroupByAccPersonSet {
@@ -3579,11 +3572,11 @@ public class AccumulateTest extends BaseModelTest {
         ksession.insert(47);
         ksession.insert(42);
         ksession.insert(new Person("Edson", 38));
-        assertEquals( 1, ksession.fireAllRules() );
+        assertThat(ksession.fireAllRules()).isEqualTo(1);
 
-        assertEquals( 2, list.size() );
-        assertEquals( 1, (int) list.get(0) );
-        assertEquals( 2, (int) list.get(1) );
+        assertThat(list.size()).isEqualTo(2);
+        assertThat((int) list.get(0)).isEqualTo(1);
+        assertThat((int) list.get(1)).isEqualTo(2);
     }
 
     @Test
@@ -3607,7 +3600,7 @@ public class AccumulateTest extends BaseModelTest {
         StockTick st2 = new StockTick("IBM");
         st2.setDueDate(new GregorianCalendar(2020, Calendar.FEBRUARY, 4));
         ksession.insert(st2);
-        Assertions.assertThat(ksession.fireAllRules()).isEqualTo(1);
+        assertThat(ksession.fireAllRules()).isEqualTo(1);
     }
 
     @Test
@@ -3643,8 +3636,8 @@ public class AccumulateTest extends BaseModelTest {
         ksession.insert(i2);
 
         try {
-            assertEquals(1, ksession.fireAllRules());
-            assertEquals(year2019.getTime().getTime(), result.iterator().next().longValue());
+            assertThat(ksession.fireAllRules()).isEqualTo(1);
+            assertThat(result.iterator().next().longValue()).isEqualTo(year2019.getTime().getTime());
         } finally {
             ksession.dispose();
         }
@@ -3724,8 +3717,8 @@ public class AccumulateTest extends BaseModelTest {
         ksession.fireAllRules();
 
         Collection<Result> results = getObjectsIntoList(ksession, Result.class);
-        assertEquals(1, results.size());
-        assertEquals(2L, results.iterator().next().getValue());
+        assertThat(results.size()).isEqualTo(1);
+        assertThat(results.iterator().next().getValue()).isEqualTo(2L);
     }
 
     @Test
@@ -3760,13 +3753,13 @@ public class AccumulateTest extends BaseModelTest {
         ksession.insert(mario);
 
         int rulesFired = ksession.fireAllRules();
-        Assertions.assertThat(rulesFired).isGreaterThan(0);
-        Assertions.assertThat(resultTotal).contains(1l);
+        assertThat(rulesFired).isGreaterThan(0);
+        assertThat(resultTotal).contains(1l);
 
         List<Pair> resultPairItem = resultPair.iterator().next();
         Pair firstPair = resultPairItem.iterator().next();
-        assertEquals("Mario", firstPair.getFirst());
-        assertEquals("Mario", firstPair.getSecond());
+        assertThat(firstPair.getFirst()).isEqualTo("Mario");
+        assertThat(firstPair.getSecond()).isEqualTo("Mario");
     }
 
     @Test
@@ -3799,7 +3792,7 @@ public class AccumulateTest extends BaseModelTest {
         ksession.insert(controlFact);
         ksession.insert(payment);
         final int rules = ksession.fireAllRules();
-        assertEquals(1, rules);
+        assertThat(rules).isEqualTo(1);
     }
 
     @Test
@@ -3824,7 +3817,7 @@ public class AccumulateTest extends BaseModelTest {
 
         ksession.insert(factA);
         final int rules = ksession.fireAllRules();
-        assertEquals(1, rules);
+        assertThat(rules).isEqualTo(1);
     }
 
     public static class ControlFact {
@@ -3887,8 +3880,8 @@ public class AccumulateTest extends BaseModelTest {
         ksession.fireAllRules();
 
         List<Number> results = getObjectsIntoList(ksession, Number.class);
-        assertEquals( 1, results.size() );
-        assertEquals( 90, results.get(0) );
+        assertThat(results.size()).isEqualTo(1);
+        assertThat(results.get(0)).isEqualTo(90);
     }
   
     @Test
@@ -3920,8 +3913,8 @@ public class AccumulateTest extends BaseModelTest {
         ksession.fireAllRules();
 
         Collection<Result> results = getObjectsIntoList(ksession, Result.class);
-        assertEquals(1, results.size());
-        assertEquals(112, results.iterator().next().getValue());
+        assertThat(results.size()).isEqualTo(1);
+        assertThat(results.iterator().next().getValue()).isEqualTo(112);
     }
 
     @Test
@@ -3945,16 +3938,16 @@ public class AccumulateTest extends BaseModelTest {
         FactHandle meFH = ksession.insert(new Person("Mario", 45));
         FactHandle geoffreyFH = ksession.insert(new Person("Geoffrey", 35));
         ksession.fireAllRules();
-        assertEquals(4, (int)holder.get());
+        assertThat((int) holder.get()).isEqualTo(4);
 
         ksession.delete( meFH );
         ksession.fireAllRules();
-        assertEquals(3, (int)holder.get());
+        assertThat((int) holder.get()).isEqualTo(3);
 
         ksession.update(geoffreyFH, new Person("Geoffrey", 40));
         ksession.insert(new Person("Matteo", 38));
         ksession.fireAllRules();
-        assertEquals(4, (int)holder.get());
+        assertThat((int) holder.get()).isEqualTo(4);
     }
 
     @Test
@@ -3982,16 +3975,16 @@ public class AccumulateTest extends BaseModelTest {
         FactHandle meFH = ksession.insert(new Person("Mario", 45));
         FactHandle geoffreyFH = ksession.insert(new Person("Geoffrey", 35));
         ksession.fireAllRules();
-        assertEquals(4, (int)holder.get());
+        assertThat((int) holder.get()).isEqualTo(4);
 
         ksession.delete( meFH );
         ksession.fireAllRules();
-        assertEquals(3, (int)holder.get());
+        assertThat((int) holder.get()).isEqualTo(3);
 
         ksession.update(geoffreyFH, new Person("Geoffrey", 40));
         ksession.insert(new Person("Matteo", 38));
         ksession.fireAllRules();
-        assertEquals(4, (int)holder.get());
+        assertThat((int) holder.get()).isEqualTo(4);
     }
 
     @Test
@@ -4018,15 +4011,15 @@ public class AccumulateTest extends BaseModelTest {
         ksession.fireAllRules();
 
         List<Integer> results = getObjectsIntoList(ksession, Integer.class);
-        assertEquals(1, results.size());
-        assertThat(results, hasItem(38));
+        assertThat(results.size()).isEqualTo(1);
+        assertThat(results).contains(38);
 
         ksession.delete(fh_Mario);
         ksession.fireAllRules();
 
         results = getObjectsIntoList(ksession, Integer.class);
-        assertEquals(2, results.size());
-        assertThat(results, hasItem(36));
+        assertThat(results.size()).isEqualTo(2);
+        assertThat(results).contains(36);
     }
 
     @Test
@@ -4058,7 +4051,7 @@ public class AccumulateTest extends BaseModelTest {
 
         ksession.fireAllRules();
 
-        Assertions.assertThat(result).containsExactly(50);
+        assertThat(result).containsExactly(50);
     }
 
     @Test
@@ -4090,7 +4083,7 @@ public class AccumulateTest extends BaseModelTest {
 
         ksession.fireAllRules();
 
-        Assertions.assertThat(result).containsExactly(50);
+        assertThat(result).containsExactly(50);
     }
 
     @Test
@@ -4127,9 +4120,26 @@ public class AccumulateTest extends BaseModelTest {
 
             ksession.fireAllRules();
 
-            Assertions.assertThat(result).containsExactlyInAnyOrder(paul, george);
+            assertThat(result).containsExactlyInAnyOrder(paul, george);
         } catch (Throwable ex) {
-            Assertions.fail("Should not have thrown.", ex);
+            fail("Should not have thrown.", ex);
         }
+    }
+
+    @Test
+    public void testExistsFromAccumulate() {
+        // DROOLS-6959
+        String str =
+                "import " + Set.class.getCanonicalName() + ";\n" +
+                "rule R when\n" +
+                 "  exists Set(size > 1) from accumulate ( $s: String(), collectSet($s) )\n" +
+                 "then\n" +
+                 "end";
+
+        KieSession ksession = getKieSession(str);
+
+        ksession.insert("String1");
+        ksession.insert("String2");
+        assertThat(ksession.fireAllRules()).isEqualTo(1);
     }
 }

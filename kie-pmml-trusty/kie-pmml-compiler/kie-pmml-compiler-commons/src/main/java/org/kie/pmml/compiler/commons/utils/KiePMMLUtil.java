@@ -21,11 +21,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import javax.xml.bind.JAXBException;
+import javax.xml.parsers.ParserConfigurationException;
+
+import jakarta.xml.bind.JAXBException;
 
 import org.dmg.pmml.DataField;
 import org.dmg.pmml.DataType;
-import org.dmg.pmml.FieldName;
 import org.dmg.pmml.MathContext;
 import org.dmg.pmml.MiningField;
 import org.dmg.pmml.MiningFunction;
@@ -75,7 +76,13 @@ public class KiePMMLUtil {
      * @see org.jpmml.model.PMMLUtil#unmarshal(InputStream)
      */
     public static PMML load(final InputStream is, final String fileName) throws SAXException, JAXBException {
-        PMML toReturn = org.jpmml.model.PMMLUtil.unmarshal(is);
+        PMML toReturn = null;
+        try {
+            toReturn = org.jpmml.model.PMMLUtil.unmarshal(is);
+        }
+        catch (ParserConfigurationException e) {
+            throw new RuntimeException(e);
+        }
         String cleanedFileName = fileName.contains(".") ? fileName.substring(0, fileName.indexOf('.')) : fileName;
         List<DataField> dataFields = toReturn.getDataDictionary().getDataFields();
         List<Model> models =  toReturn.getModels();
@@ -160,7 +167,7 @@ public class KiePMMLUtil {
         String cleanedName = model.getModelName().replaceAll("[^A-Za-z0-9]", "");
         String fieldName = String.format(TARGETFIELD_TEMPLATE, cleanedName);
         DataField toReturn = new DataField();
-        toReturn.setName(FieldName.create(fieldName));
+        toReturn.setName(fieldName);
         toReturn.setOpType(targetOpType);
         toReturn.setDataType(targetDataType);
         return Optional.of(toReturn);
@@ -325,7 +332,7 @@ public class KiePMMLUtil {
                                 .filter(targetField -> outputField.getTargetField().equals(targetField.getName()))
                                 .findFirst()
                                 .orElseThrow(() -> new KiePMMLException("Failed to find a target field for OutputField "
-                                                                                + outputField.getName().getValue()));
+                                                                                + outputField.getName()));
                     }
                     if (referencedField == null && (outputField.getResultFeature() == null || outputField.getResultFeature().equals(ResultFeature.PREDICTED_VALUE))) { // default predictedValue
                         referencedField = targetFields.stream()
@@ -337,7 +344,7 @@ public class KiePMMLUtil {
                         return;
                     }
                     if (referencedField != null) {
-                        FieldName targetFieldName = referencedField.getName();
+                        String targetFieldName = referencedField.getName();
                         DataField dataField = dataFields.stream()
                                 .filter(df -> df.getName().equals(targetFieldName))
                                 .findFirst()

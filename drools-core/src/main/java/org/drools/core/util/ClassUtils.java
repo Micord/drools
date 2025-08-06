@@ -44,6 +44,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.drools.core.common.DroolsObjectInputStream;
@@ -55,6 +56,7 @@ import static java.lang.Character.toUpperCase;
 import static java.lang.System.arraycopy;
 import static java.lang.reflect.Modifier.PUBLIC;
 import static java.lang.reflect.Modifier.STATIC;
+import static java.util.Arrays.asList;
 import static org.drools.core.util.MethodUtils.getMethod;
 import static org.drools.core.util.StringUtils.ucFirst;
 
@@ -72,6 +74,10 @@ public final class ClassUtils {
     private static final Map<String, String> abbreviationMap;
 
     private static final Map<String, Class<?>> primitiveNameToType;
+
+    private static final Set<Class<?>> numericClasses = new HashSet<Class<?>>(asList(int.class, long.class, double.class, float.class, short.class, char.class, byte.class,
+                                                                                     Integer.class, Long.class, Double.class, Float.class, Short.class, Character.class, Byte.class,
+                                                                                     BigInteger.class, BigDecimal.class));
 
     static {
         final Map<String, String> m = new HashMap<>();
@@ -424,6 +430,16 @@ public final class ClassUtils {
         return null;
     }
 
+    // Used for exec-model DomainClassMetadata and index
+    public static List<String> getAccessiblePropertiesIncludingNonGetterValueMethod(Class<?> clazz) {
+        List<String> accessibleProperties = getAccessibleProperties(clazz);
+
+        // Add nonGetterValueMethods at last so property reactivity mask index isn't affected
+        accessibleProperties.addAll(getNonGetterValueMethods(clazz, accessibleProperties));
+        return accessibleProperties;
+    }
+
+    // Used for property reactivity
     public static List<String> getAccessibleProperties( Class<?> clazz ) {
         Set<PropertyInClass> props = new TreeSet<>();
         for (Method m : clazz.getMethods()) {
@@ -444,10 +460,40 @@ public final class ClassUtils {
         }
 
         List<String> accessibleProperties = new ArrayList<>();
-        for ( PropertyInClass setter : props ) {
-            accessibleProperties.add(setter.setter);
+        for ( PropertyInClass propInClass : props ) {
+            accessibleProperties.add(propInClass.prop);
         }
         return accessibleProperties;
+    }
+
+    public static List<String> getNonGetterValueMethods(Class<?> clazz, List<String> accessibleProperties) {
+        Set<PropertyInClass> nonGetterValueMethodInClassSet = new TreeSet<>();
+        for (Method m : clazz.getMethods()) {
+            String propName = getter2property(m.getName());
+            if (propName == null) {
+                String methodName = filterNonGetterValueMethod(m);
+                if (methodName != null) {
+                    nonGetterValueMethodInClassSet.add(new PropertyInClass(methodName, m.getDeclaringClass()));
+                }
+            }
+        }
+
+        List<String> nonGetterValueMethods = new ArrayList<>();
+        for (PropertyInClass propInClass : nonGetterValueMethodInClassSet) {
+            if (!accessibleProperties.contains(propInClass.prop)) {
+                nonGetterValueMethods.add(propInClass.prop);
+            }
+        }
+        return nonGetterValueMethods;
+    }
+
+    private static String filterNonGetterValueMethod(Method m) {
+        String methodName = m.getName();
+        if (m.getParameterTypes().length == 0 && !m.getReturnType().equals(void.class) && !methodName.equals("toString") && !methodName.equals("hashCode")) {
+            return m.getName(); // e.g. Person.calcAge(), Integer.intValue()
+        } else {
+            return null;
+        }
     }
 
     public static Field getField(Class<?> clazz, String field) {
@@ -459,18 +505,60 @@ public final class ClassUtils {
     }
 
     public static Method getAccessor(Class<?> clazz, String field) {
-        return Stream.<Supplier<String>>of(
-                    () -> "get" + ucFirst(field),
-                    () -> field,
-                    () -> "is" + ucFirst(field),
-                    () -> "get" + field,
-                    () -> "is" + field
-        )
-                .map( f -> getMethod(clazz, f.get(), new Class<?>[0] ))
-                .filter( Optional::isPresent )
-                .findFirst()
-                .flatMap( Function.identity() )
-                .orElse( null );
+        return getAccessor(clazz, field, false);
+    }
+
+    public static Method getAccessor(Class<?> clazz, String field, boolean exceptionIfIncompatible) {
+        Map<String, Integer> accessorPriorityMap = accessorPriorityMap(field);
+        List<Method> accessors = accessorPriorityMap.keySet()
+                                                    .stream()
+                                                    .map(methodName -> getMethod(clazz, methodName, new Class<?>[0]))
+                                                    .filter(Optional::isPresent)
+                                                    .map(Optional::get)
+                                                    .filter(method -> !(method.getName().startsWith("is") && !method.getReturnType().equals(boolean.class)))
+                                                    .distinct()
+                                                    .collect(Collectors.toList());
+        return bestCandidateAccessor(clazz, accessors, accessorPriorityMap, exceptionIfIncompatible);
+    }
+
+    public static Map<String, Integer> accessorPriorityMap(String field) {
+        Map<String, Integer> accessorPriorityMap = new HashMap<>();
+        accessorPriorityMap.put("is" + ucFirst(field), 4);
+        accessorPriorityMap.put("is" + field, 3);
+        accessorPriorityMap.put("get" + ucFirst(field), 2);
+        accessorPriorityMap.put("get" + field, 1);
+        accessorPriorityMap.put(field, 0);
+        return accessorPriorityMap;
+    }
+
+    private static Method bestCandidateAccessor(Class<?> clazz, List<Method> accessors, Map<String, Integer> accessorPriorityMap, boolean exceptionIfIncompatible) {
+        Method bestCandidate = null;
+        for (Method method : accessors) {
+            if (bestCandidate != null && !MethodUtils.isOverride(bestCandidate, method)) {
+                if (method.getReturnType() != bestCandidate.getReturnType()) {
+                    if (method.getReturnType().isAssignableFrom(bestCandidate.getReturnType())) {
+                        // a more specialized getter (covariant overload) has been already indexed, so skip this one
+                        continue;
+                    } else if (bestCandidate.getReturnType().isAssignableFrom(method.getReturnType())) {
+                        // this method is a more specialized getter. Overwrite with this one
+                    } else {
+                        // returnType is different so it would likely produce a wrong result
+                        if (exceptionIfIncompatible) {
+                            throw new IncompatibleGetterOverloadException(clazz,
+                                                                          bestCandidate.getName(), bestCandidate.getReturnType(),
+                                                                          method.getName(), method.getReturnType());
+                        }
+                    }
+                } else if (Modifier.isAbstract(method.getModifiers()) && Modifier.isAbstract(bestCandidate.getModifiers())) {
+                    // If both are abstract, no need of Warning
+                } else if (accessorPriorityMap.get(bestCandidate.getName()) > accessorPriorityMap.get(method.getName())) {
+                    // bestCandidate has higher priority
+                    continue;
+                }
+            }
+            bestCandidate = method;
+        }
+        return bestCandidate;
     }
 
     public static Method getSetter(Class<?> clazz, String field, Class<?> parameterType) {
@@ -666,18 +754,18 @@ public final class ClassUtils {
     }
 
     private static class PropertyInClass implements Comparable {
-        private final String setter;
+        private final String prop;
         private final Class<?> clazz;
 
-        private PropertyInClass( String setter, Class<?> clazz ) {
-            this.setter = setter;
+        private PropertyInClass( String prop, Class<?> clazz ) {
+            this.prop = prop;
             this.clazz = clazz;
         }
 
         public int compareTo(Object o) {
             PropertyInClass other = (PropertyInClass) o;
             if (clazz == other.clazz) {
-                return setter.compareTo(other.setter);
+                return prop.compareTo(other.prop);
             }
             return clazz.isAssignableFrom(other.clazz) ? -1 : 1;
         }
@@ -688,12 +776,12 @@ public final class ClassUtils {
                 return false;
             }
             PropertyInClass other = (PropertyInClass) obj;
-            return clazz == other.clazz && setter.equals(other.setter);
+            return clazz == other.clazz && prop.equals(other.prop);
         }
 
         @Override
         public int hashCode() {
-            return 29 * clazz.hashCode() + 31 * setter.hashCode();
+            return 29 * clazz.hashCode() + 31 * prop.hashCode();
         }
     }
 
@@ -959,5 +1047,9 @@ public final class ClassUtils {
         return enclosingClass != null ?
                getCanonicalSimpleName(enclosingClass) + separator + c.getSimpleName() :
                c.getSimpleName();
+    }
+
+    public static boolean isNumericClass(Class<?> clazz) {
+        return numericClasses.contains(clazz);
     }
 }

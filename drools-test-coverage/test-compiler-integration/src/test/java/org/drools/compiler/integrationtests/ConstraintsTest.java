@@ -22,7 +22,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.assertj.core.api.Assertions;
 import org.drools.testcoverage.common.model.Cheese;
 import org.drools.testcoverage.common.model.Message;
 import org.drools.testcoverage.common.model.Person;
@@ -38,9 +37,7 @@ import org.kie.api.KieBase;
 import org.kie.api.builder.KieBuilder;
 import org.kie.api.runtime.KieSession;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(Parameterized.class)
 public class ConstraintsTest {
@@ -159,7 +156,7 @@ public class ConstraintsTest {
 
             ksession.insert(mbox);
             ksession.insert(message);
-            assertEquals(1, ksession.fireAllRules());
+            assertThat(ksession.fireAllRules()).isEqualTo(1);
         } finally {
             ksession.dispose();
         }
@@ -187,10 +184,10 @@ public class ConstraintsTest {
         final KieSession ksession = kbase.newKieSession();
         try {
             ksession.insert(new Mailbox("foo@mail"));
-            assertEquals(0, ksession.fireAllRules());
+            assertThat(ksession.fireAllRules()).isEqualTo(0);
 
             ksession.insert(new Mailbox("john@mail"));
-            assertEquals(2, ksession.fireAllRules());
+            assertThat(ksession.fireAllRules()).isEqualTo(2);
         } finally {
             ksession.dispose();
         }
@@ -209,7 +206,7 @@ public class ConstraintsTest {
                 "end\n";
 
         final KieBuilder kieBuilder = KieUtil.getKieBuilderFromDrls(kieBaseTestConfiguration, false, drl);
-        Assertions.assertThat(kieBuilder.getResults().getMessages()).isNotEmpty();
+        assertThat(kieBuilder.getResults().getMessages()).isNotEmpty();
     }
 
     @Test
@@ -258,11 +255,11 @@ public class ConstraintsTest {
 
             ksession.fireAllRules();
 
-            assertEquals(4, results.size());
-            assertEquals(chili1, results.get(0));
-            assertEquals(oldChili1, results.get(1));
-            assertEquals(youngChili1, results.get(2));
-            assertEquals(veryold, results.get(3));
+            assertThat(results.size()).isEqualTo(4);
+            assertThat(results.get(0)).isEqualTo(chili1);
+            assertThat(results.get(1)).isEqualTo(oldChili1);
+            assertThat(results.get(2)).isEqualTo(youngChili1);
+            assertThat(results.get(3)).isEqualTo(veryold);
         } finally {
             ksession.dispose();
         }
@@ -292,7 +289,7 @@ public class ConstraintsTest {
         try {
             ksession.insert(new StockTick(1, "RHT", 10, 1000));
             ksession.insert(new StockTick(2, "IBM", 10, 1100));
-            assertEquals(1, ksession.fireAllRules());
+            assertThat(ksession.fireAllRules()).isEqualTo(1);
         } finally {
             ksession.dispose();
         }
@@ -312,7 +309,7 @@ public class ConstraintsTest {
         final KieSession ksession = kbase.newKieSession();
         try {
             ksession.insert(new Person("Bob"));
-            assertEquals(1, ksession.fireAllRules());
+            assertThat(ksession.fireAllRules()).isEqualTo(1);
         } finally {
             ksession.dispose();
         }
@@ -334,7 +331,7 @@ public class ConstraintsTest {
             final Person person = new Person("Bob");
             person.setAlive(true);
             ksession.insert(person);
-            assertEquals(1, ksession.fireAllRules());
+            assertThat(ksession.fireAllRules()).isEqualTo(1);
         } finally {
             ksession.dispose();
         }
@@ -366,7 +363,7 @@ public class ConstraintsTest {
             ksession.insert(new Cheese("muzzarela", 80));
 
             ksession.fireAllRules();
-            assertEquals("should have fired twice", 2, list.size());
+            assertThat(list.size()).as("should have fired twice").isEqualTo(2);
         } finally {
             ksession.dispose();
         }
@@ -419,20 +416,20 @@ public class ConstraintsTest {
 
             ksession.fireAllRules();
 
-            assertEquals(1, list1.size());
-            assertTrue(list1.contains(chili1));
+            assertThat(list1.size()).isEqualTo(1);
+            assertThat(list1.contains(chili1)).isTrue();
 
-            assertEquals(2, list2.size());
-            assertTrue(list2.contains(chili1));
-            assertTrue(list2.contains(chili2));
+            assertThat(list2.size()).isEqualTo(2);
+            assertThat(list2.contains(chili1)).isTrue();
+            assertThat(list2.contains(chili2)).isTrue();
 
-            assertEquals(2, list3.size());
-            assertTrue(list3.contains(youngChili1));
-            assertTrue(list3.contains(youngChili2));
+            assertThat(list3.size()).isEqualTo(2);
+            assertThat(list3.contains(youngChili1)).isTrue();
+            assertThat(list3.contains(youngChili2)).isTrue();
 
-            assertEquals(2, list4.size());
-            assertTrue(list4.contains(youngChili1));
-            assertTrue(list4.contains(chili1));
+            assertThat(list4.size()).isEqualTo(2);
+            assertThat(list4.contains(youngChili1)).isTrue();
+            assertThat(list4.contains(chili1)).isTrue();
         } finally {
             ksession.dispose();
         }
@@ -451,8 +448,8 @@ public class ConstraintsTest {
 
         final KieBuilder kieBuilder = KieUtil.getKieBuilderFromDrls(kieBaseTestConfiguration, false, drl);
         List<org.kie.api.builder.Message> messages = kieBuilder.getResults().getMessages();
-        Assertions.assertThat(messages).hasSize(1);
-        Assertions.assertThat(messages.iterator().next().getText())
+        assertThat(messages).hasSize(1);
+        assertThat(messages.iterator().next().getText())
                 .contains("Predicate 'name + name' must be a Boolean expression")
                 .isNotEmpty();
     }
@@ -483,8 +480,8 @@ public class ConstraintsTest {
 
             ksession.insert(new VarargBean());
             ksession.fireAllRules();
-            assertEquals(1, list.size());
-            assertTrue(list.contains("odd"));
+            assertThat(list.size()).isEqualTo(1);
+            assertThat(list.contains("odd")).isTrue();
         } finally {
             ksession.dispose();
         }

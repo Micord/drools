@@ -22,8 +22,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.Persistence;
 
 import org.h2.tools.DeleteDbFiles;
 import org.h2.tools.Server;
@@ -100,7 +100,7 @@ public class PersistenceUtil {
                     EntityManagerFactory emf = (EntityManagerFactory) emfObject;
                     emf.close();
                 } catch (Throwable t) {
-                    t.printStackTrace();
+                    logger.error("Exception", t);
                 }
             }
 
@@ -110,7 +110,7 @@ public class PersistenceUtil {
                     PoolingDataSourceWrapper ds1 = (PoolingDataSourceWrapper) ds1Object;
                     ds1.close();
                 } catch (Throwable t) {
-                    t.printStackTrace();
+                    logger.error("Exception", t);
                 }
             }
 
@@ -147,8 +147,8 @@ public class PersistenceUtil {
         if (driverClass.startsWith("org.h2")) {
             String jdbcUrl = dsProps.getProperty("url");
             // fix an incomplete JDBC URL used by some tests
-            if (jdbcUrl.startsWith("jdbc:h2:") && !jdbcUrl.contains("tcp://")) {
-                dsProps.put("url", jdbcUrl + "tcp://localhost/target/persistence-test");
+            if (jdbcUrl.startsWith("jdbc:h2:") && !jdbcUrl.contains("tcp://") && !jdbcUrl.contains("mem:")) {
+                dsProps.put("url", jdbcUrl + "tcp://localhost/target/./persistence-test");
             }
             h2Server.start();
         }
@@ -205,7 +205,7 @@ public class PersistenceUtil {
         } catch (IOException ioe) {
             propertiesNotFound = true;
             logger.warn("Unable to find properties, using default H2 properties: " + ioe.getMessage());
-            ioe.printStackTrace();
+            logger.error("Exception", ioe);
         }
 
         String password = props.getProperty("password");

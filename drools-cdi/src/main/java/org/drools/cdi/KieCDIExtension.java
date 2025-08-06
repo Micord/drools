@@ -26,23 +26,23 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.context.Dependent;
-import javax.enterprise.context.NormalScope;
-import javax.enterprise.context.spi.CreationalContext;
-import javax.enterprise.event.Observes;
-import javax.enterprise.inject.Any;
-import javax.enterprise.inject.Default;
-import javax.enterprise.inject.Instance;
-import javax.enterprise.inject.spi.AfterBeanDiscovery;
-import javax.enterprise.inject.spi.Bean;
-import javax.enterprise.inject.spi.Extension;
-import javax.enterprise.inject.spi.InjectionPoint;
-import javax.enterprise.inject.spi.PassivationCapable;
-import javax.enterprise.inject.spi.ProcessInjectionTarget;
-import javax.enterprise.util.AnnotationLiteral;
-import javax.inject.Named;
-import javax.inject.Scope;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.Dependent;
+import jakarta.enterprise.context.NormalScope;
+import jakarta.enterprise.context.spi.CreationalContext;
+import jakarta.enterprise.event.Observes;
+import jakarta.enterprise.inject.Any;
+import jakarta.enterprise.inject.Default;
+import jakarta.enterprise.inject.Instance;
+import jakarta.enterprise.inject.spi.AfterBeanDiscovery;
+import jakarta.enterprise.inject.spi.Bean;
+import jakarta.enterprise.inject.spi.Extension;
+import jakarta.enterprise.inject.spi.InjectionPoint;
+import jakarta.enterprise.inject.spi.PassivationCapable;
+import jakarta.enterprise.inject.spi.ProcessInjectionTarget;
+import jakarta.enterprise.util.AnnotationLiteral;
+import jakarta.inject.Named;
+import jakarta.inject.Scope;
 
 import org.drools.compiler.kie.builder.impl.InternalKieModule;
 import org.drools.compiler.kie.builder.impl.KieContainerImpl;
@@ -104,7 +104,7 @@ public class KieCDIExtension
 
         // Find all uses of KieBaseModel and KieSessionModel and add to Set index
         if ( !pit.getInjectionTarget().getInjectionPoints().isEmpty() ) {
-            for ( InjectionPoint ip : pit.getInjectionTarget().getInjectionPoints() ) {                
+            for ( InjectionPoint ip : pit.getInjectionTarget().getInjectionPoints() ) {
                 boolean kBaseExists = false;
                 boolean kSessionExists = false;
                 boolean kContainerExists = false;
@@ -168,7 +168,7 @@ public class KieCDIExtension
         if ( kBaseNames == null ) {
             kBaseNames = new HashMap<>();
         }
-        
+
         String namedStr = ( kBase == null ) ? null : kBase.name();
 
         KieCDIEntry newEntry = new KieCDIEntry( (kBase == null) ? null : kBase.value(),
@@ -185,13 +185,13 @@ public class KieCDIExtension
             existingEntry.addInjectionPoint( ip );
             kBaseNames.put( existingEntry, existingEntry );
         }
-        
+
         if ( !StringUtils.isEmpty( namedStr ) ) {
-            existingEntry = named.get( namedStr );   
+            existingEntry = named.get( namedStr );
             if ( existingEntry == null ) {
                 // it is named, but nothing existing for it to clash ambigously with
                 named.put( namedStr, newEntry );
-                kBaseNames.put(newEntry,newEntry);                            
+                kBaseNames.put(newEntry,newEntry);
             } else {
                 // this name exists, but we know it's a different KieCDIEntry due to the previous existing check
                 log.error( "name={} declaration used ambiguiously existing: {} new: {}",
@@ -203,16 +203,16 @@ public class KieCDIExtension
         } else {
             // is not named and no existing entry
             kBaseNames.put(newEntry,newEntry);
-        }        
+        }
     }
 
     public void addKSessionInjectionPoint(InjectionPoint ip, KSession kSession, Class< ? extends Annotation> scope, ReleaseId releaseId, KReleaseId kReleaseId) {
         if ( kSessionNames == null ) {
             kSessionNames = new HashMap<KieCDIEntry, KieCDIEntry>();
         }
-        
+
         String namedStr = ( kSession == null ) ? null : kSession.name();
-        
+
         KieCDIEntry newEntry = new KieCDIEntry( (kSession == null) ? null : kSession.value(),
                                                 getClassType(ip),
                                                 scope,
@@ -227,13 +227,13 @@ public class KieCDIExtension
             existingEntry.addInjectionPoint( ip );
             kSessionNames.put( existingEntry, existingEntry );
         }
-        
+
         if ( !StringUtils.isEmpty( namedStr ) ) {
-            existingEntry = named.get( namedStr );   
+            existingEntry = named.get( namedStr );
             if ( existingEntry == null ) {
                 // it is named, but nothing existing for it to clash ambiguously with
                 named.put( namedStr, newEntry );
-                kSessionNames.put(newEntry,newEntry);                            
+                kSessionNames.put(newEntry,newEntry);
             } else {
                 // this name exists, but we know it's a different KieCDIEntry due to the previous existing check
                 log.error( "name={} declaration used ambiguiously existing: {} new: {}",
@@ -245,14 +245,14 @@ public class KieCDIExtension
         } else {
             // is not named and no existing entry
             kSessionNames.put(newEntry,newEntry);
-        }        
+        }
     }
-    
+
     public void addKContainerInjectionPoint(InjectionPoint ip, String namedStr, Class< ? extends Annotation> scope, ReleaseId releaseId, KReleaseId kReleaseId) {
         if ( kContainerNames == null ) {
             kContainerNames = new HashMap<KieCDIEntry, KieCDIEntry>();
         }
-        
+
         KieCDIEntry newEntry = new KieCDIEntry( null,
                                                 KieContainer.class,
                                                 scope,
@@ -267,13 +267,13 @@ public class KieCDIExtension
             existingEntry.addInjectionPoint( ip );
             kContainerNames.put( existingEntry, existingEntry );
         }
-        
+
         if ( !StringUtils.isEmpty( namedStr ) ) {
-            existingEntry = named.get( namedStr );   
+            existingEntry = named.get( namedStr );
             if ( existingEntry == null ) {
                 // it is named, but nothing existing for it to clash ambigously with
                 named.put( namedStr, newEntry );
-                kContainerNames.put(newEntry,newEntry);                            
+                kContainerNames.put(newEntry,newEntry);
             } else {
                 // this name exists, but we know it's a different KieCDIEntry due to the previous existing check
                 log.error( "name={} declaration used ambiguiously existing: {} new: {}",
@@ -285,10 +285,10 @@ public class KieCDIExtension
         } else {
             // is not named and no existing entry
             kContainerNames.put(newEntry,newEntry);
-        }        
-    }    
-        
-    
+        }
+    }
+
+
     public void afterBeanDiscovery(@Observes AfterBeanDiscovery abd) {
         if ( classpathKContainer != null ) {
             // if classpathKContainer null, processInjectionTarget was not called, so beans to create
@@ -309,14 +309,14 @@ public class KieCDIExtension
                              kContainer );
                 }
             }
-            
+
             if ( kContainerNames != null ) {
                 for ( KieCDIEntry entry : kContainerNames.keySet() ) {
                     addKContainerBean( abd,
                                        entry );
                 }
             }
-            
+
             if ( kBaseNames != null ) {
                 for ( KieCDIEntry entry : kBaseNames.keySet() ) {
                     addKBaseBean( abd,
@@ -336,7 +336,7 @@ public class KieCDIExtension
     }
 
     public void addKContainerBean(AfterBeanDiscovery abd,
-                                  KieCDIEntry entry) {        
+                                  KieCDIEntry entry) {
         ReleaseId releaseId = entry.getReleaseId();
         KieContainerImpl kieContainer = classpathKContainer; // default to classpath, but allow it to be overriden
         if ( releaseId != null ) {
@@ -349,19 +349,19 @@ public class KieCDIExtension
             }
         }
 
-        KContainerBean bean = new KContainerBean(kieContainer, 
+        KContainerBean bean = new KContainerBean(kieContainer,
                                                  entry.getKReleaseId(),
-                                                 entry.getName(), 
+                                                 entry.getName(),
                                                  entry.getInjectionPoints() );
-        
+
         if ( log.isDebugEnabled() ) {
             log.debug( "Added Bean for @KContainer({})",
                        releaseId );
         }
         abd.addBean( bean );
-    }    
-    
-    
+    }
+
+
     public void addKBaseBean(AfterBeanDiscovery abd,
                              KieCDIEntry entry) {
         ReleaseId releaseId = entry.getReleaseId();
@@ -382,8 +382,8 @@ public class KieCDIExtension
         if ( StringUtils.isEmpty( kBaseQName  )) {
             kBaseModel = kProject.getDefaultKieBaseModel();
         } else {
-            kBaseModel = kProject.getKieBaseModel( kBaseQName );   
-        }        
+            kBaseModel = kProject.getKieBaseModel( kBaseQName );
+        }
         if ( kBaseModel == null ) {
             log.error( "Annotation @KBase({}) found, but no KieBaseModel exists.\nEither the required kmodule.xml does not exist, is corrupted, or is missing the KieBase entry",
                        kBaseQName );
@@ -394,7 +394,7 @@ public class KieCDIExtension
                 if ( kBaseModel.getScope().indexOf( '.' ) >= 0 ) {
                     entry.setScope( (Class< ? extends Annotation>) Class.forName( kBaseModel.getScope() ) );
                 } else {
-                    entry.setScope( (Class< ? extends Annotation>) Class.forName( "javax.enterprise.context." + kBaseModel.getScope() ) );
+                    entry.setScope( (Class< ? extends Annotation>) Class.forName( "jakarta.enterprise.context." + kBaseModel.getScope() ) );
                 }
             } catch ( ClassNotFoundException e ) {
                 log.error( "KieBaseModule {} overrides default annotation, but it was not able to find it {}\n{}",
@@ -438,7 +438,7 @@ public class KieCDIExtension
             kSessionModel = ( entry.getType() == KieSession.class ) ? kProject.getDefaultKieSession() : kProject.getDefaultStatelessKieSession();
         } else {
             kSessionModel =  kProject.getKieSessionModel(kSessionName);
-        }         
+        }
         if ( kSessionModel == null ) {
             log.error( "Annotation @KSession({}) found, but no KieSessionModel exists.\nEither the required kmodule.xml does not exist, is corrupted, or is missing the KieBase entry",
                        kSessionName );
@@ -450,7 +450,7 @@ public class KieCDIExtension
                 if ( kSessionModel.getScope().indexOf( '.' ) >= 0 ) {
                     entry.setScope( (Class< ? extends Annotation>) Class.forName( kSessionModel.getScope() ) );
                 } else {
-                    entry.setScope( (Class< ? extends Annotation>) Class.forName( "javax.enterprise.context." + kSessionModel.getScope() ) );
+                    entry.setScope( (Class< ? extends Annotation>) Class.forName( "jakarta.enterprise.context." + kSessionModel.getScope() ) );
                 }
             } catch ( ClassNotFoundException e ) {
                 log.error( "KieBaseModule {} overrides default annotation, but it was not able to find it {}\n{}",
@@ -485,7 +485,7 @@ public class KieCDIExtension
                                                    entry.getInjectionPoints()  ) );
         }
     }
-    
+
     public static class KContainerBean implements Bean<KieContainer>, PassivationCapable {
         static final Set<Type>                     types = Collections.unmodifiableSet( new HashSet<Type>( Arrays.asList( KieContainer.class,
                                                                                                                           Object.class ) ) );
@@ -529,14 +529,14 @@ public class KieCDIExtension
                     }
                 } );
             }
-            
+
             if ( kReleaseId != null ) {
                 annotations.add( kReleaseId );
-            } 
+            }
 
             this.qualifiers = Collections.unmodifiableSet( annotations );
         }
-        
+
         public KieContainer create(CreationalContext ctx) {
             return kContainer;
         }
@@ -607,7 +607,7 @@ public class KieCDIExtension
         private final Class< ? extends Annotation> scope;
 
         private final String                       named;
-        
+
         private final Set<InjectionPoint>          injectionPoints;
 
         private String id = "KieBase-" + UUID.randomUUID().toString();
@@ -638,7 +638,7 @@ public class KieCDIExtension
                 public String value() {
                     return kBaseQName == null ? "" : kBaseQName;
                 }
-                
+
                 public String name() {
                     return named == null ? "" : named;
                 }
@@ -722,14 +722,14 @@ public class KieCDIExtension
         private final Class< ? extends Annotation> scope;
 
         private final String                       named;
-        
+
         private final Set<InjectionPoint>          injectionPoints;
 
         private final String id = "StatelessKSessionBean-" + UUID.randomUUID().toString();
 
         public StatelessKSessionBean(final KieSessionModel kieSessionModelModel,
                                      KieContainer kContainer,
-                                     KReleaseId kReleaseId, 
+                                     KReleaseId kReleaseId,
                                      Class< ? extends Annotation> scope,
                                      final String named,
                                      Set<InjectionPoint> injectionPoints) {
@@ -752,10 +752,10 @@ public class KieCDIExtension
                 public String value() {
                     return kSessionModel.getName();
                 }
-                
+
                 public String name() {
                     return named == null ? "" : named;
-                }                
+                }
             } );
             if ( kReleaseId != null ) {
                 annotations.add( kReleaseId );
@@ -827,7 +827,7 @@ public class KieCDIExtension
         private final Class< ? extends Annotation> scope;
 
         private final String                       named;
-        
+
         private final Set<InjectionPoint>          injectionPoints;
 
         private final String id = "StatefulKSessionBean-" + UUID.randomUUID().toString();
@@ -858,10 +858,10 @@ public class KieCDIExtension
                 public String value() {
                     return kSessionName == null ? "" : kSessionName;
                 }
-                
+
                 public String name() {
                     return named == null ? "" : named;
-                }                
+                }
             } );
 
             if ( kReleaseId != null ) {
@@ -928,7 +928,7 @@ public class KieCDIExtension
         private Class< ? extends Annotation> scope;
         private ReleaseId                    releaseId;
         private KReleaseId                   kReleaseId;
-        private String                       name;        
+        private String                       name;
         private Set<InjectionPoint>          injectionPoints;
 
         public KieCDIEntry(String value,
@@ -958,7 +958,7 @@ public class KieCDIExtension
 
         public void setValue(String value) {
             this.value = value;
-        }               
+        }
 
         public Class getType() {
             return type;
@@ -990,7 +990,7 @@ public class KieCDIExtension
 
         public void setReleaseId(ReleaseId releaseId) {
             this.releaseId = releaseId;
-        } 
+        }
 
         public KReleaseId getKReleaseId() {
             return kReleaseId;

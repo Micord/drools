@@ -20,7 +20,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.drools.compiler.builder.impl.KnowledgeBuilderImpl;
@@ -47,10 +46,7 @@ import org.kie.pmml.evaluator.api.container.PMMLPackage;
 import org.kie.pmml.evaluator.assembler.container.PMMLPackageImpl;
 import org.kie.pmml.evaluator.core.service.PMMLRuntimeInternalImpl;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.kie.test.util.filesystem.FileUtils.getFile;
 
 public class PMMLRuntimeFactoryInternalTest {
@@ -74,8 +70,8 @@ public class PMMLRuntimeFactoryInternalTest {
     public void createKieBaseFromFile() {
         File pmmlFile = getFile("MissingDataRegression.pmml");
         KieBase retrieved = PMMLRuntimeFactoryInternal.createKieBase(pmmlFile);
-        assertNotNull(retrieved);
-        assertTrue(retrieved.getKiePackages().isEmpty());
+        assertThat(retrieved).isNotNull();
+        assertThat(retrieved.getKiePackages()).isEmpty();
     }
 
     @Test
@@ -88,18 +84,18 @@ public class PMMLRuntimeFactoryInternalTest {
         KnowledgePackageImpl pmmlKnowledgePackage = new KnowledgePackageImpl("pmmled_package");
         pmmlKnowledgePackage.getResourceTypePackages().put(ResourceType.PMML, pmmlPkg);
         KieBase retrieved = PMMLRuntimeFactoryInternal.createKieBase(knowledgeBuilder);
-        assertNotNull(retrieved);
-        assertFalse(retrieved.getKiePackages().isEmpty());
-        assertEquals(knowledgeBuilder.getKnowledgePackages().size(), retrieved.getKiePackages().size());
+        assertThat(retrieved).isNotNull();
+        assertThat(retrieved.getKiePackages()).isNotEmpty();
+        assertThat(retrieved.getKiePackages()).hasSameSizeAs(knowledgeBuilder.getKnowledgePackages());
         knowledgeBuilder.getKnowledgePackages()
                 .forEach(kBuilderPackage -> {
-                    assertNotNull(retrieved.getKiePackage(kBuilderPackage.getName()));
+                    assertThat(retrieved.getKiePackage(kBuilderPackage.getName())).isNotNull();
                     ResourceTypePackage knowledgeBuilderResourceTypePackage= ((InternalKnowledgePackage) kBuilderPackage).getResourceTypePackages().get(ResourceType.PMML);
                     if (((InternalKnowledgePackage) kBuilderPackage).getResourceTypePackages().get(ResourceType.PMML) != null) {
                         InternalKnowledgePackage retrievedKiePackage = (InternalKnowledgePackage) retrieved.getKiePackage(kBuilderPackage.getName());
                         ResourceTypePackage retrievedResourceTypePackage=  retrievedKiePackage.getResourceTypePackages().get(ResourceType.PMML);
-                        assertNotNull(retrievedKiePackage.getResourceTypePackages().get(ResourceType.PMML));
-                        assertEquals(knowledgeBuilderResourceTypePackage, retrievedResourceTypePackage);
+                        assertThat(retrievedKiePackage.getResourceTypePackages().get(ResourceType.PMML)).isNotNull();
+                        assertThat(retrievedResourceTypePackage).isEqualTo(knowledgeBuilderResourceTypePackage);
                     }
                 });
     }
@@ -116,12 +112,12 @@ public class PMMLRuntimeFactoryInternalTest {
     public void createDescrResource() {
         PackageDescr packageDescr = new PackageDescr();
         DescrResource retrieved = PMMLRuntimeFactoryInternal.createDescrResource(packageDescr);
-        assertNotNull(retrieved);
-        assertEquals(packageDescr, retrieved.getDescr());
-        assertFalse(retrieved.hasURL());
+        assertThat(retrieved).isNotNull();
+        assertThat(retrieved.getDescr()).isEqualTo(packageDescr);
+        assertThat(retrieved.hasURL()).isFalse();
         String retrievedSourcePath = retrieved.getSourcePath();
-        assertTrue(retrievedSourcePath.startsWith("src/main/resources/file_"));
-        assertTrue(retrievedSourcePath.endsWith(".descr"));
+        assertThat(retrievedSourcePath).startsWith("src/main/resources/file_");
+        assertThat(retrievedSourcePath).endsWith(".descr");
     }
 
     @Test
@@ -143,8 +139,8 @@ public class PMMLRuntimeFactoryInternalTest {
                 .populateNestedKiePackageList(Collections.singleton(kiePMMLModel),
                                               toPopulate,
                                               kieBase);
-        assertFalse(toPopulate.isEmpty());
-        assertEquals(kiePackages.size(), toPopulate.size());
+        assertThat(toPopulate).isNotEmpty();
+        assertThat(toPopulate).hasSameSizeAs(kiePackages);
     }
 
     @Test
@@ -155,7 +151,7 @@ public class PMMLRuntimeFactoryInternalTest {
         KnowledgeBaseImpl kieBase = (KnowledgeBaseImpl) new KieHelper().build(ExecutableModelProject.class);
         kieBase.addPackage(pmmlKnowledgePackage);
         // Actual test
-        assertNotNull(PMMLRuntimeFactoryInternal.getKiePackageByFullClassName(kiePMMLModel.getClass().getName(), kieBase));
+        assertThat(PMMLRuntimeFactoryInternal.getKiePackageByFullClassName(kiePMMLModel.getClass().getName(), kieBase)).isNotNull();
     }
 
     @Test(expected = KiePMMLException.class)
@@ -169,9 +165,9 @@ public class PMMLRuntimeFactoryInternalTest {
     }
 
     private void commonValidatePMMLRuntime(PMMLRuntime toValidate) {
-        assertNotNull(toValidate);
-        assertTrue(toValidate instanceof PMMLRuntimeInternalImpl);
-        assertNotNull(((PMMLRuntimeInternalImpl)toValidate).getKnowledgeBase());
+        assertThat(toValidate).isNotNull();
+        assertThat(toValidate).isInstanceOf(PMMLRuntimeInternalImpl.class);
+        assertThat(((PMMLRuntimeInternalImpl)toValidate).getKnowledgeBase()).isNotNull();
     }
 
     private KnowledgePackageImpl getKnowledgePackageWithPMMLResourceType(KiePMMLModel kiePMMLModel) {
@@ -189,32 +185,29 @@ public class PMMLRuntimeFactoryInternalTest {
         return new KiePMMLModelWithNested(modelName, kiePmmlModels);
     }
 
-    private class KiePMMLModelA extends KiePMMLModel {
+    private class KiePMMLModelA extends KiePMMLTestingModel {
+
+        private static final long serialVersionUID = -8174670245229417048L;
 
         public KiePMMLModelA(String name) {
             super(name, Collections.emptyList());
         }
 
-        @Override
-        public Object evaluate(Object knowledgeBase, Map<String, Object> requestData) {
-            return null;
-        }
     }
 
-    private class KiePMMLModelB extends KiePMMLModel {
+    private class KiePMMLModelB extends KiePMMLTestingModel {
+
+        private static final long serialVersionUID = 8521110750870376450L;
 
         public KiePMMLModelB(String name) {
             super(name, Collections.emptyList());
         }
 
-        @Override
-        public Object evaluate(Object knowledgeBase, Map<String, Object> requestData) {
-            return null;
-        }
     }
 
-    private class KiePMMLModelWithNested extends KiePMMLModel implements HasNestedModels {
+    private class KiePMMLModelWithNested extends KiePMMLTestingModel implements HasNestedModels {
 
+        private static final long serialVersionUID = -3005462259673834598L;
         private final List<KiePMMLModel> nestedModels;
 
         public KiePMMLModelWithNested(String modelName, List<KiePMMLModel> nestedModels) {
@@ -227,9 +220,5 @@ public class PMMLRuntimeFactoryInternalTest {
             return nestedModels;
         }
 
-        @Override
-        public Object evaluate(Object knowledgeBase, Map<String, Object> requestData) {
-            return null;
-        }
     }
 }

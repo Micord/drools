@@ -17,10 +17,12 @@
 package org.drools.modelcompiler.builder.generator.drlxparse;
 
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
@@ -32,6 +34,8 @@ import org.drools.model.Index;
 import org.drools.modelcompiler.builder.generator.DRLIdGenerator;
 import org.drools.modelcompiler.builder.generator.TypedExpression;
 import org.drools.modelcompiler.builder.generator.UnificationTypedExpression;
+import org.drools.modelcompiler.util.StreamUtils;
+import org.drools.mvel.parser.printer.PrintUtil;
 
 import static java.util.Optional.ofNullable;
 import static org.drools.modelcompiler.builder.generator.DrlxParseUtil.toClassOrInterfaceType;
@@ -72,6 +76,9 @@ public class SingleDrlxParseSuccess extends AbstractDrlxParseSuccess {
     private boolean combined;
 
     private Optional<Expression> implicitCastExpression = Optional.empty();
+    private List<Expression> nullSafeExpressions = new ArrayList<>();
+
+    private Set<String> variablesFromDifferentPattern = new HashSet<>();
 
     public SingleDrlxParseSuccess(Class<?> patternType, String patternBinding, Expression expr, Type exprType) {
         this.patternType = patternType;
@@ -104,6 +111,8 @@ public class SingleDrlxParseSuccess extends AbstractDrlxParseSuccess {
         this.temporal = drlx.isTemporal();
         this.combined = drlx.isCombined();
         this.implicitCastExpression = drlx.getImplicitCastExpression();
+        this.nullSafeExpressions = drlx.getNullSafeExpressions();
+        this.variablesFromDifferentPattern = drlx.getVariablesFromDifferentPattern();
 
         this.watchedProperties = drlx.getWatchedProperties();
     }
@@ -195,7 +204,7 @@ public class SingleDrlxParseSuccess extends AbstractDrlxParseSuccess {
         if(asUnificationTypedExpression(left).isPresent() || asUnificationTypedExpression(right).isPresent()) {
             constraint = originalDrlConstraint;
         } else if (expr != null) {
-            constraint = expr.toString();
+            constraint = PrintUtil.printNode(expr);
         } else {
             constraint = left.toString();
         }
@@ -274,6 +283,16 @@ public class SingleDrlxParseSuccess extends AbstractDrlxParseSuccess {
 
     public Class<?> getLeftExprRawClass() {
         return left != null ? left.getRawClass() : getExprRawClass();
+    }
+
+    public Class<?> getLeftExprTypeBeforeCoercion() {
+        if (left != null) {
+            Class<?> typeBeforeCoercion = left.getTypeBeforeCoercion();
+            if(typeBeforeCoercion != null) {
+                return typeBeforeCoercion;
+            }
+        }
+        return getLeftExprRawClass();
     }
 
     public Class<?> getPatternType() {
@@ -395,6 +414,20 @@ public class SingleDrlxParseSuccess extends AbstractDrlxParseSuccess {
         newReactOnProperties.addAll( this.reactOnProperties );
         newReactOnProperties.addAll( otherDrlx.reactOnProperties );
 
+        List<Expression> newNullSafeExpressions = new ArrayList<>();
+        if (operator == BinaryExpr.Operator.OR) {
+            // NullSafeExpressions are combined here because the order is complex
+            this.expr = combinePredicatesWithAnd(this.expr, this.nullSafeExpressions);
+            otherDrlx.expr = combinePredicatesWithAnd(otherDrlx.expr, otherDrlx.nullSafeExpressions);
+            // Also combine implicitCast earlier than null-check
+            this.expr = combinePredicatesWithAnd(this.expr, StreamUtils.optionalToList(this.implicitCastExpression));
+            otherDrlx.expr = combinePredicatesWithAnd(otherDrlx.expr, StreamUtils.optionalToList(otherDrlx.implicitCastExpression));
+        } else {
+            // NullSafeExpressions will be added by PatternDSL.addNullSafeExpr
+            newNullSafeExpressions.addAll(this.nullSafeExpressions);
+            newNullSafeExpressions.addAll(otherDrlx.nullSafeExpressions);
+        }
+
         return new SingleDrlxParseSuccess(patternType, patternBinding, new EnclosedExpr( new BinaryExpr(expr, otherDrlx.expr, operator) ), exprType)
                 .setDecodeConstraintType(Index.ConstraintType.UNKNOWN)
                 .setUsedDeclarations(newUsedDeclarations)
@@ -406,7 +439,16 @@ public class SingleDrlxParseSuccess extends AbstractDrlxParseSuccess {
                 .setRight(new TypedExpression(otherDrlx.expr, right != null ? right.getType() : boolean.class))
                 .setBoundExpr(left)
                 .setIsPredicate(this.isPredicate && otherDrlx.isPredicate)
+                .setNullSafeExpressions(newNullSafeExpressions)
                 .setExprBinding(this.exprBinding); // only left exprBinding
+    }
+
+    private Expression combinePredicatesWithAnd(Expression mainPredicate, List<Expression> prefixPredicates) {
+        Expression combo = mainPredicate;
+        for (Expression e : prefixPredicates) {
+            combo = new BinaryExpr( e, combo, BinaryExpr.Operator.AND );
+        }
+        return combo;
     }
 
     @Override
@@ -428,6 +470,25 @@ public class SingleDrlxParseSuccess extends AbstractDrlxParseSuccess {
     @Override
     public Optional<Expression> getImplicitCastExpression() {
         return implicitCastExpression;
+    }
+
+    @Override
+    public List<Expression> getNullSafeExpressions() {
+        return nullSafeExpressions;
+    }
+
+    public SingleDrlxParseSuccess setNullSafeExpressions(List<Expression> nullSafeExpressions) {
+        this.nullSafeExpressions = nullSafeExpressions;
+        return this;
+    }
+
+    public Set<String> getVariablesFromDifferentPattern() {
+        return variablesFromDifferentPattern;
+    }
+
+    public SingleDrlxParseSuccess setVariablesFromDifferentPattern(Set<String> variablesFromDifferentPattern) {
+        this.variablesFromDifferentPattern = variablesFromDifferentPattern;
+        return this;
     }
 
     @Override

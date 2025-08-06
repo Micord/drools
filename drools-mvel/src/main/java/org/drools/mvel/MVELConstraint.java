@@ -22,12 +22,13 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -39,6 +40,7 @@ import org.drools.core.common.DroolsObjectInputStream;
 import org.drools.core.common.InternalFactHandle;
 import org.drools.core.common.InternalWorkingMemory;
 import org.drools.core.definitions.InternalKnowledgePackage;
+import org.drools.core.definitions.rule.impl.RuleImpl;
 import org.drools.core.impl.InternalKnowledgeBase;
 import org.drools.core.reteoo.PropertySpecificUtil;
 import org.drools.core.reteoo.builder.BuildContext;
@@ -46,8 +48,10 @@ import org.drools.core.rule.ContextEntry;
 import org.drools.core.rule.Declaration;
 import org.drools.core.rule.IndexableConstraint;
 import org.drools.core.rule.MutableTypeConstraint;
+import org.drools.core.rule.Pattern;
 import org.drools.core.rule.constraint.ConditionEvaluator;
 import org.drools.core.spi.AcceptsReadAccessor;
+import org.drools.core.spi.Constraint;
 import org.drools.core.spi.FieldValue;
 import org.drools.core.spi.InternalReadAccessor;
 import org.drools.core.spi.ReadAccessor;
@@ -83,9 +87,11 @@ import static org.drools.core.reteoo.PropertySpecificUtil.setPropertyOnMask;
 import static org.drools.core.util.ClassUtils.areNullSafeEquals;
 import static org.drools.core.util.ClassUtils.getter2property;
 import static org.drools.core.util.Drools.isJmxAvailable;
+import static org.drools.core.util.MessageUtils.defaultToEmptyString;
 import static org.drools.core.util.StringUtils.codeAwareIndexOf;
 import static org.drools.core.util.StringUtils.equalsIgnoreSpaces;
 import static org.drools.core.util.StringUtils.extractFirstIdentifier;
+import static org.drools.core.util.StringUtils.lookAheadIgnoringSpaces;
 import static org.drools.core.util.StringUtils.skipBlanks;
 
 public class MVELConstraint extends MutableTypeConstraint implements IndexableConstraint, AcceptsReadAccessor {
@@ -95,7 +101,6 @@ public class MVELConstraint extends MutableTypeConstraint implements IndexableCo
 
     protected final transient AtomicInteger invocationCounter = new AtomicInteger(1);
     protected transient volatile boolean jitted = false;
-    protected transient CountDownLatch mvelOptimized = new CountDownLatch(1);
 
     private Set<String> packageNames;
     protected String expression;
@@ -267,38 +272,10 @@ public class MVELConstraint extends MutableTypeConstraint implements IndexableCo
                     synchronized (this) {
                         if (conditionEvaluator == null) {
                             conditionEvaluator = forceJitEvaluator(handle, workingMemory, tuple);
-                            if (conditionEvaluator instanceof MVELConditionEvaluator) {
-                                // in case of jitting failed
-                                boolean result;
-                                try {
-                                    result = conditionEvaluator.evaluate(handle, workingMemory, tuple);
-                                } catch (Exception e) {
-                                    throw new ConstraintEvaluationException(expression, evaluationContext, e);
-                                } finally {
-                                    mvelOptimized.countDown();
-                                }
-                                return result;
-                            }
                         }
                     }
                 } else {
-                    synchronized (this) {
-                        if (conditionEvaluator == null) {
-                            conditionEvaluator = createMvelConditionEvaluator(workingMemory);
-                            boolean result;
-                            try {
-                                result = conditionEvaluator.evaluate(handle, workingMemory, tuple);
-                            } catch (Exception e) {
-                                throw new ConstraintEvaluationException(expression, evaluationContext, e);
-                            } finally {
-                                mvelOptimized.countDown();
-                            }
-                            if (invocationCounter.getAndIncrement() == jittingThreshold) {
-                                jitEvaluator(handle, workingMemory, tuple);
-                            }
-                            return result;
-                        }
-                    }
+                    conditionEvaluator = createMvelConditionEvaluator(workingMemory);
                 }
             }
 
@@ -307,9 +284,6 @@ public class MVELConstraint extends MutableTypeConstraint implements IndexableCo
             }
         }
         try {
-            if (conditionEvaluator instanceof MVELConditionEvaluator) {
-                mvelOptimized.await(); // The first evaluation should not be run concurrently. See DROOLS-6067
-            }
             return conditionEvaluator.evaluate(handle, workingMemory, tuple);
         } catch (Exception e) {
             throw new ConstraintEvaluationException(expression, evaluationContext, e);
@@ -460,13 +434,16 @@ public class MVELConstraint extends MutableTypeConstraint implements IndexableCo
     // Slot specific
 
     @Override
-    public BitMask getListenedPropertyMask(Class modifiedClass, List<String> settableProperties) {
+    public BitMask getListenedPropertyMask(Optional<Pattern> pattern, Class modifiedClass, List<String> settableProperties) {
         return analyzedCondition != null ?
                 calculateMask(modifiedClass, settableProperties) :
-                calculateMaskFromExpression(settableProperties);
+                calculateMaskFromExpression(pattern, settableProperties);
     }
 
-    private BitMask calculateMaskFromExpression(List<String> settableProperties) {
+    /*
+     * if pattern is empty, bind variables are considered to be declared in the same pattern. It should be fine for alpha constraints
+     */
+    private BitMask calculateMaskFromExpression(Optional<Pattern> pattern, List<String> settableProperties) {
         BitMask mask = getEmptyPropertyReactiveMask(settableProperties.size());
         String[] simpleExpressions = expression.split("\\Q&&\\E|\\Q||\\E");
 
@@ -477,6 +454,7 @@ public class MVELConstraint extends MutableTypeConstraint implements IndexableCo
             }
             boolean firstProp = true;
             for (String propertyName : properties) {
+                String originalPropertyName = propertyName;
                 if (propertyName == null || propertyName.equals("this") || propertyName.length() == 0) {
                     return allSetButTraitBitMask();
                 }
@@ -486,7 +464,7 @@ public class MVELConstraint extends MutableTypeConstraint implements IndexableCo
                         propertyName = propertyName.substring(0, 1).toLowerCase() + propertyName.substring(1);
                         pos = settableProperties.indexOf(propertyName);
                     } else {
-                        propertyName = findBoundVariable(propertyName);
+                        propertyName = findBoundVariable(propertyName, pattern);
                         if (propertyName != null) {
                             pos = settableProperties.indexOf(propertyName);
                         }
@@ -497,6 +475,11 @@ public class MVELConstraint extends MutableTypeConstraint implements IndexableCo
                 } else {
                     // if it is not able to find the property name it could be a function invocation so property reactivity shouldn't filter anything
                     if (firstProp) {
+                        if (isBoundVariableFromDifferentPattern(originalPropertyName, pattern)) {
+                            logger.warn("{} is not relevant to this pattern, so it causes class reactivity." +
+                                        " Consider placing this constraint in the original pattern if possible : {}",
+                                        originalPropertyName, simpleExpression);
+                        }
                         return allSetBitMask();
                     }
                 }
@@ -507,9 +490,9 @@ public class MVELConstraint extends MutableTypeConstraint implements IndexableCo
         return mask;
     }
 
-    private String findBoundVariable(String variable) {
+    private String findBoundVariable(String variable, Optional<Pattern> pattern) {
         for (Declaration declaration : declarations) {
-            if (declaration.getIdentifier().equals(variable)) {
+            if (declaration.getIdentifier().equals(variable) && (!pattern.isPresent() || declaration.getPattern().equals(pattern.get()))) { // if pattern is not given, assume it's the same pattern
                 InternalReadAccessor accessor = declaration.getExtractor();
                 if (accessor instanceof ClassFieldReader) {
                     return ((ClassFieldReader) accessor).getFieldName();
@@ -517,6 +500,18 @@ public class MVELConstraint extends MutableTypeConstraint implements IndexableCo
             }
         }
         return null;
+    }
+
+    private boolean isBoundVariableFromDifferentPattern(String variable, Optional<Pattern> pattern) {
+        if (!pattern.isPresent()) {
+            return false;
+        }
+        for (Declaration declaration : declarations) {
+            if (declaration.getIdentifier().equals(variable) && !declaration.getPattern().equals(pattern.get())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private List<String> getPropertyNamesFromSimpleExpression(String expression) {
@@ -563,8 +558,8 @@ public class MVELConstraint extends MutableTypeConstraint implements IndexableCo
         }
 
         if (!isAccessor) {
-            String lookAhead = lookAheadIgnoringSpaces(expression, cursor);
-            boolean isMethodInvocation = lookAhead != null && lookAhead.equals("(");
+            Character lookAhead = lookAheadIgnoringSpaces(expression, cursor);
+            boolean isMethodInvocation = lookAhead != null && lookAhead.equals('(');
             if (isMethodInvocation) {
                 return nextPropertyName(expression, names, cursor);
             }
@@ -574,17 +569,6 @@ public class MVELConstraint extends MutableTypeConstraint implements IndexableCo
             names.add(propertyName);
         }
         return skipOperator(expression, cursor);
-    }
-
-    private String lookAheadIgnoringSpaces(String expression, int cursor) {
-        while (cursor < expression.length()) {
-            char c = expression.charAt(cursor);
-            if (!Character.isWhitespace(c)) {
-                return "" + c;
-            }
-            cursor++;
-        }
-        return null;
     }
 
     private int skipOperator(String expression, int cursor) {
@@ -1013,27 +997,71 @@ public class MVELConstraint extends MutableTypeConstraint implements IndexableCo
         evaluationContext.addContext(buildContext);
     }
 
+    @Override
+    public void mergeEvaluationContext(Constraint other) {
+        if (other instanceof MVELConstraint) {
+            evaluationContext.mergeRuleNameMap(((MVELConstraint)other).getEvaluationContext().getRuleNameMap());
+        }
+    }
+
+    public EvaluationContext getEvaluationContext() {
+        return evaluationContext;
+    }
+
     public static class EvaluationContext implements Externalizable {
 
-        private Collection<String> evaluatedRules = new HashSet<String>();
+        private Map<String, Set<String>> ruleNameMap = new HashMap<>();
+
+        public static final int MAX_RULE_DEFS = Integer.getInteger("drools.evaluationContext.maxRuleDefs", 10);
+        private boolean moreThanMaxRuleDefs = false;
 
         public void addContext(BuildContext buildContext) {
-            evaluatedRules.add(buildContext.getRule().toRuleNameAndPathString());
+            if (moreThanMaxRuleDefs || ruleNameMap.values().stream().flatMap(Collection::stream).count() >= MAX_RULE_DEFS) {
+                moreThanMaxRuleDefs = true;
+                return;
+            }
+            RuleImpl rule = buildContext.getRule();
+            String ruleName = defaultToEmptyString(rule.getName());
+            String ruleFileName = defaultToEmptyString(rule.getResource() != null ? rule.getResource().getSourcePath() : null);
+            ruleNameMap.computeIfAbsent(ruleFileName, k -> new HashSet<>()).add(ruleName);
+        }
+
+        public void mergeRuleNameMap(Map<String, Set<String>> otherMap) {
+            if (moreThanMaxRuleDefs || ruleNameMap.values().stream().flatMap(Collection::stream).count() >= MAX_RULE_DEFS) {
+                moreThanMaxRuleDefs = true;
+                return;
+            }
+            otherMap.forEach((otherRuleFileName, otherRuleNameSet) -> {
+                ruleNameMap.merge(otherRuleFileName, otherRuleNameSet, (thisSet, otherSet) -> {
+                    thisSet.addAll(otherSet);
+                    return thisSet;
+                });
+            });
+        }
+
+        public Map<String, Set<String>> getRuleNameMap() {
+            return ruleNameMap;
+        }
+
+        public boolean isMoreThanMaxRuleDefs() {
+            return moreThanMaxRuleDefs;
         }
 
         @Override
         public void writeExternal(ObjectOutput out) throws IOException {
-            out.writeObject(evaluatedRules);
+            out.writeObject(ruleNameMap);
+            out.writeBoolean(moreThanMaxRuleDefs);
         }
 
         @Override
         public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-            evaluatedRules = (Collection<String>) in.readObject();
+            ruleNameMap = (Map<String, Set<String>>) in.readObject();
+            moreThanMaxRuleDefs = in.readBoolean();
         }
 
         @Override
         public String toString() {
-            return evaluatedRules.toString();
+            return "EvaluationContext [ruleNameMap=" + ruleNameMap + ", moreThanMaxRuleDefs=" + moreThanMaxRuleDefs + "]";
         }
     }
 }

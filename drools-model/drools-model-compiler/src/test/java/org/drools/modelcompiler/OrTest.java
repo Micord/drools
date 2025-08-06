@@ -19,7 +19,6 @@ package org.drools.modelcompiler;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.assertj.core.api.Assertions;
 import org.drools.modelcompiler.domain.Address;
 import org.drools.modelcompiler.domain.Employee;
 import org.drools.modelcompiler.domain.Person;
@@ -27,10 +26,9 @@ import org.junit.Test;
 import org.kie.api.builder.Results;
 import org.kie.api.runtime.KieSession;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.drools.modelcompiler.domain.Employee.createEmployee;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+
 
 public class OrTest extends BaseModelTest {
 
@@ -58,7 +56,7 @@ public class OrTest extends BaseModelTest {
         ksession.insert( new Person( "Mark", 37 ) );
         ksession.insert( new Person( "Edson", 35 ) );
         ksession.insert( new Person( "Mario", 40 ) );
-        assertEquals(1, ksession.fireAllRules());
+        assertThat(ksession.fireAllRules()).isEqualTo(1);
     }
 
     @Test
@@ -82,7 +80,7 @@ public class OrTest extends BaseModelTest {
         ksession.insert( new Person( "Mark", 37 ) );
         ksession.insert( new Person( "Mario", 100 ) );
         ksession.insert( new Address( "London" ) );
-        assertEquals(2, ksession.fireAllRules());
+        assertThat(ksession.fireAllRules()).isEqualTo(2);
     }
 
 
@@ -106,7 +104,7 @@ public class OrTest extends BaseModelTest {
         ksession.insert(new Person("Mark", 37));
         ksession.insert(new Person("Edson", 35));
         ksession.insert(new Person("Mario", 37));
-        assertEquals(1, ksession.fireAllRules());
+        assertThat(ksession.fireAllRules()).isEqualTo(1);
     }
 
     @Test
@@ -130,7 +128,7 @@ public class OrTest extends BaseModelTest {
         ksession.insert(new Person("Mark", 37));
         ksession.insert(new Person("Edson", 35));
         ksession.insert(new Person("Mario", 37));
-        assertEquals(1, ksession.fireAllRules());
+        assertThat(ksession.fireAllRules()).isEqualTo(1);
     }
 
     @Test
@@ -161,7 +159,7 @@ public class OrTest extends BaseModelTest {
 
         kieSession.fireAllRules();
 
-        Assertions.assertThat(results).containsExactlyInAnyOrder("Big City", "Small City");
+        assertThat(results).containsExactlyInAnyOrder("Big City", "Small City");
     }
 
     @Test
@@ -190,7 +188,7 @@ public class OrTest extends BaseModelTest {
 
         kieSession.fireAllRules();
 
-        Assertions.assertThat(results).containsExactlyInAnyOrder("Big City", "Small City");
+        assertThat(results).containsExactlyInAnyOrder("Big City", "Small City");
     }
 
     @Test
@@ -222,11 +220,11 @@ public class OrTest extends BaseModelTest {
         ksession.insert( new Person( "Mario", 40 ) );
         ksession.fireAllRules();
 
-        assertEquals(4, results.size());
-        assertTrue(results.contains("Mark is 37"));
-        assertTrue(results.contains("Mark has 37 years"));
-        assertTrue(results.contains("Mario is 40"));
-        assertTrue(results.contains("Mario has 40 years"));
+        assertThat(results.size()).isEqualTo(4);
+        assertThat(results.contains("Mark is 37")).isTrue();
+        assertThat(results.contains("Mark has 37 years")).isTrue();
+        assertThat(results.contains("Mario is 40")).isTrue();
+        assertThat(results.contains("Mario has 40 years")).isTrue();
     }
 
     @Test
@@ -248,7 +246,7 @@ public class OrTest extends BaseModelTest {
                 "end\n";
 
         Results results = getCompilationResults(drl1);
-        assertFalse(results.getMessages().isEmpty());
+        assertThat(results.getMessages().isEmpty()).isFalse();
     }
 
     private Results getCompilationResults( String drl ) {

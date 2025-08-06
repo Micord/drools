@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import org.assertj.core.api.Assertions;
 import org.drools.core.ClockType;
 import org.drools.modelcompiler.builder.RuleWriter;
 import org.drools.modelcompiler.domain.Child;
@@ -40,8 +39,8 @@ import org.kie.api.runtime.KieSession;
 import org.kie.api.runtime.conf.ClockTypeOption;
 import org.kie.api.time.SessionPseudoClock;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 /**
  * This test class enables CheckNonExternalisedLambda option
@@ -90,7 +89,7 @@ public class ExternalisedLambdaTest extends BaseModelTest {
         Person me = new Person("Mario", 40);
         ksession.insert(me);
 
-        assertEquals(1, ksession.fireAllRules());
+        assertThat(ksession.fireAllRules()).isEqualTo(1);
     }
 
     @Test
@@ -119,7 +118,7 @@ public class ExternalisedLambdaTest extends BaseModelTest {
         ksession.insert(me);
         ksession.fireAllRules();
 
-        Assertions.assertThat(list).containsExactlyInAnyOrder("Mario");
+        assertThat(list).containsExactlyInAnyOrder("Mario");
     }
 
     @Test
@@ -148,7 +147,7 @@ public class ExternalisedLambdaTest extends BaseModelTest {
         ksession.insert(me);
         ksession.fireAllRules();
 
-        Assertions.assertThat(list).containsExactlyInAnyOrder("Mario");
+        assertThat(list).containsExactlyInAnyOrder("Mario");
     }
 
     @Test
@@ -178,7 +177,7 @@ public class ExternalisedLambdaTest extends BaseModelTest {
         ksession.insert(new Person("John", 44));
         ksession.fireAllRules();
 
-        Assertions.assertThat(list).containsExactlyInAnyOrder(43);
+        assertThat(list).containsExactlyInAnyOrder(43);
     }
 
     @Test
@@ -205,9 +204,9 @@ public class ExternalisedLambdaTest extends BaseModelTest {
         ksession.insert(new Person("Edson", 35));
         ksession.fireAllRules();
 
-        Collection<Result> results = getObjectsIntoList(ksession, Result.class);
-        assertEquals(1, results.size());
-        assertEquals("Mario", results.iterator().next().getValue());
+        Collection<Result> results = BaseModelTest.getObjectsIntoList(ksession, Result.class);
+        assertThat(results.size()).isEqualTo(1);
+        assertThat(results.iterator().next().getValue()).isEqualTo("Mario");
     }
 
     @Test
@@ -244,7 +243,7 @@ public class ExternalisedLambdaTest extends BaseModelTest {
         ksession.insert(bob);
         ksession.fireAllRules();
 
-        Assertions.assertThat(list).containsExactlyInAnyOrder("Charles");
+        assertThat(list).containsExactlyInAnyOrder("Charles");
     }
 
     @Test
@@ -275,9 +274,9 @@ public class ExternalisedLambdaTest extends BaseModelTest {
 
         ksession.fireAllRules();
 
-        Collection<Result> results = getObjectsIntoList(ksession, Result.class);
-        assertEquals(1, results.size());
-        assertEquals(77, ((Number) results.iterator().next().getValue()).intValue());
+        Collection<Result> results = BaseModelTest.getObjectsIntoList(ksession, Result.class);
+        assertThat(results.size()).isEqualTo(1);
+        assertThat(((Number) results.iterator().next().getValue()).intValue()).isEqualTo(77);
     }
 
     @Test
@@ -316,7 +315,7 @@ public class ExternalisedLambdaTest extends BaseModelTest {
         ksession.insert( carl );
         ksession.fireAllRules();
 
-        Assertions.assertThat(list).containsExactlyInAnyOrder("Bob");
+        assertThat(list).containsExactlyInAnyOrder("Bob");
     }
 
     @Test
@@ -347,10 +346,10 @@ public class ExternalisedLambdaTest extends BaseModelTest {
         ksession.insert( new StockTick( "DROO" ).setTimeField( 0 ) );
         ksession.insert( new StockTick( "ACME" ).setTimeField( 6 ) );
 
-        assertEquals( 1, ksession.fireAllRules() );
+        assertThat(ksession.fireAllRules()).isEqualTo(1);
 
         ksession.insert( new StockTick( "ACME" ).setTimeField( 10 ) );
 
-        assertEquals( 0, ksession.fireAllRules() );
+        assertThat(ksession.fireAllRules()).isEqualTo(0);
     }
 }

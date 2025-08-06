@@ -19,18 +19,23 @@ package org.kie.pmml.commons.model.expressions;
 import java.util.Collections;
 
 import org.junit.Test;
+import org.kie.pmml.api.enums.DATA_TYPE;
 import org.kie.pmml.commons.model.ProcessingDTO;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class KiePMMLConstantTest {
 
     @Test
     public void evaluate() {
         Object value = 234.45;
-        final KiePMMLConstant kiePMMLConstant = new KiePMMLConstant("NAME", Collections.emptyList(), value);
-        ProcessingDTO processingDTO = new ProcessingDTO(Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
-        Object retrieved = kiePMMLConstant.evaluate(processingDTO);
-        assertEquals(value, retrieved);
+        final KiePMMLConstant kiePMMLConstant1 = new KiePMMLConstant("NAME", Collections.emptyList(), value, null);
+        ProcessingDTO processingDTO = new ProcessingDTO(Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
+        Object retrieved = kiePMMLConstant1.evaluate(processingDTO);
+        assertThat(retrieved).isEqualTo(value);
+        final KiePMMLConstant kiePMMLConstant2 = new KiePMMLConstant("NAME", Collections.emptyList(), value, DATA_TYPE.STRING);
+        processingDTO = new ProcessingDTO(Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
+        retrieved = kiePMMLConstant2.evaluate(processingDTO);
+        assertThat(retrieved).isEqualTo("234.45");
     }
 }

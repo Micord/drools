@@ -22,6 +22,7 @@ import java.io.Reader;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
@@ -37,6 +38,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import javax.xml.XMLConstants;
@@ -117,6 +120,8 @@ public class DMNCompilerImpl implements DMNCompiler {
         drgCompilers.add( new DecisionServiceCompiler() );
         drgCompilers.add( new KnowledgeSourceCompiler() ); // keep last as it's a void compiler
     }
+    private final List<AfterProcessDrgElements> afterDRGcallbacks = new ArrayList<>();
+    private final static Pattern QNAME_PAT = Pattern.compile("(\\{([^\\}]*)\\})?(([^:]*):)?(.*)");
 
     public DMNCompilerImpl() {
         this(DMNFactory.newCompilerConfiguration());
@@ -461,9 +466,24 @@ public class DMNCompilerImpl implements DMNCompiler {
                 }
             }
         }
+        
+        for (AfterProcessDrgElements callback : afterDRGcallbacks) {
+            logger.debug("About to invoke callback: {}", callback);
+            callback.callback(this, ctx, model);
+        }
+        
         detectCycles( model );
 
 
+    }
+    
+    @FunctionalInterface
+    public static interface AfterProcessDrgElements {
+        void callback(DMNCompilerImpl compiler, DMNCompilerContext ctx, DMNModelImpl model);
+    }
+    
+    public void addCallback(AfterProcessDrgElements callback) {
+        this.afterDRGcallbacks.add(callback);
     }
 
     private void detectCycles( DMNModelImpl model ) {
@@ -747,6 +767,30 @@ public class DMNCompilerImpl implements DMNCompiler {
             return type;
         }
         return dmnModel.getTypeRegistry().unknown();
+    }
+
+    private static QName parseQNameString(String qns) {
+        if (qns != null) {
+            Matcher m = QNAME_PAT.matcher(qns);
+            if (m.matches()) {
+                if (m.group(4) != null) {
+                    return new QName(m.group(2), m.group(5), m.group(4));
+                } else {
+                    return new QName(m.group(2), m.group(5));
+                }
+            } else {
+                return new QName(qns);
+            }
+        } else {
+            return null;
+        }
+    }
+    
+    /**
+     * Internal utilities for new Model exposing typeRef as a String and no longer a XML QName
+     */
+    DMNType resolveTypeRefUsingString(DMNModelImpl dmnModel, NamedElement model, DMNModelInstrumentedBase localElement, String typeRef) {
+    	return resolveTypeRef(dmnModel, model, localElement, parseQNameString(typeRef));
     }
 
     /**

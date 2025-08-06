@@ -3,25 +3,25 @@
   <parent>
     <groupId>org.kie</groupId>
     <artifactId>kie-dmn</artifactId>
-    <version>7.58.0.Final</version>
+    <version>7.74.1.Final-Micord.1</version>
   </parent>
   <artifactId>kie-dmn-signavio</artifactId>
-  
+
     <name>KIE :: Decision Model Notation :: Signavio extensions support</name>
-  
+
   <properties>
     <java.module.name>org.kie.dmn.signavio</java.module.name>
   </properties>
 
   <dependencyManagement>
     <dependencies>
-      <dependency>
-        <groupId>org.drools</groupId>
-        <artifactId>drools-bom</artifactId>
-        <version>${version.org.kie}</version>
-        <type>pom</type>
-        <scope>import</scope>
-      </dependency>
+<!--      <dependency>-->
+<!--        <groupId>org.drools</groupId>-->
+<!--        <artifactId>drools-bom</artifactId>-->
+<!--        <version>${version.org.kie}</version>-->
+<!--        <type>pom</type>-->
+<!--        <scope>import</scope>-->
+<!--      </dependency>-->
     </dependencies>
   </dependencyManagement>
 
@@ -97,9 +97,15 @@
       <artifactId>logback-classic</artifactId>
       <scope>test</scope>
     </dependency>
+
     <dependency>
-      <groupId>org.hamcrest</groupId>
-      <artifactId>hamcrest-library</artifactId>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
       <scope>test</scope>
     </dependency>
 

@@ -16,11 +16,14 @@
 
 package org.drools.core.command.runtime.rule;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAnyElement;
-import javax.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlAnyElement;
+import jakarta.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+
 import org.drools.core.common.InternalWorkingMemory;
+import org.drools.core.xml.jaxb.util.JaxbUnknownAdapter;
 import org.kie.api.command.ExecutableCommand;
 import org.kie.api.runtime.Context;
 import org.kie.api.runtime.KieSession;
@@ -34,6 +37,7 @@ public class FireUntilHaltCommand
     ExecutableCommand<Void> {
     private static final long serialVersionUID = 510l;
 
+    @XmlJavaTypeAdapter(JaxbUnknownAdapter.class)
     @XmlAnyElement(lax = true)
     private AgendaFilter agendaFilter = null;
 

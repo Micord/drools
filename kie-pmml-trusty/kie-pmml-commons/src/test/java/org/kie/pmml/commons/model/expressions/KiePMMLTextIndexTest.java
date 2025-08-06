@@ -26,19 +26,19 @@ import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 
 import org.apache.commons.text.similarity.LevenshteinDistance;
+import org.assertj.core.data.Offset;
 import org.junit.Test;
 import org.kie.pmml.api.enums.COUNT_HITS;
 import org.kie.pmml.api.enums.LOCAL_TERM_WEIGHTS;
 import org.kie.pmml.commons.model.ProcessingDTO;
 import org.kie.pmml.commons.model.tuples.KiePMMLNameValue;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.kie.pmml.api.enums.LOCAL_TERM_WEIGHTS.AUGMENTED_NORMALIZED_TERM_FREQUENCY;
 import static org.kie.pmml.api.enums.LOCAL_TERM_WEIGHTS.BINARY;
 import static org.kie.pmml.api.enums.LOCAL_TERM_WEIGHTS.LOGARITHMIC;
 import static org.kie.pmml.api.enums.LOCAL_TERM_WEIGHTS.TERM_FREQUENCY;
+import static org.kie.pmml.commons.CommonTestingUtility.getProcessingDTO;
 
 public class KiePMMLTextIndexTest {
 
@@ -61,10 +61,9 @@ public class KiePMMLTextIndexTest {
     @Test
     public void evaluateNoTextIndex0Normalizations() {
         // <Constant>brown fox</Constant>
-        final KiePMMLConstant kiePMMLConstant = new KiePMMLConstant("NAME-1", Collections.emptyList(), TERM_0);
+        final KiePMMLConstant kiePMMLConstant = new KiePMMLConstant("NAME-1", Collections.emptyList(), TERM_0, null);
         List<KiePMMLNameValue> kiePMMLNameValues = Collections.singletonList(new KiePMMLNameValue(FIELD_NAME, TEXT_0));
-        ProcessingDTO processingDTO = new ProcessingDTO(Collections.emptyList(), Collections.emptyList(),
-                                                        Collections.emptyList(), kiePMMLNameValues);
+        ProcessingDTO processingDTO = getProcessingDTO(kiePMMLNameValues);
 
         double frequency = 3.0;
         double logarithmic = Math.log10(1 + frequency);
@@ -84,18 +83,17 @@ public class KiePMMLTextIndexTest {
                     .withIsCaseSensitive(true)
                     .withWordSeparatorCharacterRE("\\s+")
                     .build();
-            assertEquals(expected, kiePMMLTextIndex.evaluate(processingDTO));
+            assertThat(kiePMMLTextIndex.evaluate(processingDTO)).isEqualTo(expected);
         });
     }
 
     @Test
     public void evaluateTextIndex0Normalizations() {
         // <Constant>brown fox</Constant>
-        final KiePMMLConstant kiePMMLConstant = new KiePMMLConstant("NAME-1", Collections.emptyList(), TERM_0);
+        final KiePMMLConstant kiePMMLConstant = new KiePMMLConstant("NAME-1", Collections.emptyList(), TERM_0, null);
         List<KiePMMLNameValue> kiePMMLNameValues = Collections.singletonList(new KiePMMLNameValue(FIELD_NAME,
                                                                                                   NOT_NORMALIZED_TEXT_0));
-        ProcessingDTO processingDTO = new ProcessingDTO(Collections.emptyList(), Collections.emptyList(),
-                                                        Collections.emptyList(), kiePMMLNameValues);
+        ProcessingDTO processingDTO = getProcessingDTO(kiePMMLNameValues);
 
         double frequency = 3.0;
         double logarithmic = Math.log10(1 + frequency);
@@ -115,7 +113,7 @@ public class KiePMMLTextIndexTest {
                     .withIsCaseSensitive(true)
                     .withTextIndexNormalizations(getKiePMMLTextIndexNormalizations())
                     .build();
-            assertEquals(expected, kiePMMLTextIndex.evaluate(processingDTO));
+            assertThat(kiePMMLTextIndex.evaluate(processingDTO)).isEqualTo(expected);
         });
     }
 
@@ -204,9 +202,8 @@ public class KiePMMLTextIndexTest {
                                                                                                   TERM_1),
                                                                  new KiePMMLNameValue("reviewText",
                                                                                       NOT_NORMALIZED_TEXT_1));
-        ProcessingDTO processingDTO = new ProcessingDTO(Collections.emptyList(), Collections.emptyList(),
-                                                        Collections.emptyList(), kiePMMLNameValues);
-        assertEquals(1.0, kiePMMLTextIndex.evaluate(processingDTO));
+        ProcessingDTO processingDTO = getProcessingDTO(kiePMMLNameValues);
+        assertThat(kiePMMLTextIndex.evaluate(processingDTO)).isEqualTo(1.0);
     }
 
     @Test
@@ -222,15 +219,17 @@ public class KiePMMLTextIndexTest {
         expectedResults.put(BINARY, 1.0);
         expectedResults.put(LOGARITHMIC, logarithmic);
         expectedResults.put(AUGMENTED_NORMALIZED_TERM_FREQUENCY, augmentedNormalizedTermFrequency);
-        expectedResults.forEach((localTermWeights, expected) -> assertEquals(expected,
-                                                                             KiePMMLTextIndex.evaluateRaw(true,
-                                                                                                          true,
-                                                                                                          TERM_0,
-                                                                                                          TEXT_0,
-                                                                                                          "\\s+",
-                                                                                                          localTermWeights,
-                                                                                                          COUNT_HITS.ALL_HITS,
-                                                                                                          levenshteinDistance), 0.0000001));
+        expectedResults.forEach((localTermWeights, expected) -> {
+			double evaluateRaw = KiePMMLTextIndex.evaluateRaw(true,
+															  true,
+                                                              TERM_0,
+                                                              TEXT_0,
+                                                              "\\s+",
+                                                              localTermWeights,
+                                                              COUNT_HITS.ALL_HITS,
+                                                              levenshteinDistance);
+			assertThat(evaluateRaw).isCloseTo(expected, Offset.offset(0.0000001));
+		});
         //---
         maxFrequency = 3;
         augmentedNormalizedTermFrequency = 0.5 * (1 + (frequency / (double) maxFrequency)); // cast
@@ -240,15 +239,17 @@ public class KiePMMLTextIndexTest {
         expectedResults.put(BINARY, 1.0);
         expectedResults.put(LOGARITHMIC, logarithmic);
         expectedResults.put(AUGMENTED_NORMALIZED_TERM_FREQUENCY, augmentedNormalizedTermFrequency);
-        expectedResults.forEach((localTermWeights, expected) -> assertEquals(expected,
-                                                                             KiePMMLTextIndex.evaluateRaw(false,
-                                                                                                          true,
-                                                                                                          TERM_0,
-                                                                                                          TEXT_0,
-                                                                                                          "\\s+",
-                                                                                                          localTermWeights,
-                                                                                                          COUNT_HITS.ALL_HITS,
-                                                                                                          levenshteinDistance), 0.0000001));
+        expectedResults.forEach((localTermWeights, expected) -> {
+			double evaluateRaw = KiePMMLTextIndex.evaluateRaw(false,
+			                              true,
+			                              TERM_0,
+			                              TEXT_0,
+			                              "\\s+",
+			                              localTermWeights,
+			                              COUNT_HITS.ALL_HITS,
+			                              levenshteinDistance);
+			assertThat(evaluateRaw).isCloseTo(expected,  Offset.offset(0.0000001));
+		});
         //---
         frequency = 4.0;
         logarithmic = Math.log10(1 + frequency);
@@ -259,15 +260,17 @@ public class KiePMMLTextIndexTest {
         expectedResults.put(BINARY, 1.0);
         expectedResults.put(LOGARITHMIC, logarithmic);
         expectedResults.put(AUGMENTED_NORMALIZED_TERM_FREQUENCY, augmentedNormalizedTermFrequency);
-        expectedResults.forEach((localTermWeights, expected) -> assertEquals(expected,
-                                                                             KiePMMLTextIndex.evaluateRaw(false,
-                                                                                                          true,
-                                                                                                          TERM_0,
-                                                                                                          TEXT_0,
-                                                                                                          "[\\s\\-]",
-                                                                                                          localTermWeights,
-                                                                                                          COUNT_HITS.ALL_HITS,
-                                                                                                          levenshteinDistance), 0.0000001));
+        expectedResults.forEach((localTermWeights, expected) -> {
+			double evaluateRaw = KiePMMLTextIndex.evaluateRaw(false,
+			                              true,
+			                              TERM_0,
+			                              TEXT_0,
+			                              "[\\s\\-]",
+			                              localTermWeights,
+			                              COUNT_HITS.ALL_HITS,
+			                              levenshteinDistance);
+			assertThat(evaluateRaw).isCloseTo(expected, Offset.offset(0.0000001));
+		});
     }
 
     @Test
@@ -283,15 +286,17 @@ public class KiePMMLTextIndexTest {
         expectedResults.put(BINARY, 1.0);
         expectedResults.put(LOGARITHMIC, logarithmic);
         expectedResults.put(AUGMENTED_NORMALIZED_TERM_FREQUENCY, augmentedNormalizedTermFrequency);
-        expectedResults.forEach((localTermWeights, expected) -> assertEquals(expected,
-                                                                             KiePMMLTextIndex.evaluateRaw(true,
-                                                                                                          false,
-                                                                                                          TERM_0,
-                                                                                                          TEXT_0,
-                                                                                                          "\\s+",
-                                                                                                          localTermWeights,
-                                                                                                          COUNT_HITS.ALL_HITS,
-                                                                                                          levenshteinDistance), 0.0000001));
+        expectedResults.forEach((localTermWeights, expected) -> {
+			double evaluateRaw = KiePMMLTextIndex.evaluateRaw(true,
+			                              false,
+			                              TERM_0,
+			                              TEXT_0,
+			                              "\\s+",
+			                              localTermWeights,
+			                              COUNT_HITS.ALL_HITS,
+			                              levenshteinDistance);
+			assertThat(evaluateRaw).isCloseTo(expected, Offset.offset(0.0000001));
+		});
         //---
         maxFrequency = 3;
         augmentedNormalizedTermFrequency = 0.5 * (1 + (frequency / (double) maxFrequency)); // cast
@@ -301,15 +306,17 @@ public class KiePMMLTextIndexTest {
         expectedResults.put(BINARY, 1.0);
         expectedResults.put(LOGARITHMIC, logarithmic);
         expectedResults.put(AUGMENTED_NORMALIZED_TERM_FREQUENCY, augmentedNormalizedTermFrequency);
-        expectedResults.forEach((localTermWeights, expected) -> assertEquals(expected,
-                                                                             KiePMMLTextIndex.evaluateRaw(false,
-                                                                                                          false,
-                                                                                                          TERM_0,
-                                                                                                          TEXT_0,
-                                                                                                          "\\s+",
-                                                                                                          localTermWeights,
-                                                                                                          COUNT_HITS.ALL_HITS,
-                                                                                                          levenshteinDistance), 0.0000001));
+        expectedResults.forEach((localTermWeights, expected) -> {
+			double evaluateRaw = KiePMMLTextIndex.evaluateRaw(false,
+			                              false,
+			                              TERM_0,
+			                              TEXT_0,
+			                              "\\s+",
+			                              localTermWeights,
+			                              COUNT_HITS.ALL_HITS,
+			                              levenshteinDistance);
+			assertThat(evaluateRaw).isCloseTo(expected, Offset.offset(0.0000001));
+		});
         //---
         frequency = 3.0;
         logarithmic = Math.log10(1 + frequency);
@@ -320,15 +327,17 @@ public class KiePMMLTextIndexTest {
         expectedResults.put(BINARY, 1.0);
         expectedResults.put(LOGARITHMIC, logarithmic);
         expectedResults.put(AUGMENTED_NORMALIZED_TERM_FREQUENCY, augmentedNormalizedTermFrequency);
-        expectedResults.forEach((localTermWeights, expected) -> assertEquals(expected,
-                                                                             KiePMMLTextIndex.evaluateRaw(false,
-                                                                                                          false,
-                                                                                                          TERM_0,
-                                                                                                          TEXT_0,
-                                                                                                          "[\\s\\-]",
-                                                                                                          localTermWeights,
-                                                                                                          COUNT_HITS.ALL_HITS,
-                                                                                                          levenshteinDistance), 0.0000001));
+        expectedResults.forEach((localTermWeights, expected) -> {
+			double evaluateRaw = KiePMMLTextIndex.evaluateRaw(false,
+			                              false,
+			                              TERM_0,
+			                              TEXT_0,
+			                              "[\\s\\-]",
+			                              localTermWeights,
+			                              COUNT_HITS.ALL_HITS,
+			                              levenshteinDistance);
+			assertThat(evaluateRaw).isCloseTo(expected, Offset.offset(0.0000001));
+		});
     }
 
     @Test
@@ -346,9 +355,7 @@ public class KiePMMLTextIndexTest {
         int binaryEvaluation = 1;
         double expected = 0.5 * (binaryEvaluation + (calculatedLevenshteinDistance / (double) maxFrequency)); // cast
         // for java:S2184
-        assertEquals(expected,
-                     KiePMMLTextIndex.evaluateAugmentedNormalizedTermFrequency(calculatedLevenshteinDistance, texts),
-                     0.0);
+        assertThat(KiePMMLTextIndex.evaluateAugmentedNormalizedTermFrequency(calculatedLevenshteinDistance, texts)).isCloseTo(expected, Offset.offset(0.0));
     }
 
     @Test
@@ -358,22 +365,22 @@ public class KiePMMLTextIndexTest {
         List<String> terms = KiePMMLTextIndex.splitText(TERM_0, pattern);
         List<String> texts = KiePMMLTextIndex.splitText(TEXT_0, pattern);
         LevenshteinDistance levenshteinDistance = new LevenshteinDistance(0);
-        assertEquals(1, KiePMMLTextIndex.evaluateLevenshteinDistanceAllHits(levenshteinDistance, terms, texts));
+        assertThat(KiePMMLTextIndex.evaluateLevenshteinDistanceAllHits(levenshteinDistance, terms, texts)).isEqualTo(1);
         levenshteinDistance = new LevenshteinDistance(1);
-        assertEquals(2, KiePMMLTextIndex.evaluateLevenshteinDistanceAllHits(levenshteinDistance, terms, texts));
+        assertThat(KiePMMLTextIndex.evaluateLevenshteinDistanceAllHits(levenshteinDistance, terms, texts)).isEqualTo(2);
         levenshteinDistance = new LevenshteinDistance(2);
-        assertEquals(3, KiePMMLTextIndex.evaluateLevenshteinDistanceAllHits(levenshteinDistance, terms, texts));
+        assertThat(KiePMMLTextIndex.evaluateLevenshteinDistanceAllHits(levenshteinDistance, terms, texts)).isEqualTo(3);
         //---
         wordSeparatorCharacterRE = "[\\s\\-]"; // brown-foxy match
         pattern = Pattern.compile(wordSeparatorCharacterRE);
         terms = KiePMMLTextIndex.splitText(TERM_0, pattern);
         texts = KiePMMLTextIndex.splitText(TEXT_0, pattern);
         levenshteinDistance = new LevenshteinDistance(0);
-        assertEquals(1, KiePMMLTextIndex.evaluateLevenshteinDistanceAllHits(levenshteinDistance, terms, texts));
+        assertThat(KiePMMLTextIndex.evaluateLevenshteinDistanceAllHits(levenshteinDistance, terms, texts)).isEqualTo(1);
         levenshteinDistance = new LevenshteinDistance(1);
-        assertEquals(3, KiePMMLTextIndex.evaluateLevenshteinDistanceAllHits(levenshteinDistance, terms, texts));
+        assertThat(KiePMMLTextIndex.evaluateLevenshteinDistanceAllHits(levenshteinDistance, terms, texts)).isEqualTo(3);
         levenshteinDistance = new LevenshteinDistance(2);
-        assertEquals(4, KiePMMLTextIndex.evaluateLevenshteinDistanceAllHits(levenshteinDistance, terms, texts));
+        assertThat(KiePMMLTextIndex.evaluateLevenshteinDistanceAllHits(levenshteinDistance, terms, texts)).isEqualTo(4);
     }
 
     @Test
@@ -383,22 +390,22 @@ public class KiePMMLTextIndexTest {
         List<String> terms = KiePMMLTextIndex.splitText("The", pattern);
         List<String> texts = KiePMMLTextIndex.splitText(TEXT_0, pattern);
         LevenshteinDistance levenshteinDistance = new LevenshteinDistance(0);
-        assertEquals(2, KiePMMLTextIndex.evaluateLevenshteinDistanceBestHits(levenshteinDistance, terms, texts));
+        assertThat(KiePMMLTextIndex.evaluateLevenshteinDistanceBestHits(levenshteinDistance, terms, texts)).isEqualTo(2);
         levenshteinDistance = new LevenshteinDistance(1);
-        assertEquals(2, KiePMMLTextIndex.evaluateLevenshteinDistanceBestHits(levenshteinDistance, terms, texts));
+        assertThat(KiePMMLTextIndex.evaluateLevenshteinDistanceBestHits(levenshteinDistance, terms, texts)).isEqualTo(2);
         levenshteinDistance = new LevenshteinDistance(2);
-        assertEquals(2, KiePMMLTextIndex.evaluateLevenshteinDistanceBestHits(levenshteinDistance, terms, texts));
+        assertThat(KiePMMLTextIndex.evaluateLevenshteinDistanceBestHits(levenshteinDistance, terms, texts)).isEqualTo(2);
         //---
         wordSeparatorCharacterRE = "[\\s\\-]"; // brown-foxy match
         pattern = Pattern.compile(wordSeparatorCharacterRE);
         terms = KiePMMLTextIndex.splitText("The", pattern);
         texts = KiePMMLTextIndex.splitText(TEXT_0, pattern);
         levenshteinDistance = new LevenshteinDistance(0);
-        assertEquals(2, KiePMMLTextIndex.evaluateLevenshteinDistanceBestHits(levenshteinDistance, terms, texts));
+        assertThat(KiePMMLTextIndex.evaluateLevenshteinDistanceBestHits(levenshteinDistance, terms, texts)).isEqualTo(2);
         levenshteinDistance = new LevenshteinDistance(1);
-        assertEquals(2, KiePMMLTextIndex.evaluateLevenshteinDistanceBestHits(levenshteinDistance, terms, texts));
+        assertThat(KiePMMLTextIndex.evaluateLevenshteinDistanceBestHits(levenshteinDistance, terms, texts)).isEqualTo(2);
         levenshteinDistance = new LevenshteinDistance(2);
-        assertEquals(2, KiePMMLTextIndex.evaluateLevenshteinDistanceBestHits(levenshteinDistance, terms, texts));
+        assertThat(KiePMMLTextIndex.evaluateLevenshteinDistanceBestHits(levenshteinDistance, terms, texts)).isEqualTo(2);
     }
 
     @Test
@@ -406,25 +413,25 @@ public class KiePMMLTextIndexTest {
         String toSearch = "brown fox";
         String toScan = "brown fox";
         LevenshteinDistance levenshteinDistance = new LevenshteinDistance(0);
-        assertEquals(0, KiePMMLTextIndex.evaluateLevenshteinDistance(levenshteinDistance, toSearch, toScan));
+        assertThat(KiePMMLTextIndex.evaluateLevenshteinDistance(levenshteinDistance, toSearch, toScan)).isEqualTo(0);
         levenshteinDistance = new LevenshteinDistance(1);
-        assertEquals(0, KiePMMLTextIndex.evaluateLevenshteinDistance(levenshteinDistance, toSearch, toScan));
+        assertThat(KiePMMLTextIndex.evaluateLevenshteinDistance(levenshteinDistance, toSearch, toScan)).isEqualTo(0);
         levenshteinDistance = new LevenshteinDistance(2);
-        assertEquals(0, KiePMMLTextIndex.evaluateLevenshteinDistance(levenshteinDistance, toSearch, toScan));
+        assertThat(KiePMMLTextIndex.evaluateLevenshteinDistance(levenshteinDistance, toSearch, toScan)).isEqualTo(0);
         toScan = "brown foxy";
         levenshteinDistance = new LevenshteinDistance(0);
-        assertEquals(-1, KiePMMLTextIndex.evaluateLevenshteinDistance(levenshteinDistance, toSearch, toScan));
+        assertThat(KiePMMLTextIndex.evaluateLevenshteinDistance(levenshteinDistance, toSearch, toScan)).isEqualTo(-1);
         levenshteinDistance = new LevenshteinDistance(1);
-        assertEquals(1, KiePMMLTextIndex.evaluateLevenshteinDistance(levenshteinDistance, toSearch, toScan));
+        assertThat(KiePMMLTextIndex.evaluateLevenshteinDistance(levenshteinDistance, toSearch, toScan)).isEqualTo(1);
         levenshteinDistance = new LevenshteinDistance(2);
-        assertEquals(1, KiePMMLTextIndex.evaluateLevenshteinDistance(levenshteinDistance, toSearch, toScan));
+        assertThat(KiePMMLTextIndex.evaluateLevenshteinDistance(levenshteinDistance, toSearch, toScan)).isEqualTo(1);
         toScan = "browny foxy";
         levenshteinDistance = new LevenshteinDistance(0);
-        assertEquals(-1, KiePMMLTextIndex.evaluateLevenshteinDistance(levenshteinDistance, toSearch, toScan));
+        assertThat(KiePMMLTextIndex.evaluateLevenshteinDistance(levenshteinDistance, toSearch, toScan)).isEqualTo(-1);
         levenshteinDistance = new LevenshteinDistance(1);
-        assertEquals(-1, KiePMMLTextIndex.evaluateLevenshteinDistance(levenshteinDistance, toSearch, toScan));
+        assertThat(KiePMMLTextIndex.evaluateLevenshteinDistance(levenshteinDistance, toSearch, toScan)).isEqualTo(-1);
         levenshteinDistance = new LevenshteinDistance(2);
-        assertEquals(2, KiePMMLTextIndex.evaluateLevenshteinDistance(levenshteinDistance, toSearch, toScan));
+        assertThat(KiePMMLTextIndex.evaluateLevenshteinDistance(levenshteinDistance, toSearch, toScan)).isEqualTo(2);
     }
 
     @Test
@@ -433,17 +440,17 @@ public class KiePMMLTextIndexTest {
         final Pattern wantedPattern = Pattern.compile("[a-zA-Z0-9]");
         Pattern pattern = Pattern.compile("\\s+");
         List<String> retrieved = KiePMMLTextIndex.splitText(TEXT_0, pattern);
-        assertEquals(25, retrieved.size());
+        assertThat(retrieved).hasSize(25);
         retrieved.forEach(txt -> {
-            assertFalse(unwantedPattern.matcher(txt).find());
-            assertTrue(wantedPattern.matcher(txt).find());
+            assertThat(unwantedPattern.matcher(txt).find()).isFalse();
+            assertThat(wantedPattern.matcher(txt).find()).isTrue();
         });
         pattern = Pattern.compile("[\\s\\-]");
         retrieved = KiePMMLTextIndex.splitText(TEXT_0, pattern);
-        assertEquals(26, retrieved.size());
+        assertThat(retrieved).hasSize(26);
         retrieved.forEach(txt -> {
-            assertFalse(unwantedPattern.matcher(txt).find());
-            assertTrue(wantedPattern.matcher(txt).find());
+            assertThat(unwantedPattern.matcher(txt).find()).isFalse();
+            assertThat(wantedPattern.matcher(txt).find()).isTrue();
         });
     }
 
