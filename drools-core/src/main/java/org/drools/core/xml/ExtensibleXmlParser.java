@@ -685,7 +685,6 @@ public class ExtensibleXmlParser extends DefaultHandler {
     }
 
     public void error(final SAXParseException x) {
-        logger.error( buildPrintMessage( x ) );
     }
 
     public void fatalError(final SAXParseException x) throws SAXParseException {
