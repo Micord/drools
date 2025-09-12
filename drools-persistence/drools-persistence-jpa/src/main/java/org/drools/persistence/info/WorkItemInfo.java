@@ -39,6 +39,8 @@ import org.drools.serialization.protobuf.ProtobufInputMarshaller;
 import org.drools.serialization.protobuf.ProtobufMarshallerReaderContext;
 import org.drools.serialization.protobuf.ProtobufMarshallerWriteContext;
 import org.drools.serialization.protobuf.ProtobufOutputMarshaller;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import org.kie.api.runtime.Environment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,6 +66,7 @@ public class WorkItemInfo implements PersistentWorkItem {
 
     @Lob
     @Column(length=2147483647)
+    @JdbcTypeCode(SqlTypes.BINARY)
     private byte[] workItemByteArray;
 
     private @Transient

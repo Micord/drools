@@ -529,11 +529,14 @@ public class StatefulKnowledgeSessionImpl extends AbstractRuntime
             this.kBase.removeEventListener(listener);
         }
 
-        if (processRuntime != null) {
+        if (this.processRuntime != null) {
             this.processRuntime.dispose();
+            this.processRuntime = null;
         }
 
-        this.timerService.shutdown();
+        if (this.timerService != null) {
+            this.timerService.shutdown();
+        }
 
         if (this.workItemManager != null) {
             ((org.drools.core.process.instance.WorkItemManager)this.workItemManager).dispose();
@@ -760,14 +763,14 @@ public class StatefulKnowledgeSessionImpl extends AbstractRuntime
     public String getEntryPointId() {
         return EntryPointId.DEFAULT.getEntryPointId();
     }
-    
+
     /**
-     * (This shall NOT be exposed on public API)  
+     * (This shall NOT be exposed on public API)
      */
     public QueryResultsImpl getQueryResultsFromRHS(String queryName, Object... arguments) {
     	return internalGetQueryResult(true, queryName, arguments);
     }
-    
+
     public QueryResultsImpl getQueryResults(String queryName, Object... arguments) {
     	return internalGetQueryResult(false, queryName, arguments);
     }
@@ -937,7 +940,7 @@ public class StatefulKnowledgeSessionImpl extends AbstractRuntime
 
             done(tnodes);
         }
-        
+
         @Override
         public boolean isCalledFromRHS() {
         	return calledFromRHS;
@@ -1098,7 +1101,9 @@ public class StatefulKnowledgeSessionImpl extends AbstractRuntime
         this.defaultEntryPoint.reset();
         updateEntryPointsCache();
 
-        this.timerService.reset();
+        if (this.timerService != null) {
+           this.timerService.reset();
+        }
 
         if (this.processRuntime != null) {
             this.processRuntime.dispose();
