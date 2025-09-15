@@ -65,8 +65,8 @@ public class WorkItemInfo implements PersistentWorkItem {
     private long   state;
 
     @Lob
-    @Column(length=2147483647)
-    @JdbcTypeCode(SqlTypes.BINARY)
+    @Column
+    @JdbcTypeCode(SqlTypes.LONG32VARBINARY)
     private byte[] workItemByteArray;
 
     private @Transient

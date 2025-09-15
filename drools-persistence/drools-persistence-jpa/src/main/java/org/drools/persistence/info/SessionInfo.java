@@ -49,8 +49,8 @@ public class SessionInfo implements PersistentSession {
     private Date               lastModificationDate;
 
     @Lob
-    @Column(length=2147483647)
-    @JdbcTypeCode(SqlTypes.BINARY)
+    @Column
+    @JdbcTypeCode(SqlTypes.LONG32VARBINARY)
     private byte[]             rulesByteArray;
 
     @Transient

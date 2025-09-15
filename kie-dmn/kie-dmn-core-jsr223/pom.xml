@@ -3,7 +3,7 @@
   <parent>
     <groupId>org.kie</groupId>
     <artifactId>kie-dmn</artifactId>
-    <version>7.74.1.Final-Micord.3</version>
+    <version>7.74.1.Final-Micord.4</version>
   </parent>
   <artifactId>kie-dmn-core-jsr223</artifactId>
   <name>KIE :: Decision Model Notation :: Core JSR-223</name>
